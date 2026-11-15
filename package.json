@@ -1,0 +1,14 @@
+{
+  "name": "final-system",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "blockchain"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build:frontend": "npm run build --workspace frontend",
+    "compile:blockchain": "npm run compile --workspace blockchain",
+    "test:blockchain": "npm run test --workspace blockchain"
+  }
+}
