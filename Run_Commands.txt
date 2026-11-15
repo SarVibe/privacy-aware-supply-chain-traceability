@@ -1,0 +1,15 @@
+cd C:\Users\Acer\Desktop\xyz\Final_System
+
+# Python version and backend packages
+.\backend\venv313\Scripts\python.exe --version
+.\backend\venv313\Scripts\python.exe -m pip check
+.\backend\venv313\Scripts\python.exe -c "import fastapi, uvicorn; print('FastAPI', fastapi.__version__); print('Uvicorn', uvicorn.__version__)"
+
+# JavaScript dependencies and frontend build
+npm ls --depth=0
+npm run build:frontend
+
+# Blockchain toolchain and configuration
+node --version
+npx hardhat --version
+npm run compile:blockchain
