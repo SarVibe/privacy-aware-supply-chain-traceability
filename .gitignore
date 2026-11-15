@@ -1,18 +1,78 @@
+
+# ==========================================
+# Node.js / React / Frontend
+# ==========================================
 node_modules/
-venv*/
-.venv/
+dist/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ==========================================
+# Python
+# ==========================================
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+develop-eggs/
+.eggs/
+wheels/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+venv*/
+.venv/
+env/
+ENV/
+
+# ==========================================
+# Environment Variables / Secrets
+# ==========================================
 .env
 .env.*
 !.env.example
-dist/
-coverage/
+.envrc
+.pypirc
+
+# ==========================================
+# Hardhat / Ethereum
+# ==========================================
 artifacts/
 cache/
 typechain-types/
+
+# ==========================================
+# Circom / Zero-Knowledge Proofs
+# ==========================================
 *.zkey
 *.r1cs
 *.wasm
 *.ptau
+
+# ==========================================
+# IDE / Operating System
+# ==========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Temporary files
+# ==========================================
+*.log
+tempCodeRunnerFile.py
