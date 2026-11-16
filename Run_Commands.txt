@@ -1,0 +1,33 @@
+cd C:\Users\M Sarvayan\OneDrive\Desktop\RP-Component1
+
+# Python version and backend packages
+.\backend\venv313\Scripts\python.exe --version
+.\backend\venv313\Scripts\python.exe -m pip check
+.\backend\venv313\Scripts\python.exe -c "import fastapi, uvicorn; print('FastAPI', fastapi.__version__); print('Uvicorn', uvicorn.__version__)"
+
+# JavaScript dependencies and frontend build
+npm install --prefix blockchain
+npm install --prefix frontend
+npm --prefix frontend run build
+
+# Blockchain toolchain and configuration
+node --version
+npx --prefix blockchain hardhat --version
+npm --prefix blockchain run compile
+npm --prefix blockchain test
+
+# Python unit and integration tests
+.\backend\venv313\Scripts\python.exe -m pytest
+
+# FastAPI backend (separate terminal)
+$env:PYTHONPATH = "backend\app"
+.\backend\venv313\Scripts\python.exe -m uvicorn main:app --app-dir backend\app --reload
+
+# React frontend (separate terminal)
+npm run dev --prefix frontend
+
+# Research experiments
+$env:PYTHONPATH = "backend\app"
+.\backend\venv313\Scripts\python.exe -m experiments.exp2_collision_tuning
+.\backend\venv313\Scripts\python.exe -m experiments.exp3_ldp_privacy_tradeoff
+.\backend\venv313\Scripts\python.exe -m experiments.exp_scalability_benchmarks

@@ -1,0 +1,12 @@
+fastapi>=0.115,<1
+httpx2>=2,<3
+uvicorn[standard]>=0.34,<1
+bitarray>=3,<4
+matplotlib>=3.8,<4
+numpy>=2,<3
+pandas>=2.2,<3
+python-dotenv>=1,<2
+scikit-learn>=1.5,<2
+seaborn>=0.13,<1
+web3>=7,<8
+pytest>=8,<9
