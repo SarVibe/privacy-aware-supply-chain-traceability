@@ -11,6 +11,7 @@ Role:
 """
 
 from typing import Dict, List, Any
+import numpy as np
 import pandas as pd
 
 
@@ -100,6 +101,45 @@ class LinkageMetrics:
         Converts a list of experiment metric summaries into a formatted pandas DataFrame.
         """
         return pd.DataFrame(metrics_list)
+
+    @staticmethod
+    def entity_bootstrap_ci(
+        df_results: pd.DataFrame,
+        n_bootstrap: int = 1000,
+        confidence: float = 0.95,
+        random_seed: int = 2026,
+    ) -> Dict[str, float]:
+        """Bootstrap pairwise metrics by resampling complete true-entity groups."""
+        if df_results.empty:
+            return {}
+        groups = [group for _, group in df_results.groupby("true_entity_id", sort=False)]
+        rng = np.random.default_rng(random_seed)
+        values = {metric: [] for metric in ("precision", "recall", "f1_score")}
+        for _ in range(n_bootstrap):
+            sample = [groups[i] for i in rng.integers(0, len(groups), len(groups))]
+            replicate = pd.concat(
+                [group.assign(_bootstrap_group=position) for position, group in enumerate(sample)],
+                ignore_index=True,
+            )
+            replicate["predicted_cluster_id"] = (
+                replicate["_bootstrap_group"].astype(str)
+                + ":"
+                + replicate["predicted_cluster_id"].astype(str)
+            )
+            replicate["true_entity_id"] = (
+                replicate["_bootstrap_group"].astype(str)
+                + ":"
+                + replicate["true_entity_id"].astype(str)
+            )
+            metrics = LinkageMetrics.compute_pairwise_metrics(replicate)
+            for metric in values:
+                values[metric].append(metrics[metric])
+        alpha = (1.0 - confidence) / 2.0
+        return {
+            f"{metric}_{bound}": float(np.quantile(scores, alpha if bound == "lower" else 1.0 - alpha))
+            for metric, scores in values.items()
+            for bound in ("lower", "upper")
+        }
 
 
 if __name__ == "__main__":

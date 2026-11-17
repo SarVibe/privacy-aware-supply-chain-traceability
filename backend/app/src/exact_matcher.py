@@ -3,7 +3,7 @@ src/exact_matcher.py
 Component 1: Pre-Ledger Cross-Organizational Data Harmonization
 
 Role:
-- Baseline entity resolution engine using exact matching (SHA-256 cryptographic hash & strict string equality).
+- Baseline entity resolution engine using exact matching (SHA-256 cryptographic hash).
 - Serves as the primary comparative baseline for Research Question 1 (RQ1).
 - Demonstrates how traditional non-fuzzy supply chain ledgers fail under typographical noise (GIGO problem).
 """
@@ -17,7 +17,8 @@ from src.preprocessor import TextPreprocessor
 class ExactMatcher:
     """
     Baseline Exact Matching Engine.
-    Clusters records based strictly on cryptographic hash equality of normalized text.
+    Clusters records based on cryptographic hash equality. Normalization is optional;
+    when disabled, the supplied string is hashed byte-for-byte without preprocessing.
     """
 
     def __init__(self, normalize: bool = True):
@@ -30,7 +31,7 @@ class ExactMatcher:
         """Computes deterministic SHA-256 hash of a string."""
         if not text:
             return hashlib.sha256(b"").hexdigest()
-        clean = TextPreprocessor.normalize(text) if self.normalize else text.strip()
+        clean = TextPreprocessor.normalize(text) if self.normalize else text
         return hashlib.sha256(clean.encode("utf-8")).hexdigest()
         
     def resolve_record(

@@ -110,7 +110,7 @@ class QGramExtractor:
 
     def extract_composite_qgrams(
         self,
-        name: str,
+        name: Optional[str],
         dosage: Optional[str] = None,
         dosage_form: Optional[str] = None,
         pack_size: Optional[Union[str, int]] = None,
@@ -134,7 +134,7 @@ class QGramExtractor:
 
         # 1. Tag(Name): Dual-granularity token n-grams (Bigrams q=2 + Trigrams q=3)
         # Bigrams ensure high recall under typographical noise; Trigrams preserve lexical specificity.
-        if name and name.strip():
+        if name is not None and name.strip():
             tokens = name.strip().split()
             for token in tokens:
                 # Bigrams (q=2 with 1 boundary pad)
@@ -148,7 +148,9 @@ class QGramExtractor:
                     composite_tokens.add(f"NAME_Q3_{padded_q3[i:i+3]}")
 
         # 2. Tag(Dosage): Domain-tagged trigrams + exact token + explicit numerical token signatures (Priority 1)
-        clean_dose = str(dosage).strip() if dosage is not None else ""
+        clean_dose = dosage.strip() if isinstance(dosage, str) else (
+            str(dosage).strip() if dosage is not None else ""
+        )
         if clean_dose and clean_dose.lower() not in ("n/a", "na", "unknown", "none"):
             dose_tokens = clean_dose.split()
             dose_numbers = re.findall(r'\b\d+\b', clean_dose)
@@ -165,7 +167,9 @@ class QGramExtractor:
                 composite_tokens.add(f"DOSE_W{w}_NA")
 
         # 3. Tag(Dosage Form): Formulation q-grams + exact token with prefix 'FORM_'
-        clean_form = str(dosage_form).strip() if dosage_form is not None else ""
+        clean_form = dosage_form.strip() if isinstance(dosage_form, str) else (
+            str(dosage_form).strip() if dosage_form is not None else ""
+        )
         if clean_form and clean_form.lower() not in ("unknown", "none", "n/a"):
             form_tokens = clean_form.split()
             for token in form_tokens:
@@ -174,7 +178,9 @@ class QGramExtractor:
             composite_tokens.add(f"EXACT_FORM_{clean_form.replace(' ', '_')}")
 
         # 4. Tag(Pack Size): Standardized packaging count with prefix 'PACK_'
-        clean_pack = str(pack_size).strip() if pack_size is not None else ""
+        clean_pack = pack_size.strip() if isinstance(pack_size, str) else (
+            str(pack_size).strip() if pack_size is not None else ""
+        )
         if clean_pack and clean_pack.lower() not in ("standard", "unknown", "none", "n/a"):
             composite_tokens.add(f"PACK_{clean_pack}")
 

@@ -71,6 +71,9 @@ class Config:
     DATA_RAW_DIR = RAW_DATA_PATH.parent
     DATA_PROCESSED_DIR = BASE_DIR / os.getenv("PROCESSED_DATA_DIR", "data/processed")
     DATA_SYNTHETIC_DIR = BASE_DIR / os.getenv("SYNTHETIC_DATA_DIR", "data/synthetic_noisy")
+    DATA_SYNTHETIC_ALL_FIELDS_DIR = BASE_DIR / os.getenv(
+        "SYNTHETIC_ALL_FIELDS_DATA_DIR", "data/synthetic_noisy_all_fields"
+    )
 
     MASTER_PRODUCTS_PATH = DATA_PROCESSED_DIR / "clean_master_products.csv"
     ENTITY_CATALOG_PATH = DATA_PROCESSED_DIR / "entity_catalog.csv"
@@ -100,6 +103,7 @@ class Config:
             cls.DATA_RAW_DIR,
             cls.DATA_PROCESSED_DIR,
             cls.DATA_SYNTHETIC_DIR,
+            cls.DATA_SYNTHETIC_ALL_FIELDS_DIR,
             cls.FIGURES_DIR,
             cls.TABLES_DIR,
         ]:

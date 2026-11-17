@@ -86,3 +86,31 @@ backend\venv313\Scripts\python.exe -m experiments.exp_scalability_benchmarks
 ```
 
 Each experiment writes its CSV result to `data\tables`.
+
+### RQ1 reproducible benchmark
+
+Generate the single-source seeded inputs before running RQ1:
+
+```powershell
+$env:PYTHONPATH = "backend\app"
+.\backend\venv313\Scripts\python.exe -m experiments.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51
+.\backend\venv313\Scripts\python.exe -m experiments.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51 --all-fields
+.\backend\venv313\Scripts\python.exe -m experiments.exp1_accuracy_benchmark --noise-source files
+```
+
+RQ1 tunes the headline threshold on seeds 42-46 and reports final results on
+seeds 47-51. The all-fields robustness run uses the separate generated
+directory and a suffixed output set:
+
+```powershell
+.\backend\venv313\Scripts\python.exe -m experiments.exp1_accuracy_benchmark `
+  --noise-source files --data-dir backend\app\data\synthetic_noisy_all_fields `
+  --output-suffix _all_fields
+```
+
+Pairwise precision is defined as `TP / (TP + FP)`; therefore precision is
+reported as 0 when no predicted pairs exist, including exact matching at high
+noise. Description-only BF can produce false positives at zero noise because
+117 duplicate-description groups represent only 96 entity groups. The dataset
+contains 481 records from 149 entities and one source; seed changes affect
+noise, not the underlying sample.

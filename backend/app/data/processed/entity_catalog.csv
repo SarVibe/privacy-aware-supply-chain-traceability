@@ -1,0 +1,150 @@
+true_entity_id,clinical_key,canonical_item_description,source_row_count,pack_size
+CLINICAL_0001,abacavir lamivudine zidovudine|300150300mg|tabletfdc|60,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",28,60
+CLINICAL_0002,abacavir lamivudine|600300mg|tabletfdc|30,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",63,30
+CLINICAL_0003,abacavir lamivudine|6030mg|chewabledispersibletabletfdc|60,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",19,60
+CLINICAL_0004,abacavir lamivudine|6030mg|tabletfdc|30,"Abacavir/Lamivudine 60/30mg, tablets, 30 Tabs",2,30
+CLINICAL_0005,abacavir lamivudine|6030mg|tabletfdc|60,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",52,60
+CLINICAL_0006,abacavir|20mgml|oralsolution|240,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",152,240
+CLINICAL_0007,abacavir|300mg|tabletblister|60,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",9,60
+CLINICAL_0008,abacavir|300mg|tablet|60,"Abacavir 300mg, tablets, 60 Tabs",287,60
+CLINICAL_0009,abacavir|60mg|chewabledispersibletablet|60,"Abacavir 60mg, dispersible tablets, 60 Tabs",5,60
+CLINICAL_0010,artemether lumefantrine|20120mg|tabletfdcblister|540,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",7,540
+CLINICAL_0011,artemether lumefantrine|20120mg|tabletfdcblister|720,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 24 Tabs",5,720
+CLINICAL_0012,artesunate amodiaquine|50153mg|tabletfdccoblister|12,"Artesunate+Amodiaquine 50+153mg, tablets, co-blister 6+6 Tabs",2,12
+CLINICAL_0013,artesunate amodiaquine|50153mg|tabletfdccoblister|24,"Artesunate+Amodiaquine 50+153mg, tablets, co-blister 12+12 Tabs",2,24
+CLINICAL_0014,atazanavir ritonavir|300100mg|tablet|30,"Atazanavir/Ritonavir 300/100mg, tablets, 30 Tabs",54,30
+CLINICAL_0015,atazanavir|150mg|capsule|60,"Atazanavir 150mg, capsules, 60 Caps",24,60
+CLINICAL_0016,atazanavir|200mg|capsule|60,"Atazanavir 200mg [Reyataz], capsules, 60 Caps",3,60
+CLINICAL_0017,atazanavir|300mg|capsule|30,"Atazanavir 300mg, capsules, 30 Caps",4,30
+CLINICAL_0018,chase buffer determine 100 tests 2 5ml x 1 vial|na|testkitancillary|1,"Chase Buffer, Determine, 100 Tests, 2.5ml x 1 Vial",40,1
+CLINICAL_0019,chloroquine base as phosphate|150mg|tablet|1000,"Chloroquine 150mg base (as phosphate), [DON] tablets, 1000 Tabs",3,1000
+CLINICAL_0020,darunavir|300mg|tablet|120,"Darunavir 300mg [Prezista], tablets, 120 Tabs",28,120
+CLINICAL_0021,darunavir|600mg|tablet|60,"Darunavir 600mg [Prezista], tablets, 60 Tabs",14,60
+CLINICAL_0022,didanosine ec|250mg|delayedreleasecapsulesblister|30,"Didanosine EC 250mg [Videx EC], delayed-release capsules, Blister 3 x 10 Caps",16,30
+CLINICAL_0023,didanosine ec|400mg|delayedreleasecapsulesblister|30,"Didanosine EC 400mg [Videx EC], delayed-release capsules, Blister 3 x 10 Caps",25,30
+CLINICAL_0024,didanosine|100mg|chewabledispersibletablet|60,"Didanosine 100mg [Videx],chewable tablets, 60 Tabs",34,60
+CLINICAL_0025,didanosine|125mg|delayedreleasecapsules|30,"Didanosine 125mg, delayed-release capsules, 30 Caps",4,30
+CLINICAL_0026,didanosine|200mg|chewabledispersibletablet|60,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",25,60
+CLINICAL_0027,didanosine|200mg|delayedreleasecapsules|30,"Didanosine 200mg, delayed-release capsules, 30 Caps",15,30
+CLINICAL_0028,didanosine|200mg|tablet|60,"#102198**Didanosine 200mg [Videx], tablets, 60 Tabs",4,60
+CLINICAL_0029,didanosine|250mg|delayedreleasecapsules|30,"Didanosine 250mg, delayed-release capsules, 30 Caps",61,30
+CLINICAL_0030,didanosine|25mg|chewabledispersibletablet|60,"Didanosine 25mg [Videx], chewable tablets, 60 Tabs",39,60
+CLINICAL_0031,didanosine|2g|powderfororalsolution|200,"Didanosine 2g [Videx], powder for oral solution 10mg/ml, reconstitute to 200 ml",11,200
+CLINICAL_0032,didanosine|400mg|delayedreleasecapsules|30,"Didanosine 400mg, delayed-release capsules, 30 Caps",51,30
+CLINICAL_0033,didanosine|50mg|chewabledispersibletablet|60,"Didanosine 50mg [Videx], chewable tablets, 60 Tabs",19,60
+CLINICAL_0034,efavirenz emtricitabine tenofovir disoproxil fumarate|600200300mg|tabletfdc|30,"Efavirenz/Emtricitabine/Tenofovir Disoproxil Fumarate 600/200/300mg [Atripla], tablets, 30 Tabs",139,30
+CLINICAL_0035,efavirenz lamivudine tenofovir disoproxil fumarate|600300300mg|tabletfdc|30,"Efavirenz/Lamivudine/Tenofovir Disoproxil Fumarate 600/300/300mg, tablets, 30 Tabs",286,30
+CLINICAL_0036,efavirenz|200mg|capsule|90,"Efavirenz 200mg [Stocrin/Sustiva], capsule, 90 Caps",148,90
+CLINICAL_0037,efavirenz|200mg|tablet|30,"Efavirenz 200mg, tablets, 30 Tabs",1,30
+CLINICAL_0038,efavirenz|200mg|tablet|90,"Efavirenz 200mg, scored tablets, 90 Tabs",54,90
+CLINICAL_0039,efavirenz|30mgml|oralsolution|180,"Efavirenz 30mg/ml [Stocrin/Sustiva], oral solution, Bottle, 180 ml",33,180
+CLINICAL_0040,efavirenz|50mg|capsule|30,"Efavirenz 50mg, capsule, 30 Caps",131,30
+CLINICAL_0041,efavirenz|600mg|tablet|30,"Efavirenz 600mg, tablets, 30 Tabs",758,30
+CLINICAL_0042,emtricitabine tenofovir disoproxil fumarate|200300mg|tabletfdc|30,"Emtricitabine/Tenofovir Disoproxil Fumarate 200/300mg, tablets, 30 Tabs",160,30
+CLINICAL_0043,emtricitabine tenofovir disoproxil fumarate|300200mg|tabletfdc|30,"Emtricitabine/Tenofovir Disoproxil Fumarate 200/300mg [Truvada], tablets, 30 Tabs",94,30
+CLINICAL_0044,etravirine|100mg|tablet|120,"Etravirine 100mg [Intelence], tablets, 120 Tabs",32,120
+CLINICAL_0045,hiv 1 2 bioline 3 0 diluent 25 tests|na|testkitancillary|1,"HIV 1/2, Bioline 3.0 Diluent, 25 Tests, Bottle x 5 ml",4,1
+CLINICAL_0046,hiv 1 2 bioline 3 0 kit lancets capillary pipets alcohol swabs included|na|testkit|25,"HIV 1/2, Bioline 3.0 Kit, Lancets, Capillary pipets, Alcohol swabs included, 25 Tests",86,25
+CLINICAL_0047,hiv 1 2 bioline 3 0 kit no accessories|na|testkit|30,"HIV 1/2, Bioline 3.0 Kit, (no accessories), 30 Tests",19,30
+CLINICAL_0048,hiv 1 2 bioline 3 0 kit|na|testkit|100,"HIV 1/2, Bioline 3.0 Kit, 100 Tests",2,100
+CLINICAL_0049,hiv 1 2 bundi rapid hiv kit|na|testkit|1,"HIV 1/2, Bundi Rapid HIV Kit, 25 Tests",2,1
+CLINICAL_0050,hiv 1 2 capillus hiv kit|na|testkit|100,"HIV 1/2, Capillus HIV Kit, 100 Tests",35,100
+CLINICAL_0051,hiv 1 2 clearview complete kit|na|testkit|25,"HIV 1/2, Clearview Complete Kit, 25 Tests",19,25
+CLINICAL_0052,hiv 1 2 colloidal gold diagnostic kit antibody|na|testkit|1,"HIV 1/2, SKB Colloidal Gold, Diagnostic Kit, Antibody, 50 Tests",69,1
+CLINICAL_0053,hiv 1 2 colloidal gold diagnostic kit set includes lancet transfer pipette alcohol prep pad|na|testkit|1,"HIV 1/2, SKB Colloidal Gold, Diagnostic Kit Set, (includes lancet, transfer pipette & alcohol prep pad), 50 Tests",1,1
+CLINICAL_0054,hiv 1 2 determine complete hiv kit|na|testkit|100,"HIV 1/2, Determine Complete HIV Kit, 100 Tests",577,100
+CLINICAL_0055,hiv 1 2 determine hiv kit without lancets|na|testkit|100,"HIV 1/2, Determine HIV Kit, without Lancets, 100 Tests",139,100
+CLINICAL_0056,hiv 1 2 determine kit without lancets buffer or capillary tubes 100 tests|na|testkit|100,"HIV 1/2, Determine Kit without Lancets, Buffer or Caplillary Tubes, 100 Tests",9,100
+CLINICAL_0057,hiv 1 2 doublecheck gold kit|na|testkit|20,"HIV 1/2, DoubleCheck Gold Kit, 20 Tests",3,20
+CLINICAL_0058,hiv 1 2 doublecheck ii kit|na|testkit|40,"HIV 1/2, DoubleCheck II Kit, 40 Tests",2,40
+CLINICAL_0059,hiv 1 2 genie iii kit|na|testkit|50,"HIV 1/2, Genie III Kit, 50 Tests",7,50
+CLINICAL_0060,hiv 1 2 hexagon rapid hiv kit|na|testkit|100,"HIV 1/2, HEXAGON Rapid HIV Kit, 100 Tests",3,100
+CLINICAL_0061,hiv 1 2 immunocomb ii bispot eia kit|na|testkit|36,"HIV 1/2, ImmunoComb II BiSpot EIA Kit, 36 Tests",1,36
+CLINICAL_0062,hiv 1 2 immunocomb trispot ag ab kit|na|testkit|36,"HIV 1/2, ImmunoComb TriSpot Ag - Ab Kit, 36 Tests",2,36
+CLINICAL_0063,hiv 1 2 instantchek hiv 1 2 kit|na|testkit|100,"HIV 1/2, InstantChek HIV 1+2 Kit, 100 Tests",2,100
+CLINICAL_0064,hiv 1 2 insti hiv 1 2 antibody kit|na|testkit|48,"HIV 1/2, INSTI HIV 1/2 Antibody Kit, 48 Tests",1,48
+CLINICAL_0065,hiv 1 2 insti hiv antibody individual poc 1 test|na|testkit|1,"#109440**HIV 1/2, INSTI HIV Antibody Individual POC, 1 Test",4,1
+CLINICAL_0066,hiv 1 2 o first response hiv 1 2 0 v 3 0 cards kit|na|testkit|30,"HIV 1/2/O, First Response HIV 1-2.0, v.3.0 Cards Kit, 30 Tests",15,30
+CLINICAL_0067,hiv 1 2 oraquick advance hiv rapid antibody kit|na|testkit|100,"HIV 1/2, OraQuick Advance HIV Rapid Antibody Kit, 100 Tests",47,100
+CLINICAL_0068,hiv 1 2 oraquick rapid antibody kit|na|testkit|100,"HIV 1/2, OraQuick Rapid Antibody Kit, 100 Tests",2,100
+CLINICAL_0069,hiv 1 2 stat pak buffer only|na|testkitancillary|1,"HIV 1/2, Stat-Pak Buffer Only, 20 Tests",2,1
+CLINICAL_0070,hiv 1 2 stat pak dipstick assay kit|na|testkit|30,"HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 Tests",15,30
+CLINICAL_0071,hiv 1 2 stat pak hiv kit|na|testkit|20,"HIV 1/2, Stat-Pak HIV, Kit, 20 Tests",98,20
+CLINICAL_0072,hiv 1 2 uni gold hiv kit|na|testkit|20,"HIV 1/2, Uni-Gold HIV Kit, 20 Tests",369,20
+CLINICAL_0073,hiv 1 2 visitect kit|na|testkit|25,"HIV 1/2, Visitect Kit, 25 Tests",1,25
+CLINICAL_0074,hiv 1 uni gold recombigen hiv control vial 2 x 0 5 ml|na|testkitancillary|2,"#109436**HIV 1, Uni-Gold Recombigen HIV Control, Vial 2 x 0.5 ml",4,2
+CLINICAL_0075,hiv 2 new lav blot 2 hiv kit|na|testkit|18,"HIV 2, New LAV Blot 2 HIV Kit, 18 Tests",4,18
+CLINICAL_0076,hiv bioline hiv 1 2 3 0 kit|na|testkit|25,"HIV, Bioline HIV 1/2 3.0 Kit, [DON] 25 Tests",2,25
+CLINICAL_0077,hiv capillary tubes for determine edta 50ul 100 pcs|na|testkitancillary|100,"Capillary Tubes, for Determine, EDTA, 50uL,100 Pcs",34,100
+CLINICAL_0078,hiv genie ii hiv 1 hiv 2 kit|na|testkit|40,"#108853** HIV, Genie II HIV-1/HIV-2 Kit, 40 Tests",23,40
+CLINICAL_0079,hiv lancet safety for hiv test kits 100 pcs|na|testkitancillary|100,"HIV, Lancet, Safety, for HIV Test kits, 100 Pcs",65,100
+CLINICAL_0080,hiv multispot hiv 1 hiv 2 rapid test kit|na|testkit|50,"HIV, Multispot HIV-1/HIV-2 Rapid Test Kit, 50 Tests",5,50
+CLINICAL_0081,hiv oraquick controls kit 3 vials|na|testkitancillary|1,"HIV, OraQuick Controls Kit, 3 Vials",3,1
+CLINICAL_0082,hiv oraquick controls kit 3 vials|na|testkitancillary|3,"#109435**HIV, OraQuick Controls Kit, 3 Vials",8,3
+CLINICAL_0083,hiv pepti lav 12 hiv 12 ab differenciation immuno blot|na|testkitancillary|1,"HIV, Pepti-LAV 1|2 (HIV-1|2 Ab differenciation, Immuno-Blot)",1,1
+CLINICAL_0084,hiv reveal g3 rapid hiv 1 antibody test|na|testkit|30,"HIV, Reveal G3 Rapid HIV-1 Antibody Test, 30 Tests",3,30
+CLINICAL_0085,indinavir|400mg|capsule|180,"Indinavir 400mg [Crixivan], capsules, 180 Caps",36,180
+CLINICAL_0086,lamivudine nevirapine stavudine|15020030mg|tabletfdc|60,"Lamivudine/Nevirapine/Stavudine 150/200/30mg, tablets, 60 Tabs",250,60
+CLINICAL_0087,lamivudine nevirapine stavudine|15020040mg|tabletfdc|60,"Lamivudine/Nevirapine/Stavudine 150/200/40mg, tablets, 60 Tabs",5,60
+CLINICAL_0088,lamivudine nevirapine stavudine|30506mg|chewabledispersibletabletfdc|60,"Lamivudine/Nevirapine/Stavudine 30/50/6mg, dispersible tablets, 60 Tabs",19,60
+CLINICAL_0089,lamivudine nevirapine stavudine|6010012mg|chewabledispersibletabletfdc|60,"Lamivudine/Nevirapine/Stavudine 60/100/12mg, dispersible tablets, 60 Tabs",12,60
+CLINICAL_0090,lamivudine nevirapine zidovudine|150300200mg|tabletfdc|60,"Lamivudine/Nevirapine/Zidovudine 150/200/300mg, tablets, 60 Tabs",580,60
+CLINICAL_0091,lamivudine nevirapine zidovudine|305060mg|chewabledispersibletabletfdc|60,"Lamivudine/Nevirapine/Zidovudine 30/50/60mg, dispersible tablets, 60 Tabs",127,60
+CLINICAL_0092,lamivudine stavudine|15030mg|tabletfdc|30,"Lamivudine/Stavudine 150/30mg, tablets, 30 Tabs",37,30
+CLINICAL_0093,lamivudine stavudine|15030mg|tabletfdc|60,"Lamivudine/Stavudine 150/30mg, tablets, 60 Tabs",96,60
+CLINICAL_0094,lamivudine stavudine|306mg|chewabledispersibletabletfdc|60,"Lamivudine/Stavudine 30/6mg, dispersible tablets, 60 Tabs",14,60
+CLINICAL_0095,lamivudine stavudine|6012mg|chewabledispersibletabletfdc|60,"Lamivudine/Stavudine 60/12mg, dispersible tablets, 60 Tabs",5,60
+CLINICAL_0096,lamivudine tenofovir disoproxil fumarate|300300mg|tabletfdc|30,"Lamivudine/Tenofovir Disoproxil Fumarate 300/300mg, tablets, 30 Tabs",301,30
+CLINICAL_0097,lamivudine zidovudine abacavir|150300300mg|tabletfdccoblister|120,"Lamivudine/Zidovudine+Abacavir 150/300+300mg, tablets, co-blister, 60+60 Tabs",1,120
+CLINICAL_0098,lamivudine zidovudine efavirenz|150300mg600mg|tabletfdccoblister|90,"Lamivudine/Zidovudine+Efavirenz 150/300mg+600mg, tablets, co-blister 60+30 Tabs",7,90
+CLINICAL_0099,lamivudine zidovudine nevirapine|150300200mg|tabletfdccoblister|120,"Lamivudine/Zidovudine+Nevirapine 150/300+200mg, tablets, co-blister, 60+60 Tabs",8,120
+CLINICAL_0100,lamivudine zidovudine|150300mg|tabletfdc|60,"Lamivudine/Zidovudine 150/300mg, tablets, 60 Tabs",600,60
+CLINICAL_0101,lamivudine zidovudine|3060mg|chewabledispersibletabletfdc|60,"Lamivudine/Zidovudine 30/60mg, dispersible tablets, 60 Tabs",43,60
+CLINICAL_0102,lamivudine zidovudine|3060mg|tabletfdc|60,"Lamivudine/Zidovudine 30/60mg, tablets, 60 Tabs",46,60
+CLINICAL_0103,lamivudine|10mgml|oralsolution|240,"Lamivudine 10mg/ml [Epivir], oral solution, Bottle, 240 ml",185,240
+CLINICAL_0104,lamivudine|150mg|tablet|60,"Lamivudine 150mg, tablets, 60 Tabs",404,60
+CLINICAL_0105,lamivudine|300mg|tablet|30,"Lamivudine 300mg, tablets, 30 Tabs",3,30
+CLINICAL_0106,lopinavir ritonavir|10025mg|tablet|60,"Lopinavir/Ritonavir 100/25mg [Aluvia], tablets, 60 Tabs",73,60
+CLINICAL_0107,lopinavir ritonavir|1333333mg|capsule|180,"Lopinavir/Ritonavir 133.3/33.3mg [Kaletra], capsules, cool, 2 x 90 Caps",7,180
+CLINICAL_0108,lopinavir ritonavir|20050mg|tablet|120,"Lopinavir/Ritonavir 200/50mg [Aluvia], tablets, 120 Tabs",395,120
+CLINICAL_0109,lopinavir ritonavir|8020mgml|oralsolution|160,"Lopinavir/Ritonavir 80/20mg/ml [Kaletra], oral solution, cool, Bottle, 160 ml",1,160
+CLINICAL_0110,lopinavir ritonavir|8020mgml|oralsolution|300,"Lopinavir/Ritonavir 80/20mg/ml [Kaletra], oral solution, cool, Bottle 5 x 60 ml",157,300
+CLINICAL_0111,malaria antigen p f hrp2 carestart kit|na|testkit|60,"Malaria, Antigen P.f., HRP2 CareStart Kit, 60 Tests",1,60
+CLINICAL_0112,malaria antigen p f hrp2 kit|na|testkit|25,"Malaria Antigen P.f , HRP2, Kit, 25 Tests",1,25
+CLINICAL_0113,malaria antigen p f kit 30 x 1 test|na|testkit|30,"Malaria Antigen P.f Kit, 30 x 1 Test",1,30
+CLINICAL_0114,malaria paramax 3 kit|na|testkit|25,"Malaria Paramax-3 Kit, 25 Tests",5,25
+CLINICAL_0115,mefloquine as hydrochloride|250mg|tablet|100,"Mefloquine 250mg (as hydrochloride), tablets, 100 Tabs",1,100
+CLINICAL_0116,nelfinavir as mesilate|250mg|tablet|270,"Nelfinavir (as mesilate) 250mg [Viracept], tablets, 270 Tabs",10,270
+CLINICAL_0117,nelfinavir|50mgg|oralpowder|144,"Nelfinavir 50mg/g [Viracept], oral powder, 144g",1,144
+CLINICAL_0118,nevirapine|10mgml|oralsuspension|100,"Nevirapine 10mg/ml, oral suspension w/syringe, Bottle, 100 ml",19,100
+CLINICAL_0119,nevirapine|10mgml|oralsuspension|240,"Nevirapine 10mg/ml, oral suspension, Bottle, 240 ml",195,240
+CLINICAL_0120,nevirapine|200mg|tablet|60,"Nevirapine 200mg, tablets, 60 Tabs",639,60
+CLINICAL_0121,nevirapine|50mg|chewabledispersibletablet|30,"Nevirapine 50mg, dispersible tablets (tablets for oral suspension), 30 Tabs",23,30
+CLINICAL_0122,nevirapine|50mg|chewabledispersibletablet|60,"Nevirapine 50mg, dispersible tablets, 60 Tabs",1,60
+CLINICAL_0123,primaquine base as diphosphate|15mg|tablet|1000,"Primaquine 15mg base (as diphosphate), tablets, 1000 Tabs",1,1000
+CLINICAL_0124,quinine as dihydrochloride|600mg2ml|injection|100,"Quinine 600mg/2ml (as dihydrochloride), injection, 2ml x 100 Ampules",2,100
+CLINICAL_0125,quinine as sulfate|300mg|tabletblister|1000,"Quinine 300mg (as sulfate), tablets, Blister 100 x 10 Tabs",1,1000
+CLINICAL_0126,quinine|300mg|tablet|1000,"Quinine sulphate 300mg, film coated tablet, 1000 Tabs",1,1000
+CLINICAL_0127,raltegravir|400mg|tablet|60,"Raltegravir 400mg [Isentress], tablets, 60 Tabs",44,60
+CLINICAL_0128,ritonavir|100mg|capsule|168,"Ritonavir 100mg [Norvir], capsules, cool, 2 x 84 Caps",3,168
+CLINICAL_0129,ritonavir|100mg|capsule|336,"Ritonavir 100mg [Norvir], capsules, cool, 4 x 84 Caps",39,336
+CLINICAL_0130,ritonavir|100mg|capsule|84,"Ritonavir 100mg [Norvir], capsules, cool, 84 Caps",22,84
+CLINICAL_0131,ritonavir|100mg|tablet|30,"Ritonavir 100mg [Norvir], film coated tablets, 30 Tabs",26,30
+CLINICAL_0132,ritonavir|100mg|tablet|60,"Ritonavir 100mg [Norvir], film coated tablets, 60 Tabs",33,60
+CLINICAL_0133,ritonavir|80mgml|oralsolution|90,"Ritonavir 80mg/ml [Norvir], oral solution, cool, Bottle, 90 ml",13,90
+CLINICAL_0134,saquinavir|200mg|capsule|270,"Saquinavir 200mg [Invirase], capsules, 270 Caps",43,270
+CLINICAL_0135,saquinavir|500mg|tablet|120,"Saquinavir 500mg [Invirase], tablets, 120 Tabs",10,120
+CLINICAL_0136,stavudine|15mg|capsule|60,"Stavudine 15mg, capsules, 60 Caps",37,60
+CLINICAL_0137,stavudine|1mgml|oralsolution|200,"Stavudine 1mg/ml, powder for oral solution, 200 ml",37,200
+CLINICAL_0138,stavudine|1mgml|powderfororalsolution|200,"Stavudine 1mg/ml [Zerit], powder for oral solution, Bottle, 200 ml",17,200
+CLINICAL_0139,stavudine|20mg|capsule|60,"Stavudine 20mg [Zerit], capsules, 60 Caps",43,60
+CLINICAL_0140,stavudine|30mg|capsule|60,"Stavudine 30mg, capsules, 60 Caps",144,60
+CLINICAL_0141,stavudine|40mg|capsule|60,"Stavudine 40mg, capsules, 60 Caps",6,60
+CLINICAL_0142,sulfadoxine pyrimethamine|50025mg|tabletfdcblister|30,"Sulfadoxine/Pyrimethamine 500/25mg, tablets, Blister 10 x 3 Tabs",3,30
+CLINICAL_0143,sulfadoxine pyrimethamine|50025mg|tabletfdc|1000,"Sulfadoxine/Pyrimethamine 500/25mg, tablets, 1000 Tabs",10,1000
+CLINICAL_0144,tenofovir disoproxil fumarate|300mg|tablet|30,"Tenofovir Disoproxil Fumarate 300mg [Viread], tablets, 30 Tabs",320,30
+CLINICAL_0145,zidovudine|100mg|capsule|100,"Zidovudine 100mg, capsules, 100 Caps",39,100
+CLINICAL_0146,zidovudine|10mgml|injection|5,"Zidovudine 10mg/ml [Retrovir], solution for IV infusion injection, Vial 5 x 20 ml",4,5
+CLINICAL_0147,zidovudine|10mgml|oralsolution|200,"Zidovudine 10mg/ml [Retrovir], oral solution, Bottle, 200 ml",11,200
+CLINICAL_0148,zidovudine|10mgml|oralsolution|240,"Zidovudine 10mg/ml, oral solution, Bottle, 240 ml",138,240
+CLINICAL_0149,zidovudine|300mg|tablet|60,"Zidovudine 300mg, tablets, 60 Tabs",337,60

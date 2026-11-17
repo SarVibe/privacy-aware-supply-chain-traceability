@@ -1,0 +1,482 @@
+record_id,true_entity_id,raw_item_description,dosage,dosage_form,pack_size,vendor,noise_level_pct
+REC_00001,CLINICAL_0084,"HIV,m4Rveal G3lRapid HIeV1r0Aftibod4 Test, 3pT ests",,Test kit,30,RANBAXY Fine Chemicals LTD.,30
+REC_00002,CLINICAL_0119,"Nesirapen 10mgtm7l,5 orals 3uspevnesoin, Bottle, 42 0nlm",10mg/ml,Oral suspension,240,Aurobindo Pharma Limited,30
+REC_00003,CLINICAL_0054,"HIVo1/2,0DeitpermineC omplte HI it, 104 Tets",,Test kit,100,Abbott GmbH & Co. KG,30
+REC_00004,CLINICAL_0104,"amvikzdine 05mg tablntsg, 60 yTabs",150mg,Tablet,60,SUN PHARMACEUTICAL INDUSTRIES LTD (RANBAXY LABORATORIES LIMITED),30
+REC_00005,CLINICAL_0140,"Stavudicne 3nmqg, caplep, 60Caps",30mg,Capsule,60,Aurobindo Pharma Limited,30
+REC_00006,CLINICAL_0148,"Zid4ovudie 10gl/mml,o rl soutinon, Bot4tle, 246m ",10mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00007,CLINICAL_0036,"9aivrenz200mz [Stocrdn/Sustiva],scapul, 9 Caps",200mg,Capsule,90,MERCK SHARP & DOHME IDEA GMBH (FORMALLY MERCK SHARP & DOHME B.V.),30
+REC_00008,CLINICAL_0120,"neviripne 200mag, tabtesz, 60 Tabs",200mg,Tablet,60,Aurobindo Pharma Limited,30
+REC_00009,CLINICAL_0108,"Lopniairy/Ri9tonavir 2/0s50mc [zAlu8ia], tagets, 20 Tvab",200/50mg,Tablet,120,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00010,CLINICAL_0072,"HIV 1/2, Uni-Gdloz IVtK it, 2t0 ets",,Test kit,20,"Trinity Biotech, Plc",30
+REC_00011,CLINICAL_0063,"IV1/ 2, InstantkChkte HI1 qj2 Ki, 100Tests",,Test kit,100,EY Laboratories,30
+REC_00012,CLINICAL_0100,"Las3mipudivZ/idovuine 150/3f0mg, tableihst,y 60 Tas1",150/300mg,Tablet - FDC,60,CIPLA LIMITED,30
+REC_00013,CLINICAL_0028,"#10p2p98*Didand9inei 200mg V[idex]b talbete, 6 8Tab",200mg,Tablet,60,BRISTOL-MYERS SQUIBB,30
+REC_00014,CLINICAL_0054,"HVI1 /2, Deertimne Comlete HIV2Kit,10  0Te7nts",,Test kit,100,ACCOUN NIGERIA LIMITED,30
+REC_00015,CLINICAL_0066,"HIV 1/2 ,Fwirst esponse uerHIV 1-2.c0, .vr3.0 Cb4ds Kit, 30Tretws",,Test kit,30,Premier Medical Corporation Ltd.,30
+REC_00016,CLINICAL_0149,"Zi5dovudine 3i8mg, ab8lets ,60 abs",300mg,Tablet,60,CIPLA LIMITED,30
+REC_00017,CLINICAL_0031,"Didanosie 2g [Videxgj powedr for orl sleoutio n1tmgd/n,8reczstpiud8et to 200 ",2g,Powder for oral solution,200,BRISTOL-MYERS SQUIBB,30
+REC_00018,CLINICAL_0071,"HoV06aI 1/2, StatkPak HIV, Kiwt, 20 Tsts",,Test kit,20,"CHEMBIO DIAGNOSTIC SYSTEMS, INC.",30
+REC_00019,CLINICAL_0055,"H3V 1/2,D etlrmi8nepHIV bit,p withot Lancets,z 100 e5t2",,Test kit,100,"Orgenics, Ltd",30
+REC_00020,CLINICAL_0067,"HIV f/2rh, Oraudick Adrance HI Rmapid npditbo64y Kit, 100 Tess",,Test kit,100,Orasure Technologies Inc.,30
+REC_00021,CLINICAL_0046,"HIV 12, Boline0 3.0 Kt, aects, wapila6y ipets, 3Alcohl sawbsf niqcwluped, 25 eTdsts",,Test kit,25,"Standard Diagnostics, Inc.",30
+REC_00022,CLINICAL_0147,"Z3idouvdnee10mgm/l Retrovr] ,orvl sout6inz, oBttle, 200 ml",10mg/ml,Oral solution,200,"JSI R&T INSTITUTE, INC.",30
+REC_00023,CLINICAL_0144,"Tenozfvr bioprxoliuFmra5t3300mg [iVead] atblets, 30 Tbs",300mg,Tablet,30,"GILEAD SCIENCES IRELAND, INC.",30
+REC_00024,CLINICAL_0149,"Zidoviudne300mggt tauble6s, 6k0 Tabs",300mg,Tablet,60,SUN PHARMACEUTICAL INDUSTRIES LTD (RANBAXY LABORATORIES LIMITED),30
+REC_00025,CLINICAL_0079,"HIde, La3cet ,qSafetc, for HIV est kqts1, 00 Psc",,Test kit - Ancillary,100,"Orgenics, Ltd",30
+REC_00026,CLINICAL_0138,"oStavkhdine1 gml [Zerit],p owder 9foe ro0ea sobutiownn, Bottqle, 200 ml",1mg/ml,Powder for oral solution,200,"JSI R&T INSTITUTE, INC.",30
+REC_00027,CLINICAL_0050,"HVI r12, Capillu csIV 8it, g00 qTesws",,Test kit,100,"Trinity Biotech, Plc",30
+REC_00028,CLINICAL_0078,"#1085o83** HIV, Geni7e eI iIHIV-/1HIV- iKt, t0 ecssb",,Test kit,40,BIO-RAD LABORATORIES (FRANCE),30
+REC_00029,CLINICAL_0050,"HIV 11/2, Ckcpi5lus HV Kit0, 10 Teskts",,Test kit,100,TURE PHARMACEUTICALS & MEDICAL SUPPLIES P.L.C.,30
+REC_00030,CLINICAL_0041,"Efavirezh 60mg, tlalest, 50 ca5bs",600mg,Tablet,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00031,CLINICAL_0134,"Saqinvair x2s0mg[I vniurase],ecpasules 2 70Caps",200mg,Capsule,270,S. BUYS WHOLESALER,30
+REC_00032,CLINICAL_0138,"tvauydine 1ml/gml[ Zr7eit], opfewr for oal0 solu6tion,o Bttle, 00 ml",1mg/ml,Powder for oral solution,200,S. BUYS WHOLESALER,30
+REC_00033,CLINICAL_0030,"Di1ansine 2j5gm [Videx], chewakmleiablltvs ,g6 Tabs",25mg,Chewable/dispersible tablet,60,BRISTOL-MYERS SQUIBB,30
+REC_00034,CLINICAL_0030,"Dianoine 2q5mlzg [Vid0e]x, chewabl tejblets6, Tbs",25mg,Chewable/dispersible tablet,60,S. BUYS WHOLESALER,30
+REC_00035,CLINICAL_0072,"VH 1/2, Uni-pGolp HIVKi,2to0rTests",,Test kit,20,TURE PHARMACEUTICALS & MEDICAL SUPPLIES P.L.C.,30
+REC_00036,CLINICAL_0144,"TenofovikDsio7proxily Frm3rtae 300mg, taletf, 3c Tab",300mg,Tablet,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00037,CLINICAL_0139,"4tS9apudin e2m0 g[Zeti7], ca2psules,o 69 Caps",20mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00038,CLINICAL_0022,"Ddianosinek2E C205mg [mzedr xEC], deluyedre1ehasec asuwse, Blite r3 x 01 Cas",250mg,Delayed-release capsules - blister,30,S. BUYS WHOLESALER,30
+REC_00039,CLINICAL_0023,"DidanqosineuEC 4l00mm2 [VidexE]C,3 devyed-releasel capusles,B iste7j 3 x 01 aaps",400mg,Delayed-release capsules - blister,30,BRISTOL-MYERS SQUIBB,30
+REC_00040,CLINICAL_0007,"lbacavir 300gmg [iagen8, iables, Blistrg6kh x10 Tabk",300mg,Tablet - blister,60,S. BUYS WHOLESALER,30
+REC_00041,CLINICAL_0104,"zLamvivudid31m0g tablts, 60 Tabs",150mg,Tablet,60,Aurobindo Pharma Limited,30
+REC_00042,CLINICAL_0010,"xrtmetheo/Lumefantrinne 20612zmt5g tCoarte]mm scoeirtbaleft, Blisterk 30 x 8n1tabs",20/120mg,Tablet - FDC + blister,540,IDA FOUNDATION,30
+REC_00043,CLINICAL_0119,"N3evirapnieym10g/x04[Vx1raumne]6,arl sspension, Bottl, 240 m",10mg/ml,Oral suspension,240,S. BUYS WHOLESALER,30
+REC_00044,CLINICAL_0114,"Malaia Pariax-3 sit,2 5 eTscts",,Test kit,25,ZEPHYR BIOMEDICALS,30
+REC_00045,CLINICAL_0012,"rAeslnate+4modiaquinse 50+53mg,j4wabets, o-blsjiter 665xTabs",50+153mg,Tablet - FDC + co-blister,12,IDA FOUNDATION,30
+REC_00046,CLINICAL_0034,"Efavirenze/smtracpitab4ine/xTneofovio3 Dsioprxli Fumaraute 600/200/3003g [Atrpilj4, ytablwets 330 Tbs",600/200/300mg,Tablet - FDC,30,MERCK SHARP & DOHME IDEA GMBH (FORMALLY MERCK SHARP & DOHME B.V.),30
+REC_00047,CLINICAL_0074,"#109436**92IV 1,ztj Uin-Gold Recombigen IV Contrwoq,Vil y270 .5 ml",,Test kit - Ancillary,2,"Trinity Biotech, Plc",30
+REC_00048,CLINICAL_0144,"e6nofovir Di7sproilcFuanart8 300mgr[oiredars tablets, 30 Tabs",300mg,Tablet,30,S. BUYS WHOLESALER,30
+REC_00049,CLINICAL_0024,"Didnoyin 100omg [Videx],1hablalbet,z 6m Tabs",100mg,Chewable/dispersible tablet,60,S. BUYS WHOLESALER,30
+REC_00050,CLINICAL_0136,Szavuidne 1532dg capsules 60 Capns,15mg,Capsule,60,Aurobindo Pharma Limited,30
+REC_00051,CLINICAL_0110,"L7inavir/Ritnoair 80/20mg6/ [aKletia5, oral solnutimo, cjBofttle5  x 60 ml",80/20mg/ml,Oral solution,300,S. BUYS WHOLESALER,30
+REC_00052,CLINICAL_0124,"Quinrez 600mgn23mcqas dihydroxcho1ride),i njrcetion, 2mlx 109n mpu8les",600mg/2ml,Injection,100,IDA FOUNDATION,30
+REC_00053,CLINICAL_0100,"LamuvcudiineZidovudie 150/00gm, otablets,c 6laws",150/300mg,Tablet - FDC,60,Aurobindo Pharma Limited,30
+REC_00054,CLINICAL_0086,"Lauivudiwne/eo7irapine/Slavuidnpe7 150/02r/360m,fgtableas6,0 Tabs",150/200/30mg,Tablet - FDC,60,CIPLA LIMITED,30
+REC_00055,CLINICAL_0110,"oLpaairv/Ri9tnair 80/20mgqmy7K[aletra], dral soutiaon,c oo,loBttau 5 x 6q0 ml",80/20mg/ml,Oral solution,300,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00056,CLINICAL_0106,"Lopni2j0avr/Rito8naxvi r10f/5mg [Aluvia],t blts, 60aTabs",100/25mg,Tablet,60,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00057,CLINICAL_0033,"Didanopsaenie b50mz[ iVdex],8 ehwable tabtes 60 Tabs",50mg,Chewable/dispersible tablet,60,BRISTOL-MYERS SQUIBB,30
+REC_00058,CLINICAL_0041,"Eafivrenz 0t0m,talbetska 30 Tabs",600mg,Tablet,30,S. BUYS WHOLESALER,30
+REC_00059,CLINICAL_0148,"Zdovaundie 410mg/ml, oraioslvutdon, Bottlb, 2rg0m l",10mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00060,CLINICAL_0103,"Larmiwvudni4 l0gm5/lx[Epivir],6 nal 1llutiono Bottle, 240 ml",10mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00061,CLINICAL_0140,"travdin 30mg,48apsles, i0 Cap8s",30mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00062,CLINICAL_0103,"Lamivuidee22 310mg/ml,eoral sl9tuiovn, gttle, 24h ml",10mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00063,CLINICAL_0040,"Ehuiarenz 50mgd cpapsule,30 Cfps",50mg,Capsule,30,S. BUYS WHOLESALER,30
+REC_00064,CLINICAL_0136,"ttavbrin2we 15mg [ertq], capiules, 60 C5par",15mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00065,CLINICAL_0108,"Lpniavir/Ritonair200/0m g[Al1via] ht6bflts, 120 abs",200/50mg,Tablet,120,S. BUYS WHOLESALER,30
+REC_00066,CLINICAL_0149,"Zdovubdbine 300mg [eRt9roir0], tcabldets, 60 gaqbs",300mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00067,CLINICAL_0129,"9itonav i1rfwm0g[Norvzr], cgpsules, ool, 4 x 8 C0ps",100mg,Capsule,336,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00068,CLINICAL_0043,"Emtrcfbtaine/Tenmofopvr Disoprox iFuamxate0 0/f0mg [Truvsea4], tabltes, b30 T7b2s",300/200mg,Tablet - FDC,30,S. BUYS WHOLESALER,30
+REC_00069,CLINICAL_0149,"zddovudienrn00mgi tablets,60T abs",300mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00070,CLINICAL_0054,"HIV 1/2,p Degtgrmine Compltee HIV i t9100 qehts",,Test kit,100,"Orgenics, Ltd",30
+REC_00071,CLINICAL_0041,"Evfarnnz 600mg ,tablest, 3e Tas",600mg,Tablet,30,HETERO LABS LIMITED,30
+REC_00072,CLINICAL_0090,"Lamivduine/evirapie/Zivqidne 15l/o00/300, tabketgs 60Tabs",150/300/200mg,Tablet - FDC,60,Aurobindo Pharma Limited,30
+REC_00073,CLINICAL_0051,"HIV 1i/dn, Cleraivew Comlpue0e Ki, 25Tsts",,Test kit,25,"Orgenics, Ltd",30
+REC_00074,CLINICAL_0130,"itohavr 10md s[Norvif], capsus, coo, l84 Csp",100mg,Capsule,84,S. BUYS WHOLESALER,30
+REC_00075,CLINICAL_0104,"Lamivuine990sg,ktablt0es,u60 Tabs",150mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00076,CLINICAL_0107,"Loibpianivr/Rit7navir 1ie3.3/b3.8kmg [Kaltra ],caluedi ,ocol, 2 x 90 Casp",133.3/33.3mg,Capsule,180,INTERNATIONAL HEALTHCARE DISTRIBUTORS,30
+REC_00077,CLINICAL_0140,"Stavidne q30gm,wcapsulse, 60 aC7ps",30mg,Capsule,60,STRIDES ARCOLAB LIMITED,30
+REC_00078,CLINICAL_0041,"Efavirenz600g ,a6blets, 30 T4atbs",600mg,Tablet,30,CIPLA LIMITED,30
+REC_00079,CLINICAL_0008,"Abaacviir 300mn,tablets,6 c tabs",300mg,Tablet,60,CIPLA LIMITED,30
+REC_00080,CLINICAL_0041,"Efivrenz b60m0g, tatbls, 30 5Tab",600mg,Tablet,30,Aurobindo Pharma Limited,30
+REC_00081,CLINICAL_0144,"TcefoovirDisoproxl Fumhaae 380mg [Vreadw tfabletsy, 3 0Tcabs",300mg,Tablet,30,ASPEN PHARMACARE,30
+REC_00082,CLINICAL_0110,"Lopi2nvir/Ri2onaivr 80/20mgm/l0aKletpxpa] ,oral solutionk cool ,Botatle 5x 5 60hm",80/20mg/ml,Oral solution,300,"JSI R&T INSTITUTE, INC.",30
+REC_00083,CLINICAL_0023,"iDanosineEiC4 00m [0iVdex C] ,doelaedrelease apsueln, yliste 3x 10 aps",400mg,Delayed-release capsules - blister,30,"JSI R&T INSTITUTE, INC.",30
+REC_00084,CLINICAL_0008,"Ayacavi8r 00mg, tabylts,60 T5bs",300mg,Tablet,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00085,CLINICAL_0139,"Stavudne20m,capsuie, 60 aCsp",20mg,Capsule,60,Aurobindo Pharma Limited,30
+REC_00086,CLINICAL_0139,"Stvadineyfg cZerit], cpslues, 60 uCaps",20mg,Capsule,60,"JSI R&T INSTITUTE, INC.",30
+REC_00087,CLINICAL_0107,"rpinivrR/otnavir 33./h333.mg [malegoa], capsules, codol, 2 x 90 iaps",133.3/33.3mg,Capsule,180,S. BUYS WHOLESALER,30
+REC_00088,CLINICAL_0133,"Ritoaivir 08mg/d[ Norvir]5, oalsolu2iona c1ool, ottlae 90q l",80mg/ml,Oral solution,90,S. BUYS WHOLESALER,30
+REC_00089,CLINICAL_0104,"Lamiwuidne 150mg[apivir], abeltys1 6x ak",150mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00090,CLINICAL_0040,"Efaviretz1 m0g [StocrivSk/usmivda] ,c6psule,l 30Cps",50mg,Capsule,30,S. BUYS WHOLESALER,30
+REC_00091,CLINICAL_0031,"Dida9osn e2g[Videxh, powder for oragl soluino 10g/wm,l recon7itutb eo 2097ml",2g,Powder for oral solution,200,S. BUYS WHOLESALER,30
+REC_00092,CLINICAL_0052,"Hd V1/2 ,SKB Colloidal Go,d DiagostcfKiro, Antivbdoy,50 pTesths",,Test kit,1,"SHANGHAI KEHUA BIOENGINEERING CO.,LTD. (KHB)",30
+REC_00093,CLINICAL_0065,"#y094*0*HIVo 1/t, INSaIq HIV tiboy Inividua lPOCo 1 xTst",,Test kit,1,BIOLYTICAL LABORATORIES INC.,30
+REC_00094,CLINICAL_0147,"irdovudinem 0mg/ml [Re2zrovir]b 4az szlutsn, Bottl12 020x3ml",10mg/ml,Oral solution,200,S. BUYS WHOLESALER,30
+REC_00095,CLINICAL_0051,"IgV /2, ClearviewCopmlete Kit,t2 5eTsti",,Test kit,25,INVERNESS MEDICAL INNOVATIONS SOUTH AFRICA (PTY) LTD,30
+REC_00096,CLINICAL_0145,"wdivoudnine 100mg, capsizle,s 01xnCaps",100mg,Capsule,100,Aurobindo Pharma Limited,30
+REC_00097,CLINICAL_0036,"Efaviraenz v00m0n canssulw, 0 Caps",200mg,Capsule,90,S. BUYS WHOLESALER,30
+REC_00098,CLINICAL_0120,"Nvira9inve 020mg, atblets, 6b0 Ta8bs",200mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00099,CLINICAL_0120,"Nevirapine 2600mg 6riqmyune]s tabelts,i 0 Tabs",200mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00100,CLINICAL_0022,"DjdanobieE C25mg [Vdex CE],nfderayde-rel8aees capcules, Bqlitsr7 3 x 10 Caps",250mg,Delayed-release capsules - blister,30,BRISTOL-MYERS SQUIBB,30
+REC_00101,CLINICAL_0036,"pEfavrienz 20emg hStocrinub/Sustipva], capsue5l, 9p akps",200mg,Capsule,90,S. BUYS WHOLESALER,30
+REC_00102,CLINICAL_0146,"Zidovdiev 10g/ml[ Roteroxir, s9lutiof fr IV infuscoin nj4ectzsn, Vi8al 5ix 20 lm",10mg/ml,Injection,5,S. BUYS WHOLESALER,30
+REC_00103,CLINICAL_0033,"Didanone 5m0g [4iVdx], chewblellahets, 60 Tbs",50mg,Chewable/dispersible tablet,60,S. BUYS WHOLESALER,30
+REC_00104,CLINICAL_0090,"gam6vduine/Neviraine7/Zdovdine510/00/300gm, ttablexgts9, g0 aTb",150/300/200mg,Tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00105,CLINICAL_0029,"Didpa6nhsine g52tmgz, dhayedr-uflease capsules5 30 Cap",250mg,Delayed-release capsules,30,Aurobindo Pharma Limited,30
+REC_00106,CLINICAL_0094,"bbmivudinevStudine 30/6z,g ise4ps8bble tablet,s 60 Tais",30/6mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00107,CLINICAL_0023,"Didanosn eExdCh40z [Videx EC], odelayae-eljase capsulg Blikter 3 0x102 C9ps",400mg,Delayed-release capsules - blister,30,S. BUYS WHOLESALER,30
+REC_00108,CLINICAL_0108,"Lo4pinavil/Ritonas8ir 200/50gm [lAuv6ia], talbets, 1 51labs",200/50mg,Tablet,120,ABBOTT LABORATORIES (PUERTO RICO),30
+REC_00109,CLINICAL_0103,"Lamiquvdine4 01m/gml, oal sroluthun, oottle,2 0 ml",10mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00110,CLINICAL_0006,"Aacadovirec0m3g/l,i orual so8ldu6tioni, Bottle, 240 ml",20mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00111,CLINICAL_0141,"Stavudine 0mg,7ocapuloes, b60 Cas",40mg,Capsule,60,Aurobindo Pharma Limited,30
+REC_00112,CLINICAL_0103,"Lami3vudn 10mg/m, oral solution,wygott7hfe, 4j0 ml",10mg/ml,Oral solution,240,CIPLA LIMITED,30
+REC_00113,CLINICAL_0024,"Djdanosing 10cjg [iVdxy,cw6ablke tabsts, 60 Tbs",100mg,Chewable/dispersible tablet,60,BRISTOL-MYERS SQUIBB,30
+REC_00114,CLINICAL_0103,"L1mrcvudinee 10mg3/ml q[Epivir], or17l glontion, Bottld3, 204 ml",10mg/ml,Oral solution,240,"JSI R&T INSTITUTE, INC.",30
+REC_00115,CLINICAL_0144,"Tenofo7ikr aisoproil Fumarate d300g [iVrefa5], thabl,4 30 eabs",300mg,Tablet,30,"JSI R&T INSTITUTE, INC.",30
+REC_00116,CLINICAL_0043,"Emtriitabine/TeqofovizDrsopforixl Fumarat 00/z00mg [Tr4ada],t abltes, 30afs",300/200mg,Tablet - FDC,30,"JSI R&T INSTITUTE, INC.",30
+REC_00117,CLINICAL_0040,"Efxavrienz v7z [Stocrin/iustiva,cm9psulen 300Caps",50mg,Capsule,30,"JSI R&T INSTITUTE, INC.",30
+REC_00118,CLINICAL_0041,"fav1en 00m7 [StrocinS/ustwiva],y taglet, 0 Tbs",600mg,Tablet,30,"JSI R&T INSTITUTE, INC.",30
+REC_00119,CLINICAL_0130,"Rtit4on5vir1 00mg [Ndorirl, capsule, coolb,x 84 ps",100mg,Capsule,84,"JSI R&T INSTITUTE, INC.",30
+REC_00120,CLINICAL_0022,"Didaog2snieEC a254mg7 6Videx ECs], d5layed-relexase facpsuels, lister   y1eu asp",250mg,Delayed-release capsules - blister,30,"JSI R&T INSTITUTE, INC.",30
+REC_00121,CLINICAL_0054,"4HVI 1/2, 8tehmine Complet5e1HVI7 Kit, 1q05Tetos",,Test kit,100,SUB-SAHARAN BIOMEDICAL P.L.C.,30
+REC_00122,CLINICAL_0008,"Azba8cavri a00mg, atbels, 60 ahTbs",300mg,Tablet,60,Aurobindo Pharma Limited,30
+REC_00123,CLINICAL_0071,"HIV 1/,z0Sat-Pak H1, iKt,20 zTsets",,Test kit,20,SETEMA LIMITED PLC,30
+REC_00124,CLINICAL_0140,"Svucdine 3mg [Zerit4]capusles, h60 Caps",30mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00125,CLINICAL_0141,"Stavuwdien 4m0g [Zeriza],capsules,syz Caps",40mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00126,CLINICAL_0055,"HVI 1/, Detremine HIV Kist, wiqthuotj8ance5s, 100Tev",,Test kit,100,INVERNESS MEDICAL INNOVATIONS SOUTH AFRICA (PTY) LTD,30
+REC_00127,CLINICAL_0149,"3Zd9ovhkcne300mg,t xblets, 60 Tabq",300mg,Tablet,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00128,CLINICAL_0137,"7ajvudine1 m/gml7 powyvr for oeral sflutiron, 200ml",1mg/ml,Oral solution,200,S. BUYS WHOLESALER,30
+REC_00129,CLINICAL_0145,"iZdvudin1 v500mg [Retrovir, capslu, 10 9a4s",100mg,Capsule,100,S. BUYS WHOLESALER,30
+REC_00130,CLINICAL_0001,"Abacaivrg/Lqmivudine/Ziovukd4in i300/z50/300m1 Tmiuivir],t abljets, iy tabh",300/150/300mg,Tablet - FDC,60,GLAXOSMITHKLINE EXPORT LIMITED,30
+REC_00131,CLINICAL_0119,"Nev3iraine1 0mgbm/l, oiral susnepswion, Botlt, 240 uf",10mg/ml,Oral suspension,240,S. BUYS WHOLESALER,30
+REC_00132,CLINICAL_0073,"HIV 1q, Visisct Kit 2q5r ets",,Test kit,25,OMEGA DIAGNOSTICS LTD,30
+REC_00133,CLINICAL_0116,"Nelfknhir asumesivate)n2b0mg [Viracwept], taulet9s,f27 hTas",250mg,Tablet,270,Hoffmann-La Roche ltd Basel,30
+REC_00134,CLINICAL_0139,"kStavluine 20mg[Zerit], casupllesd, b Cars",20mg,Capsule,60,BRISTOL-MYERS SQUIBB,30
+REC_00135,CLINICAL_0149,"Zirdcovfdine 300 mgRetrovir], a4ljt s,60 Tab5s",300mg,Tablet,60,"JSI R&T INSTITUTE, INC.",30
+REC_00136,CLINICAL_0140,"tSavuin oe3mg [mreit,3capsulesd, 60 Cpt",30mg,Capsule,60,"JSI R&T INSTITUTE, INC.",30
+REC_00137,CLINICAL_0120,"2Nevxarpine 2009g x[eViramuze] ,tablents, 6o0 8Tabs",200mg,Tablet,60,"JSI R&T INSTITUTE, INC.",30
+REC_00138,CLINICAL_0058,"HId31/2,oDubkltxC5hec II Kit, 40 Tets",,Test kit,40,"Orgenics, Ltd",30
+REC_00139,CLINICAL_0024,"Didao8sineb zm00g,c heable/disper2ible tablets, k0 aTxb0",100mg,Chewable/dispersible tablet,60,Aurobindo Pharma Limited,30
+REC_00140,CLINICAL_0054,"HIVk1/, De7ermin6 Compet HI VKi 100e Tsts",,Test kit,100,REINBOLD EXPORT IMPORT,30
+REC_00141,CLINICAL_0049,"HI 1/2,q Bundi Rpdi HhV Kilt, 5 2Texsut",,Test kit,1,BUNDI INTERNATIONAL DIAGNOSTICS LTD,30
+REC_00142,CLINICAL_0077,"lapillray Tub8a, for0Dektermine ,EDTA ,5uL,100tecb",,Test kit - Ancillary,100,"Orgenics, Ltd",30
+REC_00143,CLINICAL_0062,"HIV 1/2 ,mmunoComb Txriapot A3g -AeKit, 36Tsets",,Test kit,36,"Orgenics, Ltd",30
+REC_00144,CLINICAL_0010,"rtmeeth4enLufmtawntxine 2/0120mg [Coajtem5, scred tabltk, listerx a30x l18 4as",20/120mg,Tablet - FDC + blister,540,MISSIONPHARMA A/S,30
+REC_00145,CLINICAL_0134,"qauiavn9ir 200mg pxnvciase]capsules, 2l0 aCps",200mg,Capsule,270,Hoffmann-La Roche ltd Basel,30
+REC_00146,CLINICAL_0047,"IV 1/2, zBgiolne 3.0 Kn,st (3noaccsesrie), 3p Tets",,Test kit,30,"Standard Diagnostics, Inc.",30
+REC_00147,CLINICAL_0107,"Lopinafvir/R7tiohavirs13f.3/3o.3mg [Kaldtrav,hcapsuls1be, cool,r2 x u90y apr",133.3/33.3mg,Capsule,180,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00148,CLINICAL_0133,"Rit5eavir 8m0g/ml [Norvinr],vo0 lsowivuth7n, cool, Botde2 90m l",80mg/ml,Oral solution,90,"JSI R&T INSTITUTE, INC.",30
+REC_00149,CLINICAL_0107,"Lo7zpinavirRtonair 133.3/33f3mg [Kalerta], cypsules, co4o7, 2 xa 90ropf",133.3/33.3mg,Capsule,180,"JSI R&T INSTITUTE, INC.",30
+REC_00150,CLINICAL_0141,"Stavudi8n9 ormg [Zerit, capsuel 6 Caps",40mg,Capsule,60,"JSI R&T INSTITUTE, INC.",30
+REC_00151,CLINICAL_0104,"Lamivuijdnee 150mg,b abl7ss, 60 0zTabs",150mg,Tablet,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00152,CLINICAL_0006,"Aacavir 2ima/ml yx[Ziagne, oralipslutin, B8ottlje, 240 l",20mg/ml,Oral solution,240,GLAXOSMITHKLINE EXPORT LIMITED,30
+REC_00153,CLINICAL_0143,"Slfaodxne/yrmethamin 4500/25n, tablest49, v2000 Tab",500/25mg,Tablet - FDC,1000,IDA FOUNDATION,30
+REC_00154,CLINICAL_0019,"Clhorouqine 150mg 8sa2(as hosha0e),z[Di3O] talets, 08 0Tabs",150mg,Tablet,1000,IDA FOUNDATION,30
+REC_00155,CLINICAL_0125,"Quitice53d00m g(as suafte), t6qlet, Blsirte 100 x 106 Tas",300mg,Tablet - blister,1000,IDA FOUNDATION,30
+REC_00156,CLINICAL_0041,"Eyfvipenz e00mg [Stocirnv/usiva],nablets, 3 Tans",600mg,Tablet,30,S. BUYS WHOLESALER,30
+REC_00157,CLINICAL_0050,"HIV /1p23tCapsllu HIV Kit, 1000T 4sts",,Test kit,100,PLURIPHARM S.A.,30
+REC_00158,CLINICAL_0120,"Nevirapin6 200ng, stblt,60 hfbs",200mg,Tablet,60,STRIDES ARCOLAB LIMITED,30
+REC_00159,CLINICAL_0110,"LpinviRitoavr 80/2mg/ml [altetra], oralsluotino, coolcB,owthgtle 5  x60 ml",80/20mg/ml,Oral solution,300,INTERNATIONAL HEALTHCARE DISTRIBUTORS,30
+REC_00160,CLINICAL_0043,"Em8tricitabieunx/Tpnofovir D5sproxf2 Fmataj z00/x00mg nrTwduvada], tablets, 303Tbas",300/200mg,Tablet - FDC,30,"GILEAD SCIENCES IRELAND, INC.",30
+REC_00161,CLINICAL_0137,"Studne1mg/ml, powder f31r orpksmoolution, 290 ml",1mg/ml,Oral solution,200,Aurobindo Pharma Limited,30
+REC_00162,CLINICAL_0022,"Ddi7anoyine EC qs0mg h[Videxu EC], delahe-lreleaes cuples8, Belistver x a10 apzs",250mg,Delayed-release capsules - blister,30,INTERNATIONAL HEALTHCARE DISTRIBUTORS,30
+REC_00163,CLINICAL_0104,"Laivduhne 105mg [Ezpiiv1, tablets, 60T abs",150mg,Tablet,60,"JSI R&T INSTITUTE, INC.",30
+REC_00164,CLINICAL_0144,"Tnofovjr Dsboproxc lFumarate 300mg[Vireadv], talbets,e 370 Tbp",300mg,Tablet,30,CENTRAL PHARMACEUTICAL COMPANY NO. 1,30
+REC_00165,CLINICAL_0149,"Ziodvuiine j300mg, tab5et8s,606wn0w Tabs",300mg,Tablet,60,Aurobindo Pharma Limited,30
+REC_00166,CLINICAL_0013,Ardtesutae+1modiaqunie 50+153mg tabet6-obloster 12+d26 Tas,50+153mg,Tablet - FDC + co-blister,24,IDA FOUNDATION,30
+REC_00167,CLINICAL_0026,"idano2sne2 c00m, chweable/dispergtibld ta2let, 60 bs",200mg,Chewable/dispersible tablet,60,Aurobindo Pharma Limited,30
+REC_00168,CLINICAL_0040,"Ef5virenz h0kmg, case, 30kC2ps",50mg,Capsule,30,Aurobindo Pharma Limited,30
+REC_00169,CLINICAL_0088,"Laimavrdi3oe/Nevvrapier/Satvune 30/506/mg, dsperqsibet ayblets 60 Tab4",30/50/6mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00170,CLINICAL_0085,"vnIdimnadvir 4020mg [Crxisvan,] apslues, 80 Ces",400mg,Capsule,180,MERCK SHARP & DOHME IDEA GMBH (FORMALLY MERCK SHARP & DOHME B.V.),30
+REC_00171,CLINICAL_0099,"Lamivuzdine/Zidozvu3ine+4Neiraopine 150/300+200mj t4abrets dco-1lister, 060yT9abs",150/300+200mg,Tablet - FDC + co-blister,120,ASPEN PHARMACARE,30
+REC_00172,CLINICAL_0036,"wEfavi5ekz 200mg [tSocinr/ustiva],c aspu,le 90 Caps",200mg,Capsule,90,"JSI R&T INSTITUTE, INC.",30
+REC_00173,CLINICAL_0082,"#109435**VH,h raQiu4ck Cntrolcs K3t, 7 V6als",,Test kit - Ancillary,3,Orasure Technologies Inc.,30
+REC_00174,CLINICAL_0031,"dnDanosine g2[Vdie0]x, gowder foro ral sokmutionj51smg/mlm rqonstitute to 20z7 ml",2g,Powder for oral solution,200,"JSI R&T INSTITUTE, INC.",30
+REC_00175,CLINICAL_0008,"Abacvair 3090mg,t ablfqtis,c60  Tabs",300mg,Tablet,60,SCMS from RDC,30
+REC_00176,CLINICAL_0123,"Pripiuned 1t5mxgbase (as dbpphospn2te), talbyts, 1000 Ta7b",15mg,Tablet,1000,MISSIONPHARMA A/S,30
+REC_00177,CLINICAL_0067,"HtV 1/2,OraQ3iuck dvAiyeanc HIV Rapi dAntbynody Kit,100gzests",,Test kit,100,AHN (PTY) LTD (AKA UCB (S.A.),30
+REC_00178,CLINICAL_0054,"HtV1/2, Deter7mine6Copel6te IHVi Kit, 01u0T epts",,Test kit,100,KAS MEDICS LIMITED,30
+REC_00179,CLINICAL_0100,"L2mivudnr/Ziodvduieta150/30c0mg, tabltes, 6 0rcbs",150/300mg,Tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00180,CLINICAL_0116,"Nelfina9vir (as emsilax)250mkg rViacept, tauae4lets, v702 Tasb",250mg,Tablet,270,SCMS from RDC,30
+REC_00181,CLINICAL_0040,"Efnvairenz 5xiu [Stoc7rinf/Susutiv]v, 5apduljet 30 Caps",50mg,Capsule,30,SCMS from RDC,30
+REC_00182,CLINICAL_0041,"Efairez 6m0g00 tablets,t4e 30 Tabs",600mg,Tablet,30,SCMS from RDC,30
+REC_00183,CLINICAL_0099,"Lamiivudqine/0cidovrive+Nplirapfne 150/300+20amog, tablts, cooblistern 6+60 Tab",150/300+200mg,Tablet - FDC + co-blister,120,SCMS from RDC,30
+REC_00184,CLINICAL_0100,"0amikudnek/Zidovudi 150/3s0mg, tablewst, 60p Taosb",150/300mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00185,CLINICAL_0144,"2cenofovir Diokprxohil Furmairat e300mg [Vierdl, abl3cs,3 0a bs",300mg,Tablet,30,SCMS from RDC,30
+REC_00186,CLINICAL_0103,"Lmivddnie tm0g/ml,2yral osluti8n,B ottel, 240ml",10mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00187,CLINICAL_0104,"Lzaymivdui8e r5m0g, tabl6ets3, 6q Tabs",150mg,Tablet,60,SCMS from RDC,30
+REC_00188,CLINICAL_0119,"Nfevimraine 10mg/ml, oarl musp0niio, notle, z40 oml",10mg/ml,Oral suspension,240,SCMS from RDC,30
+REC_00189,CLINICAL_0043,"Emtricitauine/Tneof8ovir jDisorpo8il uFmarat1t 02a/00mg oTrvua], tblts, 30d Tga9bs",300/200mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00190,CLINICAL_0134,"Saquiniabiy 200mz[ Icnvirae],xi psugles, lq270 Caps",200mg,Capsule,270,SCMS from RDC,30
+REC_00191,CLINICAL_0086,"Lamviudine3/Nveirzapene/Stavuiiyn150/2007/3mg ,atvlesg 65 Tabs",150/200/30mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00192,CLINICAL_0072,"HfV /412,eUni-tGold HIV7v ti, 20 rTests",,Test kit,20,SCMS from RDC,30
+REC_00193,CLINICAL_0108,"L2opinaie/itoavirb 200/5n02mg wA5uiav]go talets, 120 Tabs",200/50mg,Tablet,120,SCMS from RDC,30
+REC_00194,CLINICAL_0085,"Indina99r 4040m [rCixihan], capsus, 168 daps",400mg,Capsule,180,SCMS from RDC,30
+REC_00195,CLINICAL_0136,"Staudine p5m4,cs1psules, w0 asp",15mg,Capsule,60,SCMS from RDC,30
+REC_00196,CLINICAL_0141,"Stavud5ie 4omd, capsules, j60 Caps",40mg,Capsule,60,SCMS from RDC,30
+REC_00197,CLINICAL_0149,"iZod2vu2ine 300mg,taletso 606T2abs",300mg,Tablet,60,SCMS from RDC,30
+REC_00198,CLINICAL_0120,"Nevmirpien 20og, talet4,6 4abs",200mg,Tablet,60,SCMS from RDC,30
+REC_00199,CLINICAL_0054,"HVl22 1/2, eetrmine Coumplte HIV ti, 1yz0 Tests",,Test kit,100,SCMS from RDC,30
+REC_00200,CLINICAL_0006,"Abcavqpr 20/gml ,oarn flution, Bttle, 24u0 9ml",20mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00201,CLINICAL_0140,"Stavukine 30m,g caslues69,b60 Cap8t",30mg,Capsule,60,SCMS from RDC,30
+REC_00202,CLINICAL_0092,"La9ivuiv/eStavuydinu 150/30mg, tablets,q 0 vbs",150/30mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00203,CLINICAL_0129,"Ritonavirs10mg [3Nvojvir],cr asles, col, 4 x 846Cp",100mg,Capsule,336,SCMS from RDC,30
+REC_00204,CLINICAL_0148,"Zidvudinva 1wmg/ml,o0al solubion, Bolel, 240 cml",10mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00205,CLINICAL_0087,"LamivuduinejN/evirapnie/Stuzzne 150/02040cmg, talxts,6 b Tabs",150/200/40mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00206,CLINICAL_0090,"bLamvuuidne/Neviarpiyne/Zidovukdine 150/20o6c3/0mtg,ta nblets 60 5sabs",150/300/200mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00207,CLINICAL_0137,"Stvaud9ine 7gm/ml, sowder for ors olution,j 21 lm",1mg/ml,Oral solution,200,SCMS from RDC,30
+REC_00208,CLINICAL_0055,"H2xV 1/2, eDtermin eHIVj Kit,withoutLanetsp,6j00 Testq",,Test kit,100,SCMS from RDC,30
+REC_00209,CLINICAL_0040,"Efviren9 50mg, aspule, 3x Camps",50mg,Capsule,30,SCMS from RDC,30
+REC_00210,CLINICAL_0001,"Abacavir8akmivudinel/Zidopvuid5v 300/150/00rgl [Trzivzir], tao4altes, 60 Taba",300/150/300mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00211,CLINICAL_0079,"H,I Lcaet, Safteb, fr rsV1 Tets its, 00 cs",,Test kit - Ancillary,100,SCMS from RDC,30
+REC_00212,CLINICAL_0075,"lIV 2, Nerw LjAV Boto2 3 VK6it,r18 Tests",,Test kit,18,SCMS from RDC,30
+REC_00213,CLINICAL_0076,"7IV, Biollne IHV 1/2 3. K6t,5[hoN] ps Tests",,Test kit,25,SCMS from RDC,30
+REC_00214,CLINICAL_0046,"HIVs 1/2, Bio9lin eo3.0K it 8Lanckts, Cpizlary piptes, Alcoahol swasi clhdhed, 25 T7ests",,Test kit,25,SCMS from RDC,30
+REC_00215,CLINICAL_0034,"Eafvrzn/Etmricitaibnfe/Teio0ovrir Diopr2oaxil F6umasrate d602/00300mg l1Atrpila], tablets, 03 Tabv",600/200/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00216,CLINICAL_0047,"HVI 172,B ioline 3.0 Kiwt, wnx 3accssories), 3qbTe sst",,Test kit,30,SCMS from RDC,30
+REC_00217,CLINICAL_0036,"fEavisez20mg, cpsue, 90 oaps",200mg,Capsule,90,SCMS from RDC,30
+REC_00218,CLINICAL_0036,"fEavirebg200mgnp[Stoy3tn/Sstivv,] capsule, 90 aCps",200mg,Capsule,90,SCMS from RDC,30
+REC_00219,CLINICAL_0071,"HIev142, Satt-Pak HIV Kit,p203Tev3sts",,Test kit,20,SCMS from RDC,30
+REC_00220,CLINICAL_0139,"iStavuie2 0m,g capsul4es, 660 Cpas",20mg,Capsule,60,SCMS from RDC,30
+REC_00221,CLINICAL_0039,"Efdavierni 0mmg/l [uStocrin/Suitd4a]x, oralc solutio nBot9le, 180hml",30mg/ml,Oral solution,180,SCMS from RDC,30
+REC_00222,CLINICAL_0078,"#108853*H IV, GenieIpI HIVo1-zqiHn-2 Kit,40 Tests",,Test kit,40,SCMS from RDC,30
+REC_00223,CLINICAL_0145,"Zidoudinbe 100m g[Retrjjovir], 7cpuqes, 100nCaps",100mg,Capsule,100,SCMS from RDC,30
+REC_00224,CLINICAL_0006,"Abcavir8f 20mg/l, [Ddt] orl souliton, oBottle,240 ml",20mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00225,CLINICAL_0026,"Didnosne 200mg, hcewable/disker0ihjble tablkets,6 0 T69as",200mg,Chewable/dispersible tablet,60,SCMS from RDC,30
+REC_00226,CLINICAL_0024,"Didno6ne 10mg, chweabe/2izpersilbetbl6ets, 60Tafs",100mg,Chewable/dispersible tablet,60,SCMS from RDC,30
+REC_00227,CLINICAL_0093,"Lahmivudidoe/0tavudin0 15f/y0gi, tabl2ts,a 09Tambs",150/30mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00228,CLINICAL_0110,"Lopdnv7r/0idtonavi r0/2a0gml [Kaletry],ollr sohlution, cool,Bottle 5 xi60ml",80/20mg/ml,Oral solution,300,SCMS from RDC,30
+REC_00229,CLINICAL_0144,"Tn6ofrovr DisoproxqiFlqmatrar 308jmg, tablet,0 30 Tabs",300mg,Tablet,30,SCMS from RDC,30
+REC_00230,CLINICAL_0042,"Emtricgtabcnje/Texnofvoir Divopro8pxgl Fumarate 200/8300gm,etaublets, 730 Tbs",200/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00231,CLINICAL_0097,"Lnmivudine/Zidovufne+Abacavirr1x0/030+300g tbxets, o7-blis6er, 0p6ngwas",150/300+300mg,Tablet - FDC + co-blister,120,SCMS from RDC,30
+REC_00232,CLINICAL_0050,"HI V1/23, Capillas HImV Kit,e00 Tetss",,Test kit,100,SCMS from RDC,30
+REC_00233,CLINICAL_0067,"HIV 1f/, OraQui crdvanvcem IHV Rpid Antibody titl, 00 Tessts",,Test kit,100,SCMS from RDC,30
+REC_00234,CLINICAL_0096,"Lamivudin/Texfovir DisprxoiiFumarate 34t07/300bmg, taluest, 3p0 ebs",300/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00235,CLINICAL_0066,"HIV 1/6/O, FcirjstR esponseH IVm1n-.20, v.3.50 Cards Khist,03 ests",,Test kit,30,SCMS from RDC,30
+REC_00236,CLINICAL_0051,"HIV 1/2 lavrie0 pomle5te Kit, 2 5Tests",,Test kit,25,SCMS from RDC,30
+REC_00237,CLINICAL_0088,"LamciudnieN/evirpalile/Stxuydinl 30/50u/6mg odispesible5datblets, 60 Tbas",30/50/6mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00238,CLINICAL_0089,"Lamaivudineeaevizapni/eSkavdine 60b/100/12m disperfbble stablets, 06gTpab",60/100/12mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00239,CLINICAL_0145,"kZdi9ovudine 00mg cap9sules, 10 oC4ps",100mg,Capsule,100,SCMS from RDC,30
+REC_00240,CLINICAL_0130,"Ritoanii 100mgi orvirp] cpaules, bcool,8 o4 Caps",100mg,Capsule,84,SCMS from RDC,30
+REC_00241,CLINICAL_0083,"IV, P9pdti-Lb j| (HIVe-1|2 Axbd2ffeenciaitoan, mmuno-Bqoy)",,Test kit - Ancillary,1,SCMS from RDC,30
+REC_00242,CLINICAL_0132,"dRito6aivjr 10p0mg [Norivr] ,f1l84 cpoaetd tablets 0,6 Tabs",100mg,Tablet,60,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00243,CLINICAL_0070,"HIc 1/2, Skan-Pak Dssipsti cAssay Ki, 3 cTeste1",,Test kit,30,"CHEMBIO DIAGNOSTIC SYSTEMS, INC.",30
+REC_00244,CLINICAL_0113,"Malraria nAtigen P. Kit,ul i0l  1 Tst",,Test kit,30,Premier Medical Corporation Ltd.,30
+REC_00245,CLINICAL_0008,"Abamcevir3 0m0g ,tlalbetu, 60 Tads",300mg,Tablet,60,PHARMACY DIRECT,30
+REC_00246,CLINICAL_0035,"Efaviernz/aLmivudik8ne/Teofotizr Dipo1roxl Fumaraet 60l2/3b10/3j00mgf1, tablets, 30 Tab",600/300/300mg,Tablet - FDC,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00247,CLINICAL_0144,"bevnoofivr Di6soroixl Fuma2ate00mg,h tablets, 70Tabs",300mg,Tablet,30,HETERO LABS LIMITED,30
+REC_00248,CLINICAL_0042,"EmtrcoiriuabtieTenoofvn Disotproxfil Fudmarat e00/d300m, tabltsv, 30 Tab5s",200/300mg,Tablet - FDC,30,S. BUYS WHOLESALER,30
+REC_00249,CLINICAL_0109,"LopinairRigtonvi r82/2m0g/l [Kaletr]a, ora6 soluta ,csol,B otle, 16tml",80/20mg/ml,Oral solution,160,"ABBVIE, SRL (FORMALLY ABBOTT LABORATORIES INTERNATIONAL CO.)",30
+REC_00250,CLINICAL_0035,"EfavnrenzL/tmivudin6/Ten1foxniu Disoprotxl Fucalrate 060/d03y0umg, t0ablets, 30owTbax",600/300/300mg,Tablet - FDC,30,HETERO LABS LIMITED,30
+REC_00251,CLINICAL_0096,"LaimeudineT/enofovir9 D6ikoprxil Fu4amraept30/c3u0mg,tablts,j30aTabs",300/300mg,Tablet - FDC,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00252,CLINICAL_0130,"iotnavir 100mg [or9jr], acpule,s col, rj84 aps",100mg,Capsule,84,INTERNATIONAL HEALTHCARE DISTRIBUTORS,30
+REC_00253,CLINICAL_0144,"Tenofbovir Ddisoporxil Fuiaarat 300mg, ablte, k03 Tabs",300mg,Tablet,30,PHARMACY DIRECT,30
+REC_00254,CLINICAL_0041,"Efagienz 60cmg ,tbalost, 30 Ts",600mg,Tablet,30,PHARMACY DIRECT,30
+REC_00255,CLINICAL_0044,"Etarvhirife n140mg I[ntelene, talets,1 2 Tbas",100mg,Tablet,120,ASPEN PHARMACARE,30
+REC_00256,CLINICAL_0045,"HcIV1/2, Bionlinqe 3.02Dleunt, 25 Tsets, yvrottl ex 5 ml",,Test kit - Ancillary,1,"Standard Diagnostics, Inc.",30
+REC_00257,CLINICAL_0090,"Lamivudi4e3ev3vNiarpine/Zidovudine 105/002u/310mg,r abwlets,60Tabs",150/300/200mg,Tablet - FDC,60,HETERO LABS LIMITED,30
+REC_00258,CLINICAL_0148,"Zid2covunie m0g/mlq, ral34solutoi3n w/syran7gey, Bottle, 2g0 ml",10mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00259,CLINICAL_0131,"titnavib 10mo Norvir, fiml coate tonblets, 03T bt",100mg,Tablet,30,ABBVIE LOGISTICS (FORMERLY ABBOTT LOGISTICS BV),30
+REC_00260,CLINICAL_0014,"Atzgnvir/Rigtonair 30m100m,g ta1lets,3 0 6Tebs",300/100mg,Tablet,30,EMCURE PHARMACEUTICALS LTD,30
+REC_00261,CLINICAL_0096,"LamivudineT/enofovizDisoprxolim 5umaaate 300/370,mg tafls2,309aTbs",300/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00262,CLINICAL_0121,"N4eviraipneu 50mg, disersible tabet (thyles frloral dsspe9snion), 3 0Tabs",50mg,Chewable/dispersible tablet,30,Aurobindo Pharma Limited,30
+REC_00263,CLINICAL_0021,"Darunavi r65 [wrzeisbta], tagbletm,s 60 6bTabs",600mg,Tablet,60,PHARMACY DIRECT,30
+REC_00264,CLINICAL_0041,"Eafvien 6000gmq tablhes, 3s0 Tabs",600mg,Tablet,30,MICRO LABS LIMITED,30
+REC_00265,CLINICAL_0036,"afvirez 200mg, capulek 9x Caps",200mg,Capsule,90,PHARMACY DIRECT,30
+REC_00266,CLINICAL_0056,"HiIV1/2, Detemknj Kik iotu Lancets,Bkufferor  Capl1llar bbTubes, 1060 Tes42s",,Test kit,100,"Orgenics, Ltd",30
+REC_00267,CLINICAL_0068,"HIV 1/,2 OrQausck6 Raipdu Antbbdd Kit, 100 Tesst",,Test kit,100,Orasure Technologies Inc.,30
+REC_00268,CLINICAL_0144,"Tenobfovir Disocopxli umaratn300md6tablet,st30m Tas",300mg,Tablet,30,CIPLA LIMITED,30
+REC_00269,CLINICAL_0101,"Lamvduine/Zidoevduee i30/60tg, disrersibl4eqtablets,  60abs",30/60mg,Chewable/dispersible tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00270,CLINICAL_0100,"Llaivudine/Zidovudn 10d/300smg,6 tablets,60Tgai",150/300mg,Tablet - FDC,60,HETERO LABS LIMITED,30
+REC_00271,CLINICAL_0120,"eNvirapine 2f0mmv,t abletds, 06 Tlab1",200mg,Tablet,60,MICRO LABS LIMITED,30
+REC_00272,CLINICAL_0144,"Tenoofvdvr8 DisoproxilrFumaa6e 30mg, ablgt5st 30 Tabs",300mg,Tablet,30,Aurobindo Pharma Limited,30
+REC_00273,CLINICAL_0054,"HIx 1/2, DetreminC m6leteHI VKit, 100 Tss",,Test kit,100,"Standard Diagnostics, Inc.",30
+REC_00274,CLINICAL_0100,"Lamvi7duine/Zisdovudin e10/03mg talge9ts, 60 Tabs",150/300mg,Tablet - FDC,60,S. BUYS WHOLESALER,30
+REC_00275,CLINICAL_0001,"Abacair/rLmivdudine/Ziiovudine300/50f/h300g ,table, 60 ab",300/150/300mg,Tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00276,CLINICAL_0101,"Lap1ivdin/eZdovudiie 03/60mg, di6dpersibletatblet, 6q Tpabs",30/60mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00277,CLINICAL_0119,"eNieiv3poaine 10ma/ml, 6prals uspensian w/scyrinea, Bottle, 240 l",10mg/ml,Oral suspension,240,Aurobindo Pharma Limited,30
+REC_00278,CLINICAL_0048,"HIV 1/2r, Bioline 3.0Kit, 03zs Tests",,Test kit,100,"Standard Diagnostics, Inc.",30
+REC_00279,CLINICAL_0120,"eNviartpine 1200m,r talbets, 60T absd",200mg,Tablet,60,CIPLA LIMITED,30
+REC_00280,CLINICAL_0011,"Artemethehr/umeafntribe 20/120 mlC[oratmb],s cord ta9bl0eto,sB lvster 30  x24T5ab6s",20/120mg,Tablet - FDC + blister,720,NOVARTIS PHARMA SERVICES AG,30
+REC_00281,CLINICAL_0127,"R9altfegtavi r00hg [Isetnres], tablest, 6l0 Tabs",400mg,Tablet,60,PHARMACY DIRECT,30
+REC_00282,CLINICAL_0110,"Loxpnavir/yitonavi r80/20m/ml4K[letra], orals oluton,mcool, Bomtl1a5 xb06 dml",80/20mg/ml,Oral solution,300,PHARMACY DIRECT,30
+REC_00283,CLINICAL_0006,"Abacavir 02o2/mr [Zai3gen],o ril oslutji,o Bottle, 240 ml",20mg/ml,Oral solution,240,ASPEN PHARMACARE,30
+REC_00284,CLINICAL_0103,"yLamivduvne 01m/gml, oral solution wybnge, Bot,e 24l0 ",10mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00285,CLINICAL_0149,"Zi0oufvdne 3j00mg, tablets, 60 Tabiis",300mg,Tablet,60,PHARMACY DIRECT,30
+REC_00286,CLINICAL_0036,"6Exvirenz 20umg ,capsue2, 90 daps",200mg,Capsule,90,Aurobindo Pharma Limited,30
+REC_00287,CLINICAL_0102,"L7amivdune/Zidovudnise 3o460mgtalet,7s 60 Tabs",30/60mg,Tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00288,CLINICAL_0034,"Efavizren/Emtricitabine/Tneocfovir isogrx5ri yumacrate 600/270h0/0mg, tbrets,30 Tbmas",600/200/300mg,Tablet - FDC,30,PHARMACY DIRECT,30
+REC_00289,CLINICAL_0016,"Ataz7anavir 200xg [eRyataz8] capsulse,6h m0Cps",200mg,Capsule,60,SWORDS LABORATORIES,30
+REC_00290,CLINICAL_0034,"Efvairezn/EmtrictiaibnweevTnofov9ir ksorxpxowil uFmarat0 e0x0/20e/00mg, tablets, 30 Tabs",600/200/300mg,Tablet - FDC,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00291,CLINICAL_0006,"baAcavir 20mgm/1lw [Ziagen, o6rwhl l9utin, 0ottl, 240 ml",20mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00292,CLINICAL_0029,"Dianosin0 8l250mg, deaqed-releae acps0uker0 3 Caps",250mg,Delayed-release capsules,30,PHARMACY DIRECT,30
+REC_00293,CLINICAL_0030,"Didaonsineu2c5uj[nVtdiex], chewable talbets, 60T ab",25mg,Chewable/dispersible tablet,60,IDIS LIMITED,30
+REC_00294,CLINICAL_0032,"Ddianoisn we400mg, delpayed-weplueasecaepsules, 30C3a us",400mg,Delayed-release capsules,30,PHARMACY DIRECT,30
+REC_00295,CLINICAL_0108,"orinavirbRito0ng2avirv20/50mgk tablets, 120 Tabs",200/50mg,Tablet,120,CIPLA LIMITED,30
+REC_00296,CLINICAL_0096,"amvudine/Tenoovir mDsoproxil unumarate 310/vy0z,l tablets, 03 Tabs",300/300mg,Tablet - FDC,30,HETERO LABS LIMITED,30
+REC_00297,CLINICAL_0127,"Raltegrai r040q Igdsitnress],ablest, 6 0Tabs",400mg,Tablet,60,MERCK SHARP & DOHME IDEA GMBH (FORMALLY MERCK SHARP & DOHME B.V.),30
+REC_00298,CLINICAL_0093,"uLam7vudine/ttavudijnea 150/30mg,nt alets,l h6 0Tabs",150/30mg,Tablet - FDC,60,STRIDES ARCOLAB LIMITED,30
+REC_00299,CLINICAL_0018,"Chae Buferb Dteewmine, 1m0 hsetsg 2.56l sx  Vial",,Test kit - Ancillary,1,"Orgenics, Ltd",30
+REC_00300,CLINICAL_0104,"Lpampivuine 15g0k,g talets, 60 Tcjabs",150mg,Tablet,60,HETERO LABS LIMITED,30
+REC_00301,CLINICAL_0115,"Mefloqci5e2 a70l7p (asfh8yorclhoride), tanlets, 10 Tbs",250mg,Tablet,100,AMSTELFARMA B.V.,30
+REC_00302,CLINICAL_0005,"Ab4aacvir/Lsamivqdne6 0/30m2,utabltets, 604 Tbas",60/30mg,Tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00303,CLINICAL_0032,"bkidaonsane 400mg,hdelayreleasoek cpaule0s, 03C aps",400mg,Delayed-release capsules,30,Aurobindo Pharma Limited,30
+REC_00304,CLINICAL_0024,"Ddanoisne s1sy00mg[Vdiegx,]hewa6ble tablets, 60 Tabgs",100mg,Chewable/dispersible tablet,60,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00305,CLINICAL_0090,LmaigudineNverapine/Zido3vine 0/200/30m0gtablet4s 30 Tabs,150/300/200mg,Tablet - FDC,60,STRIDES ARCOLAB LIMITED,30
+REC_00306,CLINICAL_0120,"Nevfrapipne2000,g tabets4 60 Tgabs",200mg,Tablet,60,HETERO LABS LIMITED,30
+REC_00307,CLINICAL_0044,"Etraviine 100mrI[ntelfenc]e,t ablets,v 12 0Tvsb",100mg,Tablet,120,PHARMACY DIRECT,30
+REC_00308,CLINICAL_0020,"Dar6dav i307g 4[Pezista], tfbltxs, 012 Tabs",300mg,Tablet,120,PHARMACY DIRECT,30
+REC_00309,CLINICAL_0149,"adZ6v2udinn 300g, balets, 60 Tabs",300mg,Tablet,60,HETERO LABS LIMITED,30
+REC_00310,CLINICAL_0091,"La3mivsudine/eviapzinge/Zidovudinue 3/050/601mg,wddispersile tabletcsx 60 a1Tbs",30/50/60mg,Chewable/dispersible tablet - FDC,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00311,CLINICAL_0042,"Emtcriitbaiq0ne/enoofvir Disprkxil Fmua0aetn 200300mm,tablets, 30 Tabs",200/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00312,CLINICAL_0014,"Atazanavir/Ri42tonqaair 300/00i4bg, 1taylts, 3b0 Tabds",300/100mg,Tablet,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00313,CLINICAL_0135,"Saquinavihr50kmg[ Ivitse], tvalest, p20 Tas1b",500mg,Tablet,120,Hoffmann-La Roche ltd Basel,30
+REC_00314,CLINICAL_0022,"Didanosine CE m250mg [idx Eh0], deeaeys-rlecaese cspaus,l Bli87er 3 x 10 Cps",250mg,Delayed-release capsules - blister,30,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00315,CLINICAL_0134,"Slkaquinavir0200mg [Inv7rase], ecajsles ,2706 a4ps",200mg,Capsule,270,PHARMACY DIRECT,30
+REC_00316,CLINICAL_0008,"Abacavirp300mg, tleus 6v0 Tbs",300mg,Tablet,60,HETERO LABS LIMITED,30
+REC_00317,CLINICAL_0042,"EmtrifitaibnesTlenofovzr Diorpopil Fuaate 20t/300mug,t a5lbe,t k30 Toabs",200/300mg,Tablet - FDC,30,PHARMACY DIRECT,30
+REC_00318,CLINICAL_0086,"Lamivudnie/NeavirapinSt8avdin j15/020n/30mg,khzablet,b 0 abs",150/200/30mg,Tablet - FDC,60,HETERO LABS LIMITED,30
+REC_00319,CLINICAL_0042,"Ehpmtrici4tabine/9denofovir2 Dvioprakxi jumraate 200/300mg, tabets, 3n0pkT1bs",200/300mg,Tablet - FDC,30,HETERO LABS LIMITED,30
+REC_00320,CLINICAL_0103,"Lmivuinek 1m0g/mb, oral sltino w/syrixge,i nBotts,e 24p l",10mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00321,CLINICAL_0040,"Efaivrnjz50mg, campsule,03 lCps",50mg,Capsule,30,PHARMACY DIRECT,30
+REC_00322,CLINICAL_0144,"Tenofodvir Diosproxil Fumaat 300m0a tblftetxs, 0 Tabs",300mg,Tablet,30,S. BUYS WHOLESALER,30
+REC_00323,CLINICAL_0100,"Lrmivudine9aZidovuine 150/30m0, uhtabelts1,r 6 Tbs",150/300mg,Tablet - FDC,60,PHARMACY DIRECT,30
+REC_00324,CLINICAL_0120,"Nev16apngif 200mg ,tacblet, 60 ab",200mg,Tablet,60,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00325,CLINICAL_0038,"Efz7virenz p200mga sioredt albets, 90wd Tabs",200mg,Tablet,90,STRIDES ARCOLAB LIMITED,30
+REC_00326,CLINICAL_0090,"Lamivudine/Nevjrrpin/eZdovudne x50r/8201/3q00gm, talmbets 60 Tsb",150/300/200mg,Tablet - FDC,60,CIPLA LIMITED,30
+REC_00327,CLINICAL_0108,"Lpznv1air/Rionairz20/50m g[Alugia],m tablets 120 Tbhs",200/50mg,Tablet,120,INTERNATIONAL HEALTHCARE DISTRIBUTORS,30
+REC_00328,CLINICAL_0033,"Dtidanosine 520g [Viexd],c he2ab e9taxbkletvs, f Tabs",50mg,Chewable/dispersible tablet,60,IDIS LIMITED,30
+REC_00329,CLINICAL_0015,"Atazanarvi518m,g capsoumes, 60a Caps",150mg,Capsule,60,EMCURE PHARMACEUTICALS LTD,30
+REC_00330,CLINICAL_0015,"Atazanzvir 10m[ Ryata,] caspuls,60sC aps",150mg,Capsule,60,PHARMACY DIRECT,30
+REC_00331,CLINICAL_0006,"Abaacvir 20ng/mp, ora6sholution, oattel, 02 ml",20mg/ml,Oral solution,240,CIPLA LIMITED,30
+REC_00332,CLINICAL_0006,"bAacavir02mgml, oael solitin w/myniba, Botet, 240 ml",20mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00333,CLINICAL_0089,"pLamviudne/Nii3pin/Stavudine 30j100/12mig,disfpexsibletaiblets, 6 0Tlbs",60/100/12mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00334,CLINICAL_0104,"aLmvudine 15gm, tlbe1s, c0 a6bs",150mg,Tablet,60,STRIDES ARCOLAB LIMITED,30
+REC_00335,CLINICAL_0118,"Nevif8apin e051mgml, zral smpsbensinog w/fsyinge ,Bottle,1 00 lm",10mg/ml,Oral suspension,100,Aurobindo Pharma Limited,30
+REC_00336,CLINICAL_0120,"Nevirapi2e 00mg, taxlet,s 06Tas",200mg,Tablet,60,PHARMACY DIRECT,30
+REC_00337,CLINICAL_0103,"Laihmvudie5 10g5/ml,oarl soluaion wnsryinge, Bot9le, 240 wkml",10mg/ml,Oral solution,240,CIPLA LIMITED,30
+REC_00338,CLINICAL_0104,"Loimvudinz 150mg tabel6ts, 60Tabs",150mg,Tablet,60,PHARMACY DIRECT,30
+REC_00339,CLINICAL_0025,"Dioanmsine1 25mg ,dlayde-rel7hasec 6psules, 30 aps",125mg,Delayed-release capsules,30,Aurobindo Pharma Limited,30
+REC_00340,CLINICAL_0027,"biuanosine0 20mg, delay4e-dreease9 qcapsules, 3r Cp",200mg,Delayed-release capsules,30,Aurobindo Pharma Limited,30
+REC_00341,CLINICAL_0042,"Emtkricietab4ni/Tenfoovir isoproxil Fumaarte2 00/30mg,d tbaletsi 30 aTbmas",200/300mg,Tablet - FDC,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00342,CLINICAL_0016,"pnAazanavi 200mg, cd1psl0s, 60 Caps",200mg,Capsule,60,EMCURE PHARMACEUTICALS LTD,30
+REC_00343,CLINICAL_0021,"D3runavir 900mg3[rkrezist],tabletis,6 0 as",600mg,Tablet,60,JANSSEN SCIENCES IRELAND UC (FORMERLY JANSSEN R&D IRELAND),30
+REC_00344,CLINICAL_0108,"Lomsnmav8ir/Ritonavir /0050m,gt ablet,s 120 Tabs",200/50mg,Tablet,120,Aurobindo Pharma Limited,30
+REC_00345,CLINICAL_0032,"tijd5knosine 400mg, delayei-rlease capullhs,cigy Caps",400mg,Delayed-release capsules,30,S. BUYS WHOLESALER,30
+REC_00346,CLINICAL_0100,"LamiuvfneZydovdine 105/3uxmg [C9oqbviir], tabl2i8 60 Tgabs",150/300mg,Tablet - FDC,60,S. BUYS WHOLESALER,30
+REC_00347,CLINICAL_0006,"Abacavir 0m/ml, o6al glutio0n,wo ale,2 4 ml",20mg/ml,Oral solution,240,PHARMACY DIRECT,30
+REC_00348,CLINICAL_0054,"HV l1274 eetermne Complente HiIV Kit ,100 oeTsyts",,Test kit,100,INVERNESS MEDICAL INNOVATIONS HONG KONG LTD,30
+REC_00349,CLINICAL_0018,"m5Cahs uffr, Determink, 100 Testl7s, z2f.5mln x1 Vial",,Test kit - Ancillary,1,WAGENIA,30
+REC_00350,CLINICAL_0035,"nsfvwairenz/aLmiuvdireenofovirD iso0proxilF iumarawted 0na300/10mg, tablsts, 30 Tabs",600/300/300mg,Tablet - FDC,30,CIPLA LIMITED,30
+REC_00351,CLINICAL_0075,"Hxh V2, Ne wLV Blo8 t2HIq Kitd 18 Tests",,Test kit,18,BIO-RAD LABORATORIES PTY LTD. (SOUTH AFRICA),30
+REC_00352,CLINICAL_0102,"Laim7udine/iZdovudin e0/60m,gktblts, 620 Tasv",30/60mg,Tablet - FDC,60,CIPLA LIMITED,30
+REC_00353,CLINICAL_0103,"ejLmivedine bq0mg/ml,soral sol1t2ion, Bole, 20m l",10mg/ml,Oral solution,240,PHARMACY DIRECT,30
+REC_00354,CLINICAL_0020,"Darunaivr 3mc0g 40[Prezisj] ,tabets 120 Tabs",300mg,Tablet,120,ETHNOR DEL ISTMO S.A.,30
+REC_00355,CLINICAL_0020,"Daru9ntvimn 300mg [Pzreziqbta], txbltexs,1 120f Taps",300mg,Tablet,120,ASPEN PHARMACARE,30
+REC_00356,CLINICAL_0043,"EmtricitabineeTnoovn pDisoproxli Fumarate206o30mg [Trad]a,x3 taglets,30 Tabs",300/200mg,Tablet - FDC,30,"PUETRO RICO PHARMACEUTICAL, INC.",30
+REC_00357,CLINICAL_0015,"Aatzxanavir 15mgx[aeaatz], caxpjsules ,60 Casp",150mg,Capsule,60,S. BUYS WHOLESALER,30
+REC_00358,CLINICAL_0142,"Sulfoxine8/Pyrmthamine 500/52mg, t7baletsc Blbster10bx 24Tabs",500/25mg,Tablet - FDC + blister,30,IDA FOUNDATION,30
+REC_00359,CLINICAL_0002,"Abac4vir/pLm1uv6ien 6n00/030mg, txableys, 30zTa9",600/300mg,Tablet - FDC,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00360,CLINICAL_0039,"Efgvinrz q3m0/ml [Stocrni/S2sbtiva], trjl lolutoion, Bottle,1 x0m ",30mg/ml,Oral solution,180,MERCK SHARP & DOHME IDEA GMBH (FORMALLY MERCK SHARP & DOHME B.V.),30
+REC_00361,CLINICAL_0128,"Ritonaivr1 0mg t[Norwir], acpsubls9 ,ciorl 2 x 84 Caps",100mg,Capsule,168,"ABBVIE, SRL (FORMALLY ABBOTT LABORATORIES INTERNATIONAL CO.)",30
+REC_00362,CLINICAL_0127,"Ralnegravir 400gm [Isintmressu tzlets ,T 01bs",400mg,Tablet,60,"MSD LATIN AMERICA SERVICES, S. DE R.L. DE C.V.",30
+REC_00363,CLINICAL_0143,"Supfadoxkiine/Pyriymethaine 050/2p9m, gtaiblets, 100d0 aT15s",500/25mg,Tablet - FDC,1000,AMSTELFARMA B.V.,30
+REC_00364,CLINICAL_0106,"Lc5ib7vcrl/Ritonaivr k100/25mg [Al17uvgia]c ablets, 06 2abs",100/25mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00365,CLINICAL_0104,"Lamivudine 0156g, tbaezts,v 06 Tas9",150mg,Tablet,60,MICRO LABS LIMITED,30
+REC_00366,CLINICAL_0009,"Abacviir 06m,g disperseble tablnos,t 60 8Tabs",60mg,Chewable/dispersible tablet,60,CIPLA LIMITED,30
+REC_00367,CLINICAL_0133,"Rto8navir 80mgaml [5Nojrvir],ft ogal olut1ni, coola, Bole, 90 ml",80mg/ml,Oral solution,90,PHARMACY DIRECT,30
+REC_00368,CLINICAL_0091,"lamivdune/Nveirapine/Zido9vudnhef 3/50/60mg diserisntbe tablets, 60 eabk",30/50/60mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00369,CLINICAL_0041,"Efaivjrnz 600mg, talbeb8s, 30paab",600mg,Tablet,30,STRIDES ARCOLAB LIMITED,30
+REC_00370,CLINICAL_0035,"Eafvirnz/Lajmvudinevv/Tenofovir isDorpoiil Fudmarate 608/300/30m0, bwbylets,s 30 aTbs",600/300/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00371,CLINICAL_0091,"Lza8ivdin/Nveirapin4/eZidovudin 3/506/0mg, dsiaersble t6abe1t,s 60 Tas",30/50/60mg,Chewable/dispersible tablet - FDC,60,STRIDES ARCOLAB LIMITED,30
+REC_00372,CLINICAL_0106,"Lopina2v9r/Ri4nirz100/25mqg, utabltes 0 Tabs",100/25mg,Tablet,60,Aurobindo Pharma Limited,30
+REC_00373,CLINICAL_0059,"hIV /1224,g Gine ImI Kit, 50 Tests",,Test kit,50,BIO-RAD LABORATORIES (FRANCE),30
+REC_00374,CLINICAL_0044,"E2arzivrine 100mg [Inteoe5ce] tblet9, f022T 7abs",100mg,Tablet,120,JANSSEN SCIENCES IRELAND UC (FORMERLY JANSSEN R&D IRELAND),30
+REC_00375,CLINICAL_0055,"HV 1/2vDere7mine HIV5 Kig, wikhoutL 8anhets 100 Tests",,Test kit,100,ACOUNS NIGERIA LTD,30
+REC_00376,CLINICAL_0003,"Abacbaiz/maivudi1 60/30mg ,diperibeltlbelets, 460 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00377,CLINICAL_0061,"HIV 12/, mImunoCeobIt BiS8ot cEbA sKiet, 3 sTts",,Test kit,36,"Orgenics, Ltd",30
+REC_00378,CLINICAL_0017,"Atazanahi5j 300mg, gcapsulen 30 Cas",300mg,Capsule,30,EMCURE PHARMACEUTICALS LTD,30
+REC_00379,CLINICAL_0056,"HI /2, Detrmine pit wthioutLancts ,Bu9fe er Caq05ciplary Tbues,n 00 Tests",,Test kit,100,REINBOLD EXPORT IMPORT,30
+REC_00380,CLINICAL_0006,"bac1vi 20g/ml, oarl soltuion w/ryinge,oBettl, x40 gml",20mg/ml,Oral solution,240,Aurobindo Pharma Limited,30
+REC_00381,CLINICAL_0029,"Di3dnaosig s250m,1kdtelay1d-relase 2capsues, 300Casp",250mg,Delayed-release capsules,30,S. BUYS WHOLESALER,30
+REC_00382,CLINICAL_0008,"Abtcavir300mg, tale,s 60 a0s",300mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00383,CLINICAL_0030,"Didianos n25mgd[fVi7ex],m chevglbetalets, 60 Tabjs",25mg,Chewable/dispersible tablet,60,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00384,CLINICAL_0143,"Sufladoxin9rimethmkiec 0x0/25fmg, t4lets, 1000 Tabs",500/25mg,Tablet - FDC,1000,IMRES B.V.,30
+REC_00385,CLINICAL_0096,"Lamivudyine/eonfovitr diDosprxomil Fmuartye f300l300mgb tablets, 30 Tabs",300/300mg,Tablet - FDC,30,CIPLA LIMITED,30
+REC_00386,CLINICAL_0041,"Efavirenz6 760g, tabilegats, 30 abs",600mg,Tablet,30,EMCURE PHARMACEUTICALS LTD,30
+REC_00387,CLINICAL_0040,"Efaire8nz 5n0mge capsulf,l5 03 Cps",50mg,Capsule,30,MICRO LABS LIMITED,30
+REC_00388,CLINICAL_0146,"iZdovzine 10mg/6l [Retrovir]5 sqlotino for IV infuvionoinjceion,Vila5 x 290m l",10mg/ml,Injection,5,GLAXOSMITHKLINE EXPORT LIMITED,30
+REC_00389,CLINICAL_0057,"HI1 /2, DublCehe7yk Gold Ki4,5 2e0Tests",,Test kit,20,"Orgenics, Ltd",30
+REC_00390,CLINICAL_0103,"Lmaivudine 10mg/m1le, oarl slouicon, Boqttel,x 24z0 ml",10mg/ml,Oral solution,240,HETERO LABS LIMITED,30
+REC_00391,CLINICAL_0020,"Darunavr 30[m Perzist]avn tlets, 120h Tabs",300mg,Tablet,120,S. BUYS WHOLESALER,30
+REC_00392,CLINICAL_0031,"Dfdanoifsne 2 g[udiex], opwdyr for orl solution 10mgrml,f2recan2sigute t72 00 7mi",2g,Powder for oral solution,200,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00393,CLINICAL_0081,"vHjIV, Oruxuik Cot2rol Kit, Vials",,Test kit - Ancillary,1,Orasure Technologies Inc.,30
+REC_00394,CLINICAL_0145,"Ziovudie 100mg, lcrslfues 100 Caups",100mg,Capsule,100,S. BUYS WHOLESALER,30
+REC_00395,CLINICAL_0002,"Abacvair/aLmvu2ine 60e300mcg,scored bteablts, c30 6Tabts",600/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00396,CLINICAL_0140,"5Svtaudne 03mg yapsu1es, 60 Caps",30mg,Capsule,60,HETERO LABS LIMITED,30
+REC_00397,CLINICAL_0080,"HIVr MultispotH V-1HIV2-5 fRapid eejm tKigt, 50 Tests",,Test kit,50,BIO-RAD LABORATORIES (FRANCE),30
+REC_00398,CLINICAL_0036,"Eafvirenmz200mg, acjsqoe, 90 Cdap",200mg,Capsule,90,MICRO LABS LIMITED,30
+REC_00399,CLINICAL_0019,"Ch8loroquine 0850mw bas3 (8as phsphkwpte), tabet,s000 9abs",150mg,Tablet,1000,THE MEDICAL EXPORT GROUP BV,30
+REC_00400,CLINICAL_0143,"uSlafdoxineu/Pyi9vethmine l00/r5eg, tablest ,1000 casb",500/25mg,Tablet - FDC,1000,ACTION MEDEOR E.V.,30
+REC_00401,CLINICAL_0044,"Eravirined 10m [nteelynce,] sabdlet,s 2121T abs",100mg,Tablet,120,S. BUYS WHOLESALER,30
+REC_00402,CLINICAL_0005,"bAlacavr/Lamivudine 6/30rg,k3tyablets, 06 Tcab",60/30mg,Tablet - FDC,60,Aurobindo Pharma Limited,30
+REC_00403,CLINICAL_0124,"Quinin 6007g2/ml r(as dikderocholrde), injndtion smp xu100 Ampulse",600mg/2ml,Injection,100,IMRES B.V.,30
+REC_00404,CLINICAL_0034,"Efiavrenz/Emrtscbabin/eTeofoir gsop8roxil 7zFomarate 600/200/30mg, thbbleits, 3g02Tabs",600/200/300mg,Tablet - FDC,30,CIPLA LIMITED,30
+REC_00405,CLINICAL_0053,"IV812g, yKBo Cllio9al Gold, Dinosotkc eKitgoSe, (includem ancet, trtanfreh pipettce & a7othol p2rep pad), 50r Tsts",,Test kit,1,"SHANGHAI KEHUA BIOENGINEERING CO.,LTD. (KHB)",30
+REC_00406,CLINICAL_0105,"Lam9i2uvdine 0m0g,adlets, 0 Tabs",300mg,Tablet,30,HETERO LABS LIMITED,30
+REC_00407,CLINICAL_0019,"Chloryquine1150mgb as(afsphos1habte),toaxblet,s 10000 Tas",150mg,Tablet,1000,AMSTELFARMA B.V.,30
+REC_00408,CLINICAL_0069,"HV 1/2 ,Stta-Pak Buvffer9Onlyb, 20 Tts",,Test kit - Ancillary,1,"CHEMBIO DIAGNOSTIC SYSTEMS, INC.",30
+REC_00409,CLINICAL_0104,"Lamivudeinx 15hmg[ Epivir],taoablets, 60e Tasb",150mg,Tablet,60,PHARMACY DIRECT,30
+REC_00410,CLINICAL_0110,"qoa8inavrw/Ritonavk 802/0mg/ml [7Kalt], oral nsloutionh, cpeool, Bott7el 5  x60 ml",80/20mg/ml,Oral solution,300,"RAININ INSTRUMENT, LLC.",30
+REC_00411,CLINICAL_0064,"HIV 12, INST pHI 12 Anitbody tKi,t 48fTests",,Test kit,48,BIOLYTICAL LABORATORIES INC.,30
+REC_00412,CLINICAL_0023,"yDidansoine iEC 400g[mVsidex 7Cu], delauyedrel8ase capslucesB,lister3ixx 10 Cagsp",400mg,Delayed-release capsules - blister,30,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00413,CLINICAL_0039,"azvir8z 30mip/v5 [Stocrin/Sustxva],o sral osluaion, Botle ,180 ml",30mg/ml,Oral solution,180,"MSD LATIN AMERICA SERVICES, S. DE R.L. DE C.V.",30
+REC_00414,CLINICAL_0095,"Lgmievudine/Stavudnie i0/mg, dikspresibqlft ablem,s 06 Tbas",60/12mg,Chewable/dispersible tablet - FDC,60,CIPLA LIMITED,30
+REC_00415,CLINICAL_0120,"Nevi3ra5pin1 00megl, tablzets, 60 wTabs",200mg,Tablet,60,EMCURE PHARMACEUTICALS LTD,30
+REC_00416,CLINICAL_0086,"Lai2udnih/Nairapine/Stapvrudine 1502/0k/30g,dbtalet2s0 60 Tabs",150/200/30mg,Tablet - FDC,60,STRIDES ARCOLAB LIMITED,30
+REC_00417,CLINICAL_0098,"Lmivudiene/Zidovydie+Efavirenz1t000gm6l0mg,t abletsxc -obltr60 +f30T abs",150/300mg+600mg,Tablet - FDC + co-blister,90,Aurobindo Pharma Limited,30
+REC_00418,CLINICAL_0122,"Nvir7apine 50mn disphersblietablet,s 06 Ta2bvs",50mg,Chewable/dispersible tablet,60,CIPLA LIMITED,30
+REC_00419,CLINICAL_0148,"iZdov5udine 08m/jm,l oralsol3cuoin, 5ottl, 240 ml",10mg/ml,Oral solution,240,CIPLA LIMITED,30
+REC_00420,CLINICAL_0056,"4HIV 1/2, Dteierming Ki tiwhfut Lanecsf fufer or Chal9illaryT ubesb,100hTest",,Test kit,100,WAGENIA,30
+REC_00421,CLINICAL_0006,"Abacavir 20m/m5ul ral solutinonc2,Bottle,j 40 ml",20mg/ml,Oral solution,240,S. BUYS WHOLESALER,30
+REC_00422,CLINICAL_0111,"Malaiaria, Antfiigen .f9,H RP2 CreStartw jKit, m0iTiess",,Test kit,60,"ACCESS BIO, INC.",30
+REC_00423,CLINICAL_0034,"Efaivremnzk/Emnrficitabinne/Tenohfoiv rDisotrpox Fumarate2 6002/e00mg, t5ablets, 3eTnab",600/200/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00424,CLINICAL_0086,"Lwmitouden/NievapinewStdvdine 150/t00/30mg,g taaets ,6r Tats",150/200/30mg,Tablet - FDC,60,S. BUYS WHOLESALER,30
+REC_00425,CLINICAL_0108,"Lpifai/Rinoavir 20/005mg,tablets,120 Tams",200/50mg,Tablet,120,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00426,CLINICAL_0093,"Lamivudine/S52tavudi3e1 20/30m,gv4tablet4s, 60 Ta1tbs",150/30mg,Tablet - FDC,60,HETERO LABS LIMITED,30
+REC_00427,CLINICAL_0017,"Atazvnauvi 30l0mg5 caipsuels, 30 mCaps",300mg,Capsule,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00428,CLINICAL_0060,"aHnV 12/c HEAXGON RapiHzIV Kit, 1 Tesas",,Test kit,100,HUMAN GMBH,30
+REC_00429,CLINICAL_0015,"7tazaafvbr 190mg3[Rezatz], cpasules,60 Cpas",150mg,Capsule,60,IDIS LIMITED,30
+REC_00430,CLINICAL_0034,"fEa2viarenz/Emtrictab5ne/T7enufov ihasvoprogiv Fumarate 604/20/30m0g, tbrets, 3 0Tabs",600/200/300mg,Tablet - FDC,30,HETERO LABS LIMITED,30
+REC_00431,CLINICAL_0036,"dfaivrenz 20mg capsuleoo, 90C aps",200mg,Capsule,90,STRIDES ARCOLAB LIMITED,30
+REC_00432,CLINICAL_0044,"iraevriine 1y00gj [Intelk2ncen,tablets, 120 Taus",100mg,Tablet,120,B&C GROUP S.A.,30
+REC_00433,CLINICAL_0018,"Cahe Buffer,D eterm6n,1 00 Tesst 2.5mlp x 1 Vikl",,Test kit - Ancillary,1,"Standard Diagnostics, Inc.",30
+REC_00434,CLINICAL_0021,"Daroun9vir 600g [Pezsida]r tarblets,4606fabs",600mg,Tablet,60,B&C GROUP S.A.,30
+REC_00435,CLINICAL_0138,"Stvadui en1qg/ml,0 pwkr for ocal solutioz w/syringe ,20 ml",1mg/ml,Powder for oral solution,200,Aurobindo Pharma Limited,30
+REC_00436,CLINICAL_0002,"Abacavir/Lnmaiv7uiele 600/30msg,f tablets,3 0Ta",600/300mg,Tablet - FDC,30,Aurobindo Pharma Limited,30
+REC_00437,CLINICAL_0015,"Atazanvir 10mg [e5Reyataz,]pcapscule, 60 Cap",150mg,Capsule,60,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00438,CLINICAL_0126,"5uin esulp6haete 3d00mg,4 rlifm covatedtablet ,1000 Tabs",300mg,Tablet,1000,IMRES B.V.,30
+REC_00439,CLINICAL_0037,"Efaivrzn 2q700qmg, tabluts, 30eTabbs",200mg,Tablet,30,MYLAN LABORATORIES LTD (FORMERLY MATRIX LABORATORIES),30
+REC_00440,CLINICAL_0138,"Stvaud5inx7ei1m8vg/lmj Zerit], powder forburalrsolution, Bttlew 208 ml",1mg/ml,Powder for oral solution,200,LAWRENCE LABORATORIES (SUBSIDIARY OF BRISTOL MYERS SQUIBB),30
+REC_00441,CLINICAL_0015,"Atzaav6ir 150mx [eRiata,] cia4psumles, 60 Caps",150mg,Capsule,60,SWORDS LABORATORIES,30
+REC_00442,CLINICAL_0065,"HIV 1,/2N IST HIV Antitod9 Indaividua lOPC ,19s t",,Test kit,1,BIOLYTICAL LABORATORIES INC.,30
+REC_00443,CLINICAL_0096,"Lfmivudi/eTenofoirh hicsoproxil2um9raten0u03/00m, tabjhnes, 30 Tabh",300/300mg,Tablet - FDC,30,SUN PHARMACEUTICAL INDUSTRIES LTD (RANBAXY LABORATORIES LIMITED),30
+REC_00444,CLINICAL_0112,"Malara Antfgen.f , HRP, Kit, 52u 0Teits",,Test kit,25,"Standard Diagnostics, Inc.",30
+REC_00445,CLINICAL_0117,"Nefinair m50g/g [Vraupejth0 ra lpodre, 144g",50mg/g,Oral powder,144,Hoffmann-La Roche ltd Basel,30
+REC_00446,CLINICAL_0127,"Raltgeravir 400mg tIse8uore7szs], tbalst ,20T ajbs",400mg,Tablet,60,S. BUYS WHOLESALER,30
+REC_00447,CLINICAL_0149,"Zidxoqvudinke 300smg,1r 1tabl2ets, i60 abs",300mg,Tablet,60,"JSI R&T INSTITUTE, INC.",30
+REC_00448,CLINICAL_0106,"Lopinavir/Ritonhvirp100/2wmg5l Altuviaf] utabnets,6Tabs",100/25mg,Tablet,60,SYSMEX AMERICA INC,30
+REC_00449,CLINICAL_0144,"Tencyfvir Disoprxrroil Fumaart e300mg [Voi3reda], tdablets,30uwaw",300mg,Tablet,30,PHARMACY DIRECT,30
+REC_00450,CLINICAL_0084,"HIV, Rwueefil G3 api1Hz IV-1 Antibod kjTesta, 30 Tests",,Test kit,30,MEDMIRA EAST AFRICA LTD.,30
+REC_00451,CLINICAL_0108,"Lo5na1wi/rRitan1vir k20dv0/50m [Alvuiaa], tablets,k120 Tabs",200/50mg,Tablet,120,ABBOTT LOGISTICS B.V.,30
+REC_00452,CLINICAL_0103,"Lamiuvdine mg/, orar sotuion wsgring ,0ottle,4 lm",10mg/ml,Oral solution,240,AUROBINDO PHARAM (SOUTH AFRICA),30
+REC_00453,CLINICAL_0034,"Efvirbz/Emtricitbine/enofovrDii2porx6ill yFumeaarte h00/207030amgm tabpets, t0 Tabs",600/200/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00454,CLINICAL_0006,"Abaacvirm20mgoml,orlsaoluton w/yring5, ot0tle, 240m l",20mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00455,CLINICAL_0103,"aLmivudn0 1m0g/9mal, oral soluin e/saring2, Bottle,240 l",10mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00456,CLINICAL_0119,"Neviripe 410bg/ms lroal usspe4rsion w/sxringe, Bot8le, 420 mnl",10mg/ml,Oral suspension,240,SCMS from RDC,30
+REC_00457,CLINICAL_0002,"Abacavir/Lamhvudine 067/330mg, fpo2re dtbalets, 3 Tabs",600/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00458,CLINICAL_0091,"Lmivu6in4/Neviapie/nlidovudne 3nj5li60mg, dispesrible6 tablet3 60 Tis",30/50/60mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00459,CLINICAL_0025,Di0dinasine 125mbjg detayed-0elease capsuesd 30 Caps,125mg,Delayed-release capsules,30,SCMS from RDC,30
+REC_00460,CLINICAL_0108,"kop6inavir/Rwitonlvi 200/50mgg5ttablets, 2 Ta0bs",200/50mg,Tablet,120,SCMS from RDC,30
+REC_00461,CLINICAL_0148,"Ziidovuie 10m/glmv oraslolmtinob w/yringe,B otktle7 240ml",10mg/ml,Oral solution,240,SCMS from RDC,30
+REC_00462,CLINICAL_0035,"2faviren/LymivuineTeonofvir Diorpoxi Fum8artyae 60tl2300/b00mcge tablets,g f30 ab",600/300/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00463,CLINICAL_0038,"Efagv5rezwn2 00wm,gg scored ablets,9 0 Tas",200mg,Tablet,90,SCMS from RDC,30
+REC_00464,CLINICAL_0094,"Lamivdine/Swtbvudpe s0/9mg5, distpribli etablts, 6kT tbs",30/6mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00465,CLINICAL_0102,"Lamvuidne/Zid1ovdine 30/06mg, alest,d Tba",30/60mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00466,CLINICAL_0005,"Abacavi/rLaimvudi1neb 06/37mg, atbbets ,60 Tdbs",60/30mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00467,CLINICAL_0002,"Abaacivrm/Lamidvudiqy 600z100mg, tabet, 30 Tads",600/300mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00468,CLINICAL_0091,"Lami6duineN/eviryamnie/Zidopudin8e30/7r/60mg, [DiN ]dispkersilem tabhg,6  0Tabs",30/50/60mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00469,CLINICAL_0101,"Lamvdine/iZdovudinu 30/67ymg, dispesile gtabelt9s9l, 60T 7abs",30/60mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00470,CLINICAL_0098,"Laicvuline/Zivudne+Efav7rez 150/z3h00mxg60t0mg, ajablets co-0blitser 60+3 Tab",150/300mg+600mg,Tablet - FDC + co-blister,90,SCMS from RDC,30
+REC_00471,CLINICAL_0029,"Dipawnioswne 2y0mgq, delayed-pelease cpasules, q0t 7aCs",250mg,Delayed-release capsules,30,SCMS from RDC,30
+REC_00472,CLINICAL_0032,"Dianosnie rr00mg,b delaygd-eleae0s c8apsul, s30 Caps",400mg,Delayed-release capsules,30,SCMS from RDC,30
+REC_00473,CLINICAL_0027,"Didnxsine 00mg,jdelamd-releasecapspuls,302Cas",200mg,Delayed-release capsules,30,SCMS from RDC,30
+REC_00474,CLINICAL_0118,"Neviapiten 10mm, orals sensiongw/qsyori5nge,Botole, 10mr",10mg/ml,Oral suspension,100,SCMS from RDC,30
+REC_00475,CLINICAL_0003,"bbacaviu/rLamivudimne 60/30mg, ispersibv tgbaets,6 0sTasb",60/30mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00476,CLINICAL_0095,"Lamiudnie/Stzuline 60a/12m,gduispxesibler jabelts, 60 Tbs",60/12mg,Chewable/dispersible tablet - FDC,60,SCMS from RDC,30
+REC_00477,CLINICAL_0001,"Abacavi7r/Lpoamiuvdne/Zidovdupin 00/1506300mg, ztabzet,s m60 Twabrs",300/150/300mg,Tablet - FDC,60,SCMS from RDC,30
+REC_00478,CLINICAL_0004,"bacovir/Lamqivudne 6/030m, t2abest, 0 Tas",60/30mg,Tablet - FDC,30,SCMS from RDC,30
+REC_00479,CLINICAL_0138,"Stavdeine g1mg/l,powdelefoor ovjlslution w/sdyrings, 200 ml",1mg/ml,Powder for oral solution,200,SCMS from RDC,30
+REC_00480,CLINICAL_0027,"idauosine 20mg, xh4ODN]d elnaye-drelfase apsule, 30 Cas",200mg,Delayed-release capsules,30,SCMS from RDC,30
+REC_00481,CLINICAL_0108,"Lopiynpavir/Ritnnoayvir 2f00/50mhg, b[OD] tqblets 120 jTbs",200/50mg,Tablet,120,SCMS from RDC,30
