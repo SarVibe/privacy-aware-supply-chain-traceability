@@ -122,7 +122,7 @@ class Experiment1AccuracyBenchmark:
 
         self.seeds = list(seeds) if seeds is not None else [BASE_SEED + i for i in range(n_seeds)]
         self.noise_source = noise_source
-        self.data_dir = data_dir or str(Config.DATA_SYNTHETIC_DIR)
+        self.data_dir = data_dir or str(Config.DATA_GENERATED_DIR)
         self.noise_model = noise_model
         self.record_char_pct = int(record_char_pct)
         # never overwrite the all_records results when running the record_level variant

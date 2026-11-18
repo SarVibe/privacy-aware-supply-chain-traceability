@@ -1,90 +1,54 @@
-"""
-RQ3: Local differential-privacy utility trade-off.
-"""
+"""E2.8 (optional): collision tuning vs randomized-response DP, and the two combined.
 
-from typing import Optional, Sequence
+For each chosen (l, k) configuration sweep eps (inf = no DP). Smaller eps = more bit flips.
+"""
+import argparse
+import time
 
 import pandas as pd
 
 from src.config import Config
-from src.data_loader import SupplyChainDataLoader
-from src.common.differential_privacy import LocalDifferentialPrivacy
-from src.common.keyed_bloom_filter import KeyedBloomFilter
-from src.common.preprocessor import TextPreprocessor
-from src.common.dice import DiceSimilarityEngine
+from src.rq2.config import DEFAULT_PAD, DEFAULT_Q
+from src.rq2.data import load_dataset
+from src.rq2.pipeline import build_scenario, run_bloom
 
 
-def _load_master() -> pd.DataFrame:
-    if not Config.MASTER_PRODUCTS_PATH.exists():
-        return SupplyChainDataLoader().run()[0]
-    return pd.read_csv(Config.MASTER_PRODUCTS_PATH)
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", default=str(Config.RAW_DATA_PATH),
+                    help="CSV dataset (default: the real shipment dataset)")
+    ap.add_argument("--column", default="raw_item_description",
+                    help="Primary text column; aliases raw_item_description and item description")
+    ap.add_argument("--composite", action="store_true",
+                    help="Combine description, dosage, dosage form, and pack/unit attributes")
+    ap.add_argument("--composite-columns", nargs="+", default=None,
+                    help="Optional explicit composite attribute column names")
+    ap.add_argument("--n-entities", type=int, default=1000)
+    ap.add_argument("--n-records", type=int, default=3000)
+    ap.add_argument("--seeds", type=int, default=20)
+    ap.add_argument("--noise", type=float, default=0.05)
+    ap.add_argument("--configs", nargs="+", default=["1024:4", "512:4"], help="l:k pairs, e.g. 1024:4 512:15")
+    ap.add_argument("--eps", type=float, nargs="+", default=[2, 4, 8, 16, 32, 64, float("inf")])
+    ap.add_argument("--out", default=str(Config.RQ2_RAW_DIR / "exp2_dp.csv"))
+    a = ap.parse_args()
 
-
-def run_ldp_tradeoff(
-    df_master: Optional[pd.DataFrame] = None,
-    epsilons: Optional[Sequence[float]] = None,
-) -> pd.DataFrame:
-    df = df_master if df_master is not None else _load_master()
-    epsilons = list(epsilons or Config.RQ3_EPSILON_GRID)
-    engine = KeyedBloomFilter(
-        length=Config.DEFAULT_BF_LENGTH,
-        num_hashes=Config.DEFAULT_NUM_HASHES,
-        secret_key=Config.SHARED_SECRET_KEY,
+    composite_columns = (
+        a.composite_columns
+        if a.composite_columns is not None
+        else ["dosage", "dosage_form", "pack_size"] if a.composite else None
     )
-    clean_filters = [
-        engine.encode(
-            TextPreprocessor.extract_composite_qgrams(
-                text=str(row["raw_item_description"]),
-                dosage=row.get("dosage"),
-                dosage_form=row.get("dosage_form"),
-                pack_size=row.get("pack_size"),
-                q=Config.DEFAULT_Q,
-            )
-        )
-        for _, row in df.iterrows()
-    ]
-    rows = []
-
-    for epsilon in epsilons:
-        noisy_filters = [
-            LocalDifferentialPrivacy.apply_randomized_response(
-                value,
-                epsilon=epsilon,
-                seed=Config.RANDOM_SEED + index,
-            )
-            for index, value in enumerate(clean_filters)
-        ]
-        if clean_filters:
-            densities = [
-                KeyedBloomFilter.calculate_bit_density(value)
-                for value in noisy_filters
-            ]
-            flip_rates = [
-                (clean ^ noisy).count(1) / len(clean)
-                for clean, noisy in zip(clean_filters, noisy_filters)
-            ]
-            similarities = [
-                DiceSimilarityEngine.calculate_dice(clean, noisy)
-                for clean, noisy in zip(clean_filters, noisy_filters)
-            ]
-            rows.append(
-                {
-                    "epsilon": epsilon,
-                    "records": len(noisy_filters),
-                    "theoretical_flip_probability": LocalDifferentialPrivacy.calculate_flip_probability(
-                        epsilon
-                    ),
-                    "average_flip_rate": sum(flip_rates) / len(flip_rates),
-                    "average_bit_density": sum(densities) / len(densities),
-                    "average_clean_noisy_dice": sum(similarities) / len(similarities),
-                }
-            )
-
-    result = pd.DataFrame(rows)
-    output_path = Config.RQ2_TABLES_DIR / "rq3_ldp_privacy_tradeoff.csv"
-    result.to_csv(output_path, index=False)
-    return result
+    ds = load_dataset(a.data, a.column, a.n_entities, composite_columns=composite_columns)
+    cfgs = [tuple(int(x) for x in c.split(":")) for c in a.configs]
+    rows, t0 = [], time.time()
+    for seed in range(a.seeds):
+        scen = build_scenario(ds, seed, a.noise, 1.0, a.n_records, DEFAULT_Q, DEFAULT_PAD)
+        for (l, k) in cfgs:
+            for eps in a.eps:
+                rows.append(run_bloom(ds, scen, l, k, DEFAULT_Q, DEFAULT_PAD, eps=eps))
+        print(f"seed {seed + 1}/{a.seeds} {time.time() - t0:.0f}s", flush=True)
+    pd.DataFrame(rows).to_csv(a.out, index=False)
+    print(f"saved {len(rows)} rows -> {a.out}")
 
 
 if __name__ == "__main__":
-    print(run_ldp_tradeoff().to_string(index=False))
+    main()

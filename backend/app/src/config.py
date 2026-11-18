@@ -70,10 +70,7 @@ class Config:
     RAW_DATA_PATH = BASE_DIR / os.getenv("RAW_DATA_PATH", "data/raw/Suppy_Chain_Shipment_Data.csv")
     DATA_RAW_DIR = RAW_DATA_PATH.parent
     DATA_GENERATED_DIR = BASE_DIR / os.getenv("GENERATED_DATA_DIR", "data/generated")
-    # Backwards-compatible aliases for callers that still use the old names.
-    DATA_PROCESSED_DIR = DATA_GENERATED_DIR
-    DATA_SYNTHETIC_DIR = DATA_GENERATED_DIR
-    DATA_SYNTHETIC_ALL_FIELDS_DIR = DATA_GENERATED_DIR / "all_fields"
+    DATA_SYNTHETIC_ALL_FIELDS_DIR = DATA_GENERATED_DIR
 
     MASTER_PRODUCTS_PATH = DATA_GENERATED_DIR / "clean_master_products.csv"
     ENTITY_CATALOG_PATH = DATA_GENERATED_DIR / "entity_catalog.csv"
@@ -111,7 +108,6 @@ class Config:
         for path in [
             cls.DATA_RAW_DIR,
             cls.DATA_GENERATED_DIR,
-            cls.DATA_SYNTHETIC_DIR,
             cls.DATA_SYNTHETIC_ALL_FIELDS_DIR,
             cls.RQ1_RAW_DIR,
             cls.RQ1_TABLES_DIR,

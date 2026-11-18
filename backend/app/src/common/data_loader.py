@@ -46,7 +46,7 @@ class SupplyChainDataLoader:
         random_seed: Optional[int] = None
     ):
         self.raw_data_path = str(raw_data_path or Config.RAW_DATA_PATH)
-        self.processed_dir = str(processed_dir or Config.DATA_PROCESSED_DIR)
+        self.processed_dir = str(processed_dir or Config.DATA_GENERATED_DIR)
         self.random_seed = int(random_seed if random_seed is not None else Config.RANDOM_SEED)
 
         # Ensure destination folder exists

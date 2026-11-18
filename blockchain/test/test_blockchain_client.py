@@ -1,7 +1,7 @@
 import pytest
 from bitarray import bitarray
 
-from src.blockchain_client import BlockchainClient
+from src.common.blockchain_client import BlockchainClient
 
 
 def test_hash_conversion_requires_exact_hex_bytes():

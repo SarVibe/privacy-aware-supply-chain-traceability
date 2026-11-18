@@ -30,7 +30,7 @@ class CrossOrgSimulator:
     def __init__(
         self,
         clean_master_path: str = str(Config.MASTER_PRODUCTS_PATH),
-        output_dir: str = str(Config.DATA_SYNTHETIC_DIR),
+        output_dir: str = str(Config.DATA_GENERATED_DIR),
         random_seed: int = Config.RANDOM_SEED
     ):
         self.clean_master_path = clean_master_path

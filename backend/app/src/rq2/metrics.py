@@ -10,6 +10,34 @@ Role:
 - Generates structured summary dictionaries and tables for RQ1, RQ2, and RQ3 reporting.
 """
 
+"""Structural (attack-independent) Bloom-filter metrics."""
+import math
+
+import numpy as np
+
+
+def fill_stats(bf: np.ndarray):
+    fill = bf.mean(axis=1)
+    return float(fill.mean()), float(fill.std())
+
+
+def bit_entropy(bf: np.ndarray) -> float:
+    """Mean binary entropy (bits) of each bit position across records; max = 1."""
+    p = bf.mean(axis=0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        h = -(p * np.log2(p) + (1 - p) * np.log2(1 - p))
+    return float(np.nan_to_num(h, nan=0.0).mean())
+
+
+def collision_load(mean_distinct_qgrams: float, k: int, l: int) -> float:
+    """k * n_q / l : expected number of q-gram insertions per bit position."""
+    return mean_distinct_qgrams * k / l
+
+
+def expected_fill(load: float) -> float:
+    return 1.0 - math.exp(-load)
+
+
 from typing import Dict, List, Any
 import numpy as np
 import pandas as pd

@@ -46,7 +46,7 @@ class SyntheticNoiseGenerator:
         random_seed: Optional[int] = None
     ):
         self.clean_master_path = str(clean_master_path or Config.MASTER_PRODUCTS_PATH)
-        self.output_dir = str(output_dir or Config.DATA_SYNTHETIC_DIR)
+        self.output_dir = str(output_dir or Config.DATA_GENERATED_DIR)
         self.random_seed = int(random_seed if random_seed is not None else Config.RANDOM_SEED)
         self.alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
 
