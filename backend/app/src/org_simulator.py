@@ -114,7 +114,7 @@ class CrossOrgSimulator:
     def generate_cross_org_dataset(self) -> pd.DataFrame:
         """
         Takes master product records and replicates them across Org A, Org B, and Org C.
-        Saves the resulting dataset to 'data/synthetic_noisy/cross_org_simulation.csv'.
+        Saves the resulting dataset to 'data/generated/cross_org_simulation.csv'.
         """
         # Ensure deterministic re-runs
         random.seed(self.random_seed)

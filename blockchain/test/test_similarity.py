@@ -1,7 +1,7 @@
 import pytest
 from bitarray import bitarray
 
-from src.similarity import DiceSimilarityEngine
+from src.common.dice import DiceSimilarityEngine
 
 
 def test_dice_similarity_for_identical_and_disjoint_filters():

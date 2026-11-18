@@ -11,7 +11,7 @@ Role:
 import hashlib
 from typing import Dict, List, Tuple, Optional
 import pandas as pd
-from src.preprocessor import TextPreprocessor
+from src.common.preprocessor import TextPreprocessor
 
 
 class ExactMatcher:

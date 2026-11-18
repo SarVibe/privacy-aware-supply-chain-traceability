@@ -1,6 +1,6 @@
 from bitarray import bitarray
 
-from src.keyed_bloom_filter import KeyedBloomFilter
+from src.common.keyed_bloom_filter import KeyedBloomFilter
 
 
 def test_encode_and_byte_round_trip_preserves_bits():

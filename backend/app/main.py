@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.config import Config
-from src.harmonization_pipeline import HarmonizationPipeline
+from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 
 class HarmonizeRequest(BaseModel):

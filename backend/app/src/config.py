@@ -69,19 +69,28 @@ class Config:
     # ==========================================
     RAW_DATA_PATH = BASE_DIR / os.getenv("RAW_DATA_PATH", "data/raw/Suppy_Chain_Shipment_Data.csv")
     DATA_RAW_DIR = RAW_DATA_PATH.parent
-    DATA_PROCESSED_DIR = BASE_DIR / os.getenv("PROCESSED_DATA_DIR", "data/processed")
-    DATA_SYNTHETIC_DIR = BASE_DIR / os.getenv("SYNTHETIC_DATA_DIR", "data/synthetic_noisy")
-    DATA_SYNTHETIC_ALL_FIELDS_DIR = BASE_DIR / os.getenv(
-        "SYNTHETIC_ALL_FIELDS_DATA_DIR", "data/synthetic_noisy_all_fields"
-    )
+    DATA_GENERATED_DIR = BASE_DIR / os.getenv("GENERATED_DATA_DIR", "data/generated")
+    # Backwards-compatible aliases for callers that still use the old names.
+    DATA_PROCESSED_DIR = DATA_GENERATED_DIR
+    DATA_SYNTHETIC_DIR = DATA_GENERATED_DIR
+    DATA_SYNTHETIC_ALL_FIELDS_DIR = DATA_GENERATED_DIR / "all_fields"
 
-    MASTER_PRODUCTS_PATH = DATA_PROCESSED_DIR / "clean_master_products.csv"
-    ENTITY_CATALOG_PATH = DATA_PROCESSED_DIR / "entity_catalog.csv"
-    GROUND_TRUTH_PAIRS_PATH = DATA_PROCESSED_DIR / "ground_truth_pairs.csv"
+    MASTER_PRODUCTS_PATH = DATA_GENERATED_DIR / "clean_master_products.csv"
+    ENTITY_CATALOG_PATH = DATA_GENERATED_DIR / "entity_catalog.csv"
+    GROUND_TRUTH_PAIRS_PATH = DATA_GENERATED_DIR / "ground_truth_pairs.csv"
 
     RESULTS_DIR = BASE_DIR / "results"
-    FIGURES_DIR = RESULTS_DIR / "figures"
-    TABLES_DIR = RESULTS_DIR / "tables"
+    RQ1_RESULTS_DIR = RESULTS_DIR / "rq1"
+    RQ1_RAW_DIR = RQ1_RESULTS_DIR / "raw"
+    RQ1_TABLES_DIR = RQ1_RESULTS_DIR / "tables"
+    RQ1_FIGURES_DIR = RQ1_RESULTS_DIR / "figures"
+    RQ2_RESULTS_DIR = RESULTS_DIR / "rq2"
+    RQ2_RAW_DIR = RQ2_RESULTS_DIR / "raw"
+    RQ2_TABLES_DIR = RQ2_RESULTS_DIR / "tables"
+    RQ2_FIGURES_DIR = RQ2_RESULTS_DIR / "figures"
+    # Backwards-compatible default result aliases.
+    FIGURES_DIR = RQ1_FIGURES_DIR
+    TABLES_DIR = RQ1_TABLES_DIR
 
     # ==========================================
     # 5. Experimental Parameter Grids
@@ -101,11 +110,15 @@ class Config:
         """Ensures that all runtime and export folders exist."""
         for path in [
             cls.DATA_RAW_DIR,
-            cls.DATA_PROCESSED_DIR,
+            cls.DATA_GENERATED_DIR,
             cls.DATA_SYNTHETIC_DIR,
             cls.DATA_SYNTHETIC_ALL_FIELDS_DIR,
-            cls.FIGURES_DIR,
-            cls.TABLES_DIR,
+            cls.RQ1_RAW_DIR,
+            cls.RQ1_TABLES_DIR,
+            cls.RQ1_FIGURES_DIR,
+            cls.RQ2_RAW_DIR,
+            cls.RQ2_TABLES_DIR,
+            cls.RQ2_FIGURES_DIR,
         ]:
             path.mkdir(parents=True, exist_ok=True)
 

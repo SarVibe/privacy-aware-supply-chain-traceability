@@ -1,4 +1,4 @@
-from src.harmonization_pipeline import HarmonizationPipeline
+from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 
 def test_off_chain_pipeline_harmonizes_matching_records():

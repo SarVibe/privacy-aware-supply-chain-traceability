@@ -14,7 +14,7 @@ from bitarray import bitarray
 import pandas as pd
 
 from src.config import Config
-from src.similarity import DiceSimilarityEngine
+from src.common.dice import DiceSimilarityEngine
 
 
 class ClusterEntity:
@@ -138,8 +138,8 @@ class EntityResolver:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
-    from src.keyed_bloom_filter import KeyedBloomFilter
+    from src.common.preprocessor import TextPreprocessor
+    from src.common.keyed_bloom_filter import KeyedBloomFilter
 
     bf_engine = KeyedBloomFilter(length=Config.DEFAULT_BF_LENGTH, num_hashes=Config.DEFAULT_NUM_HASHES)
     resolver = EntityResolver(threshold=Config.DEFAULT_SIMILARITY_THRESHOLD)

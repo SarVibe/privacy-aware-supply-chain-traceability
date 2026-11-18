@@ -80,9 +80,9 @@ Run the research experiments from `backend\app`:
 
 ```powershell
 $env:PYTHONPATH = "backend\app"
-backend\venv313\Scripts\python.exe -m experiments.exp2_collision_tuning
-backend\venv313\Scripts\python.exe -m experiments.exp3_ldp_privacy_tradeoff
-backend\venv313\Scripts\python.exe -m experiments.exp_scalability_benchmarks
+backend\venv313\Scripts\python.exe -m experiments.rq2.analyze
+backend\venv313\Scripts\python.exe -m experiments.rq2.run_dp_ablation
+backend\venv313\Scripts\python.exe -m experiments.rq2.profile_data
 ```
 
 Each experiment writes its CSV result to `data\tables`.
@@ -93,9 +93,9 @@ Generate the single-source seeded inputs before running RQ1:
 
 ```powershell
 $env:PYTHONPATH = "backend\app"
-.\backend\venv313\Scripts\python.exe -m experiments.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51
-.\backend\venv313\Scripts\python.exe -m experiments.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51 --all-fields
-.\backend\venv313\Scripts\python.exe -m experiments.exp1_accuracy_benchmark --noise-source files
+.\backend\venv313\Scripts\python.exe -m experiments.rq1.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51
+.\backend\venv313\Scripts\python.exe -m experiments.rq1.noise_generator --seeds 42 43 44 45 46 47 48 49 50 51 --all-fields
+.\backend\venv313\Scripts\python.exe -m experiments.rq1.run_grid --noise-source files
 ```
 
 RQ1 tunes the headline threshold on seeds 42-46 and reports final results on
@@ -103,8 +103,8 @@ seeds 47-51. The all-fields robustness run uses the separate generated
 directory and a suffixed output set:
 
 ```powershell
-.\backend\venv313\Scripts\python.exe -m experiments.exp1_accuracy_benchmark `
-  --noise-source files --data-dir backend\app\data\synthetic_noisy_all_fields `
+.\backend\venv313\Scripts\python.exe -m experiments.rq1.run_grid `
+  --noise-source files --data-dir backend\app\data\generated\all_fields `
   --output-suffix _all_fields
 ```
 

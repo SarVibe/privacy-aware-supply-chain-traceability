@@ -1,6 +1,6 @@
 from bitarray import bitarray
 
-from src.entity_resolver import EntityResolver
+from src.rq1.entity_resolver import EntityResolver
 
 
 def test_matching_filter_is_added_to_existing_cluster():

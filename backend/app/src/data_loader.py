@@ -25,7 +25,7 @@ for p in [Path.cwd(), Path(__file__).resolve().parent.parent, Path(__file__).res
         break
 
 from src.config import Config
-from src.preprocessor import TextPreprocessor
+from src.common.preprocessor import TextPreprocessor
 
 logging.basicConfig(
     level=logging.INFO,

@@ -22,10 +22,10 @@ Threshold (tau) policies reported in the headline table:
   oracle      : best tau per noise level chosen on the reporting seeds themselves (UPPER BOUND only).
 
 Usage:
-    python -m experiments.exp1_accuracy_benchmark
-    python -m experiments.exp1_accuracy_benchmark --noise-model record_level
-    python -m experiments.exp1_accuracy_benchmark --tuning-seeds 42 43 44 45 46 --reporting-seeds 47 48 49 50 51 52 53 54 55 56
-    python -m experiments.exp1_accuracy_benchmark --seeds 1          # smoke test (tuning == reporting, leaky)
+    python -m experiments.rq1.run_grid
+    python -m experiments.rq1.run_grid --noise-model record_level
+    python -m experiments.rq1.run_grid --tuning-seeds 42 43 44 45 46 --reporting-seeds 47 48 49 50 51 52 53 54 55 56
+    python -m experiments.rq1.run_grid --seeds 1          # smoke test (tuning == reporting, leaky)
 """
 
 import os
@@ -48,11 +48,11 @@ import seaborn as sns
 from scipy.stats import wilcoxon
 
 from src.config import Config
-from src.exact_matcher import ExactMatcher
-from src.preprocessor import TextPreprocessor
-from src.keyed_bloom_filter import KeyedBloomFilter
-from src.entity_resolver import EntityResolver
-from src.metrics import LinkageMetrics
+from src.rq1.exact_matcher import ExactMatcher
+from src.common.preprocessor import TextPreprocessor
+from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.rq1.entity_resolver import EntityResolver
+from src.rq2.metrics import LinkageMetrics
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -164,7 +164,7 @@ class Experiment1AccuracyBenchmark:
                 path = os.path.join(self.data_dir, "noisy_products_0.csv")
             if not os.path.exists(path):
                 raise FileNotFoundError(
-                    f"Missing dataset {path}. Run 'python -m experiments.noise_generator' first."
+                    f"Missing dataset {path}. Run 'python -m experiments.rq1.noise_generator' first."
                 )
             self._base_df = pd.read_csv(path)
         return self._base_df.copy()
@@ -341,7 +341,7 @@ class Experiment1AccuracyBenchmark:
                                               self._run_resolver(shuffled, tau)))
 
         df_raw = pd.DataFrame(rows)
-        raw_csv = os.path.join(Config.TABLES_DIR, self._result_name(raw_stem, ".csv"))
+        raw_csv = os.path.join(Config.RQ1_RAW_DIR, self._result_name(raw_stem, ".csv"))
         df_raw.to_csv(raw_csv, index=False)
         logger.info("Saved per-seed results -> %s", raw_csv)
         return df_raw
@@ -378,7 +378,7 @@ class Experiment1AccuracyBenchmark:
                 rows.append({"policy": P_NOISE_AWARE, "method": method,
                              "noise_level_pct": noise, "tau": tau})
         df = pd.DataFrame(rows)
-        df.to_csv(os.path.join(Config.TABLES_DIR, self._result_name("rq1_tau_policies", ".csv")), index=False)
+        df.to_csv(os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_tau_policies", ".csv")), index=False)
         return df
 
     # ----------------------------------------------------------- statistics
@@ -432,7 +432,7 @@ class Experiment1AccuracyBenchmark:
                 int(result_df["n_pairs"].min()), float(result_df["min_attainable_p"].max()),
             )
         result_df.to_csv(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_wilcoxon_comparisons", ".csv")), index=False
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_wilcoxon_comparisons", ".csv")), index=False
         )
         return result_df
 
@@ -463,7 +463,7 @@ class Experiment1AccuracyBenchmark:
                     rows.append({"noise_level_pct": noise, "method": method, "seed": seed, **interval})
         result_df = pd.DataFrame(rows)
         result_df.to_csv(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_entity_bootstrap_ci", ".csv")),
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_entity_bootstrap_ci", ".csv")),
             index=False,
         )
         return result_df
@@ -484,7 +484,7 @@ class Experiment1AccuracyBenchmark:
             .fillna({"precision_std": 0.0, "recall_std": 0.0, "f1_score_std": 0.0})
         )
         out = os.path.join(
-            Config.TABLES_DIR, self._result_name("rq1_accuracy_benchmark_aggregated", ".csv")
+            Config.RQ1_TABLES_DIR, self._result_name("rq1_accuracy_benchmark_aggregated", ".csv")
         )
         agg.to_csv(out, index=False)
         logger.info("Saved aggregated results -> %s", out)
@@ -577,7 +577,7 @@ class Experiment1AccuracyBenchmark:
             "F1": [self._fmt(a, b) for a, b in zip(long["f1_score_mean"], long["f1_score_std"])],
         })
         pretty.to_csv(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_headline_table", ".csv")), index=False
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_headline_table", ".csv")), index=False
         )
         caption = (f"RQ1 linkage accuracy, noise model: {self.noise_model.replace('_', ' ')} "
                    f"(mean $\\pm$ std over {len(self.seeds)} reporting seeds). "
@@ -586,11 +586,11 @@ class Experiment1AccuracyBenchmark:
             pretty.to_latex(index=False, escape=False, caption=caption, label="tab:rq1_headline")
         )
         with open(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_headline_table", ".tex")),
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_headline_table", ".tex")),
             "w", encoding="utf-8"
         ) as fh:
             fh.write(latex)
-        logger.info("Saved headline table (CSV + LaTeX) in %s", Config.TABLES_DIR)
+        logger.info("Saved headline table (CSV + LaTeX) in %s", Config.RQ1_TABLES_DIR)
         return pretty
 
     def oracle_threshold_table(self, agg: pd.DataFrame) -> pd.DataFrame:
@@ -622,7 +622,7 @@ class Experiment1AccuracyBenchmark:
                 })
         table = pd.DataFrame(rows)
         table.to_csv(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_oracle_threshold_table", ".csv")), index=False
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_oracle_threshold_table", ".csv")), index=False
         )
         latex = self._latex_fix(table.to_latex(
             index=False, escape=False, label="tab:rq1_oracle_tau",
@@ -630,7 +630,7 @@ class Experiment1AccuracyBenchmark:
                     "versus the tuned global and the default threshold.",
         ))
         with open(
-            os.path.join(Config.TABLES_DIR, self._result_name("rq1_oracle_threshold_table", ".tex")),
+            os.path.join(Config.RQ1_TABLES_DIR, self._result_name("rq1_oracle_threshold_table", ".tex")),
             "w", encoding="utf-8"
         ) as fh:
             fh.write(latex)
@@ -677,10 +677,10 @@ class Experiment1AccuracyBenchmark:
         plt.tight_layout()
         for ext, kw in (("png", {"dpi": 300}), ("pdf", {})):
             plt.savefig(os.path.join(
-                            Config.FIGURES_DIR, self._result_name("rq1_accuracy_vs_noise", f".{ext}")),
+                            Config.RQ1_FIGURES_DIR, self._result_name("rq1_accuracy_vs_noise", f".{ext}")),
                         bbox_inches="tight", **kw)
         plt.close()
-        logger.info("Saved headline figures -> %s", Config.FIGURES_DIR)
+        logger.info("Saved headline figures -> %s", Config.RQ1_FIGURES_DIR)
 
     def plot_threshold_sensitivity(self, agg: pd.DataFrame):
         """
@@ -720,10 +720,10 @@ class Experiment1AccuracyBenchmark:
         plt.tight_layout()
         for ext, kw in (("png", {"dpi": 300}), ("pdf", {})):
             plt.savefig(os.path.join(
-                            Config.FIGURES_DIR, self._result_name("rq1_threshold_sensitivity", f".{ext}")),
+                            Config.RQ1_FIGURES_DIR, self._result_name("rq1_threshold_sensitivity", f".{ext}")),
                         bbox_inches="tight", **kw)
         plt.close()
-        logger.info("Saved sensitivity figures -> %s", Config.FIGURES_DIR)
+        logger.info("Saved sensitivity figures -> %s", Config.RQ1_FIGURES_DIR)
 
 
 def main():

@@ -8,10 +8,10 @@ import pandas as pd
 
 from src.config import Config
 from src.data_loader import SupplyChainDataLoader
-from src.differential_privacy import LocalDifferentialPrivacy
-from src.keyed_bloom_filter import KeyedBloomFilter
-from src.preprocessor import TextPreprocessor
-from src.similarity import DiceSimilarityEngine
+from src.common.differential_privacy import LocalDifferentialPrivacy
+from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.common.preprocessor import TextPreprocessor
+from src.common.dice import DiceSimilarityEngine
 
 
 def _load_master() -> pd.DataFrame:
@@ -81,7 +81,7 @@ def run_ldp_tradeoff(
             )
 
     result = pd.DataFrame(rows)
-    output_path = Config.TABLES_DIR / "rq3_ldp_privacy_tradeoff.csv"
+    output_path = Config.RQ2_TABLES_DIR / "rq3_ldp_privacy_tradeoff.csv"
     result.to_csv(output_path, index=False)
     return result
 

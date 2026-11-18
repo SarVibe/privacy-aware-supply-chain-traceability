@@ -10,7 +10,7 @@ import pandas as pd
 
 from src.config import Config
 from src.data_loader import SupplyChainDataLoader
-from src.harmonization_pipeline import HarmonizationPipeline
+from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 
 def _load_master() -> pd.DataFrame:
@@ -58,7 +58,7 @@ def run_scalability_benchmark(
         )
 
     result = pd.DataFrame(rows)
-    output_path = Config.TABLES_DIR / "scalability_benchmark.csv"
+    output_path = Config.RQ2_TABLES_DIR / "scalability_benchmark.csv"
     result.to_csv(output_path, index=False)
     return result
 

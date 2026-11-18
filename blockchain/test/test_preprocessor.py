@@ -1,4 +1,4 @@
-from src.preprocessor import TextPreprocessor
+from src.common.preprocessor import TextPreprocessor
 
 
 def test_normalize_removes_inventory_markers_and_punctuation():

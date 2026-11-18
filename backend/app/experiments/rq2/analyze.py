@@ -9,8 +9,8 @@ import pandas as pd
 
 from src.config import Config
 from src.data_loader import SupplyChainDataLoader
-from src.keyed_bloom_filter import KeyedBloomFilter
-from src.preprocessor import TextPreprocessor
+from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.common.preprocessor import TextPreprocessor
 
 
 def _load_master() -> pd.DataFrame:
@@ -68,7 +68,7 @@ def run_collision_tuning(
             )
 
     result = pd.DataFrame(rows)
-    output_path = Config.TABLES_DIR / "rq2_collision_tuning.csv"
+    output_path = Config.RQ2_TABLES_DIR / "rq2_collision_tuning.csv"
     result.to_csv(output_path, index=False)
     return result
 

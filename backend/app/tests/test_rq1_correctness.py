@@ -1,8 +1,8 @@
 import pandas as pd
 
-from src.exact_matcher import ExactMatcher
-from src.qgram_extractor import QGramExtractor
-from src.metrics import LinkageMetrics
+from src.rq1.exact_matcher import ExactMatcher
+from src.common.qgram_extractor import QGramExtractor
+from src.rq2.metrics import LinkageMetrics
 
 
 def test_raw_exact_matching_does_not_strip_input():

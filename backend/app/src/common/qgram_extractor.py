@@ -211,7 +211,7 @@ class QGramExtractor:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
+    from src.common.preprocessor import TextPreprocessor
 
     extractor = QGramExtractor(q=3)
 

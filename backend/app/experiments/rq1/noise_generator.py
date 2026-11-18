@@ -3,10 +3,10 @@ experiments/noise_generator.py
 Component 1: Experimental Evaluation Engine (RQ1 & RQ2)
 
 Role:
-- Reads canonical master product records from data/processed/clean_master_products.csv.
+- Reads canonical master product records from data/generated/clean_master_products.csv.
 - Injects typographical errors into reproducible, seed-named datasets.
 - Strictly preserves 'true_entity_id' to enable ground-truth evaluation of Precision, Recall, and F1.
-- Generates reproducible datasets in data/synthetic_noisy/.
+- Generates reproducible datasets in data/generated/.
 """
 
 import os
@@ -100,7 +100,7 @@ class SyntheticNoiseGenerator:
         if not os.path.exists(self.clean_master_path):
             raise FileNotFoundError(
                 f"Master file not found at '{self.clean_master_path}'. "
-                f"Please run 'src/data_loader.py' first."
+                f"Please                 Run 'src/data_loader.py' first."
             )
 
         df_master = pd.read_csv(self.clean_master_path)

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional, Set, List, Dict, Union
 from dotenv import load_dotenv
 
-from src.qgram_extractor import QGramExtractor
+from src.common.qgram_extractor import QGramExtractor
 
 # Search current directory, parent directory, and venv for .env
 for p in [Path.cwd(), Path(__file__).resolve().parent.parent, Path(__file__).resolve().parent.parent.parent]:

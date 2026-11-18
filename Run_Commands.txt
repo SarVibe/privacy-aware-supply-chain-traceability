@@ -28,6 +28,6 @@ npm run dev --prefix frontend
 
 # Research experiments
 $env:PYTHONPATH = "backend\app"
-.\backend\venv313\Scripts\python.exe -m experiments.exp2_collision_tuning
-.\backend\venv313\Scripts\python.exe -m experiments.exp3_ldp_privacy_tradeoff
-.\backend\venv313\Scripts\python.exe -m experiments.exp_scalability_benchmarks
+.\backend\venv313\Scripts\python.exe -m experiments.rq2.analyze
+.\backend\venv313\Scripts\python.exe -m experiments.rq2.run_dp_ablation
+.\backend\venv313\Scripts\python.exe -m experiments.rq2.profile_data

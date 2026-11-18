@@ -19,10 +19,10 @@ from typing import Dict, Optional, Any
 import pandas as pd
 
 from src.config import Config
-from src.preprocessor import TextPreprocessor
-from src.keyed_bloom_filter import KeyedBloomFilter
-from src.differential_privacy import LocalDifferentialPrivacy
-from src.entity_resolver import EntityResolver
+from src.common.preprocessor import TextPreprocessor
+from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.common.differential_privacy import LocalDifferentialPrivacy
+from src.rq1.entity_resolver import EntityResolver
 from src.blockchain_client import BlockchainClient
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -74,7 +74,7 @@ class HarmonizationPipeline:
                     self.resolver.cluster_counter = max(self.resolver.cluster_counter, numeric_id)
                 else:
                     self.resolver.cluster_counter += 1
-                from src.entity_resolver import ClusterEntity
+                from src.rq1.entity_resolver import ClusterEntity
                 self.resolver.clusters[cluster_id] = ClusterEntity(
                     cluster_id=cluster_id,
                     representative_bf=leader_bf,

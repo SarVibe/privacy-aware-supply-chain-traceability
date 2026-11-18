@@ -29,7 +29,7 @@ from bitarray import bitarray
 from web3 import Web3
 
 from src.config import Config
-from src.keyed_bloom_filter import KeyedBloomFilter
+from src.common.keyed_bloom_filter import KeyedBloomFilter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -397,7 +397,7 @@ class BlockchainClient:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
+    from src.common.preprocessor import TextPreprocessor
 
     client = BlockchainClient()
     bf_engine = KeyedBloomFilter(length=Config.DEFAULT_BF_LENGTH, num_hashes=Config.DEFAULT_NUM_HASHES)

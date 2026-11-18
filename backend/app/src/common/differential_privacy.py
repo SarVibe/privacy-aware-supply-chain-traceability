@@ -129,8 +129,8 @@ class LocalDifferentialPrivacy:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
-    from src.keyed_bloom_filter import KeyedBloomFilter
+    from src.common.preprocessor import TextPreprocessor
+    from src.common.keyed_bloom_filter import KeyedBloomFilter
 
     # 1. Setup sample record and Bloom filter
     sample_text = "Abacavir/Lamivudine 60/30mg, tablets"

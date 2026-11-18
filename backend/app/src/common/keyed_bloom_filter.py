@@ -126,7 +126,7 @@ class KeyedBloomFilter:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
+    from src.common.preprocessor import TextPreprocessor
 
     test_desc = "Didanosine 200mg [Videx], tablets"
     cleaned = TextPreprocessor.normalize(test_desc)

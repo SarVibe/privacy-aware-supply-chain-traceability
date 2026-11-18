@@ -104,8 +104,8 @@ class DiceSimilarityEngine:
 
 
 if __name__ == "__main__":
-    from src.preprocessor import TextPreprocessor
-    from src.keyed_bloom_filter import KeyedBloomFilter
+    from src.common.preprocessor import TextPreprocessor
+    from src.common.keyed_bloom_filter import KeyedBloomFilter
 
     bf_engine = KeyedBloomFilter()
 
