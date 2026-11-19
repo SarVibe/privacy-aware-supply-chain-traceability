@@ -1,0 +1,103 @@
+
+# ==========================================
+# Python - Backend
+# ==========================================
+.venv/
+.venv312/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# Python environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Node.js - Blockchain and Frontend
+# ==========================================
+node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Hardhat - Blockchain
+# ==========================================
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+
+# Keep source files, configuration and deployment scripts.
+# Do not commit generated blockchain build artifacts.
+
+# ==========================================
+# Circom / snarkjs - ZKP generated files
+# ==========================================
+*.r1cs
+*.sym
+*_js/
+*.ptau
+*.zkey
+*.wtns
+
+# Private witness inputs and generated proofs
+input.json
+*_input.json
+witness.json
+proof.json
+public.json
+
+# Keep verification_key.json (public verification key).
+# Keep .circom source files.
+
+# ==========================================
+# React / Frontend
+# ==========================================
+dist/
+build/
+.expo/
+.expo-shared/
+web-build/
+.next/
+out/
+.turbo/
+
+# ==========================================
+# IDE and Operating System
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# Temporary files
+# ==========================================
+*.tmp
+*.temp
+*.bak
+*.swp
+
+
+# Local AI coding assistant files
+.agents/
+.claude/
