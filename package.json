@@ -1,14 +1,13 @@
 {
-  "name": "final-system",
+  "name": "pharmachain",
   "private": true,
   "workspaces": [
-    "frontend",
-    "blockchain"
+    "frontend"
   ],
   "scripts": {
     "dev:frontend": "npm run dev --workspace frontend",
     "build:frontend": "npm run build --workspace frontend",
-    "compile:blockchain": "npm run compile --workspace blockchain",
-    "test:blockchain": "npm run test --workspace blockchain"
+    "start:backend": "python backend/scripts/start_local_chain.py",
+    "test:backend": "python -m unittest discover -s backend/tests"
   }
 }

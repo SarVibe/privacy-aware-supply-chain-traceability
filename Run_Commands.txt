@@ -1,15 +1,18 @@
-cd C:\Users\Acer\Desktop\xyz\Final_System
+cd C:\Users\Acer\Desktop\pharmachain-blockchain-supply-chain-main\My_Research
 
-# Python version and backend packages
-.\backend\venv313\Scripts\python.exe --version
-.\backend\venv313\Scripts\python.exe -m pip check
-.\backend\venv313\Scripts\python.exe -c "import fastapi, uvicorn; print('FastAPI', fastapi.__version__); print('Uvicorn', uvicorn.__version__)"
+# Backend setup
+py -3.13 -m venv backend\venv313
+.\backend\venv313\Scripts\python.exe -m pip install -r backend\requirements.txt
 
-# JavaScript dependencies and frontend build
-npm ls --depth=0
+# Start PharmaChain
+.\backend\venv313\Scripts\python.exe backend\scripts\start_local_chain.py
+
+# Run backend tests
+.\backend\venv313\Scripts\python.exe -m unittest discover -s backend/tests
+
+# Reset persistent Anvil state
+.\backend\scripts\reset_anvil.ps1 -ConfirmReset YES
+
+# Build frontend
+npm install
 npm run build:frontend
-
-# Blockchain toolchain and configuration
-node --version
-npx hardhat --version
-npm run compile:blockchain

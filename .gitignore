@@ -1,78 +1,46 @@
-
-# ==========================================
-# Node.js / React / Frontend
-# ==========================================
-node_modules/
-dist/
-coverage/
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-
-# ==========================================
 # Python
-# ==========================================
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.hypothesis/
-.coverage
-htmlcov/
-*.egg-info/
-build/
-develop-eggs/
-.eggs/
-wheels/
-.ipynb_checkpoints/
-.pytest_cache/
-
-# ==========================================
-# Virtual Environments
-# ==========================================
-venv*/
 .venv/
-env/
-ENV/
+.venv313/
+venv313/
+backend/venv313/
+.pytest_cache/
 
-# ==========================================
-# Environment Variables / Secrets
-# ==========================================
+# Secrets
 .env
-.env.*
-!.env.example
-.envrc
-.pypirc
+.env.local
+backend/.env
+backend/.env.local
 
-# ==========================================
-# Hardhat / Ethereum
-# ==========================================
-artifacts/
-cache/
-typechain-types/
+# Persistent local blockchain state
+backend/data/
+backend/backups/
+data/
+backups/
 
-# ==========================================
-# Circom / Zero-Knowledge Proofs
-# ==========================================
-*.zkey
-*.r1cs
-*.wasm
-*.ptau
+# Local tools and migration artifacts
+.tools/
+.structure-migration-backup-*/
+privacy-aware-supply-chain-traceability-main/
 
-# ==========================================
-# IDE / Operating System
-# ==========================================
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-# ==========================================
-# Temporary files
-# ==========================================
+# Logs and caches
 *.log
-tempCodeRunnerFile.py
+.cache/
+
+# Keep packaged frontend and ZKP artifacts
+frontend/dist/*
+!frontend/dist/index.html
+!frontend/dist/assets/
+frontend/dist/assets/*
+!frontend/dist/assets/*.js
+!frontend/dist/assets/*.css
+!frontend/dist/zkp/
+frontend/dist/zkp/*
+!frontend/dist/zkp/*.wasm
+!frontend/dist/zkp/*.zkey
+
+# Generated circuit artifacts
+blockchain/circuits/build/
+blockchain/circuits/keys/
+blockchain/circuits/pot14_*.ptau
