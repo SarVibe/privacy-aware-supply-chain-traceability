@@ -1,0 +1,4 @@
+productName,manufacturerName,dosageForm,manufacturingDate,expiryDate,price
+Sample Tablet 001,Example Pharma,Tablet,2025-01-15,2030-01-15,4.99
+Sample Syrup 002,Example Pharma,Syrup,2025-02-01,2030-02-01,6.50
+Sample Capsule 003,Example Pharma,Capsule,2025-03-10,2030-03-10,8.25
