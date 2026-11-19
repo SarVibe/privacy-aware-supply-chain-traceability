@@ -12,7 +12,7 @@ Role:
 
 import re
 from typing import Set, List, Dict, Union, Optional
-from src.config import Config
+from src.application_config import Config
 
 
 class QGramExtractor:

@@ -8,25 +8,18 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from src.config import Config
-from src.rq2.config import DEFAULT_KS, DEFAULT_LS, DEFAULT_PAD, DEFAULT_Q, DEGENERATE_FILL
-from src.rq2.data import load_dataset
-from src.rq2.metrics import collision_load, expected_fill
-from src.rq2.qgrams import qgram_set
+from src.application_config import Config
+from src.common.experiment_metadata import add_common_args, write_run_csv
+from src.rq2.experiment_config import DEFAULT_KS, DEFAULT_LS, DEFAULT_PAD, DEFAULT_Q
+from src.rq2.rq2_dataset import load_dataset
+from src.rq2.privacy_metrics import collision_load, expected_fill
+from src.rq2.qgram_utils import qgram_set
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default=str(Config.RAW_DATA_PATH),
-                    help="CSV dataset (default: the real shipment dataset)")
-    ap.add_argument("--column", default="raw_item_description",
-                    help="Primary text column; aliases raw_item_description and item description")
-    ap.add_argument("--composite", action="store_true",
-                    help="Combine description, dosage, dosage form, and pack/unit attributes")
-    ap.add_argument("--composite-columns", nargs="+", default=None,
-                    help="Optional explicit composite attribute column names")
-    ap.add_argument("--n-entities", type=int, default=1000)
-    ap.add_argument("--q", type=int, default=DEFAULT_Q)
+    add_common_args(ap)
+    ap.set_defaults(data=str(Config.RAW_DATA_PATH))
     ap.add_argument("--ls", type=int, nargs="+", default=list(DEFAULT_LS))
     ap.add_argument("--ks", type=int, nargs="+", default=list(DEFAULT_KS))
     ap.add_argument("--out", default=str(Config.RQ2_RAW_DIR / "profile_fill.csv"))
@@ -46,13 +39,13 @@ def main():
     for l in a.ls:
         for k in a.ks:
             load = collision_load(nq.mean(), k, l)
-            rows.append({"l": l, "k": k, "load": round(load, 3), "expected_fill": round(expected_fill(load), 3),
-                         "degenerate": int(expected_fill(load) > DEGENERATE_FILL)})
+            rows.append({"l": l, "k": k, "load": round(load, 3),
+                         "expected_fill": round(expected_fill(load), 3)})
     df = pd.DataFrame(rows)
     print(df.pivot(index="l", columns="k", values="expected_fill").to_string())
-    print(f"\nDEGENERATE (expected fill > {DEGENERATE_FILL}):")
-    print(df[df.degenerate == 1][["l", "k", "expected_fill"]].to_string(index=False) or "none")
-    df.to_csv(a.out, index=False)
+    data_mode = "composite" if a.composite or a.composite_columns else "description"
+    write_run_csv(df, a.out, q=a.q, pad=DEFAULT_PAD,
+                  data_mode=data_mode, dataset_path=a.data)
     print(f"saved {a.out}")
 
 

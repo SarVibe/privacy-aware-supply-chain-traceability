@@ -22,10 +22,10 @@ Threshold (tau) policies reported in the headline table:
   oracle      : best tau per noise level chosen on the reporting seeds themselves (UPPER BOUND only).
 
 Usage:
-    python -m experiments.rq1.run_grid
-    python -m experiments.rq1.run_grid --noise-model record_level
-    python -m experiments.rq1.run_grid --tuning-seeds 42 43 44 45 46 --reporting-seeds 47 48 49 50 51 52 53 54 55 56
-    python -m experiments.rq1.run_grid --seeds 1          # smoke test (tuning == reporting, leaky)
+    python -m experiments.rq1.grid_runner
+    python -m experiments.rq1.grid_runner --noise-model record_level
+    python -m experiments.rq1.grid_runner --tuning-seeds 42 43 44 45 46 --reporting-seeds 47 48 49 50 51 52 53 54 55 56
+    python -m experiments.rq1.grid_runner --seeds 1          # smoke test (tuning == reporting, leaky)
 """
 
 import os
@@ -47,12 +47,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import wilcoxon
 
-from src.config import Config
+from src.application_config import Config
 from src.rq1.exact_matcher import ExactMatcher
 from src.common.preprocessor import TextPreprocessor
 from src.common.keyed_bloom_filter import KeyedBloomFilter
 from src.rq1.entity_resolver import EntityResolver
-from src.rq2.metrics import LinkageMetrics
+from src.rq1.record_linkage_metrics import LinkageMetrics
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -164,7 +164,7 @@ class Experiment1AccuracyBenchmark:
                 path = os.path.join(self.data_dir, "noisy_products_0.csv")
             if not os.path.exists(path):
                 raise FileNotFoundError(
-                    f"Missing dataset {path}. Run 'python -m experiments.rq1.noise_generator' first."
+                    f"Missing dataset {path}. Run 'python -m experiments.rq1.noise_dataset_generator' first."
                 )
             self._base_df = pd.read_csv(path)
         return self._base_df.copy()

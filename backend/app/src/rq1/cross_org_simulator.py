@@ -16,7 +16,7 @@ import random
 import logging
 from typing import List, Dict
 import pandas as pd
-from src.config import Config
+from src.application_config import Config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

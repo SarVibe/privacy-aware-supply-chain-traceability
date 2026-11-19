@@ -15,13 +15,17 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from . import attacks, matching, metrics
-from .config import (BIT_ATTACK_TOP_BITS, DEFAULT_PAD, DEFAULT_Q, DEGENERATE_FILL)
-from .bloom import BloomEncoder
-from .dp import flip_probability, randomized_response
-from .noise import add_noise
-from .preprocess import normalize
-from .qgrams import qgram_set
+from . import privacy_attacks as attacks
+from . import similarity_matching as matching
+from . import privacy_metrics as metrics
+from .experiment_config import (BIT_ATTACK_TOP_BITS, DEFAULT_PAD, DEFAULT_Q)
+from src.rq2.bloom_encoder import BloomEncoder
+from src.rq2.numpy_randomized_response import flip_probability, randomized_response
+from src.common.noise_injection import add_noise, NoiseSpec
+from src.rq2.text_normalizer import normalize
+from src.rq2.qgram_utils import qgram_set
+from .parameter_validation import (validate_noise, validate_overlap, validate_n_records, validate_eps,
+                       validate_dataset, validate_dictionary, validate_bit_top)
 
 
 @dataclass
@@ -43,21 +47,48 @@ class Scenario:
 
 def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records: int = 3000,
                    q: int = DEFAULT_Q, pad: bool = DEFAULT_PAD) -> Scenario:
+    validate_dataset(ds)
+    noise = validate_noise(noise)
+    overlap = validate_overlap(overlap)
+    n_records = validate_n_records(n_records)
     rng = np.random.default_rng(np.random.SeedSequence([seed, int(round(noise * 10000)), int(round(overlap * 100))]))
     n = ds.n
-    b_norm = [normalize(s) for s in add_noise(ds.raw, noise, rng)]
+    if getattr(ds, "noisy_norm", None) is not None:
+        b_norm = list(ds.noisy_norm)
+    else:
+        b_norm = [normalize(s) for s in add_noise(ds.raw, noise, rng)]
     perm = rng.permutation(n)
     val_idx, test_idx = np.sort(perm[: n // 2]), np.sort(perm[n // 2:])
     dict_ids = np.sort(rng.choice(n, size=max(1, int(round(overlap * n))), replace=False))
     victim_ids = rng.choice(n, size=n_records, p=ds.weights)
-    victim_raw = add_noise([ds.raw[i] for i in victim_ids], noise, rng)
-    victim_norm = [normalize(s) for s in victim_raw]
+    if getattr(ds, "noisy_norm", None) is not None:
+        noisy_records_by_entity = getattr(ds, "noisy_records_by_entity", None)
+        victim_norm = []
+        for entity_index in victim_ids:
+            entity_index = int(entity_index)
+            variants = (
+                noisy_records_by_entity.get(entity_index)
+                if noisy_records_by_entity is not None
+                else None
+            )
+            if variants:
+                victim_norm.append(str(variants[int(rng.integers(len(variants)))]))
+            else:
+                victim_norm.append(ds.noisy_norm[entity_index])
+    else:
+        victim_raw = add_noise([ds.raw[i] for i in victim_ids], noise, rng)
+        victim_norm = [normalize(s) for s in victim_raw]
     aux_sample = rng.choice(n, size=n_records, p=ds.weights)          # public clean frequency sample
     in_dict = set(int(e) for e in dict_ids)
-    aux_counts = {e: 0 for e in in_dict}
-    for e in aux_sample:
-        if int(e) in aux_counts:
-            aux_counts[int(e)] += 1
+    if getattr(ds, "counts", None) is not None:
+        aux_counts = {int(e): int(ds.counts[int(e)]) for e in in_dict}
+    else:
+        aux_counts = {e: 0 for e in in_dict}
+    if getattr(ds, "counts", None) is None:
+        aux_sample = rng.choice(n, size=n_records, p=ds.weights)
+        for e in aux_sample:
+            if int(e) in aux_counts:
+                aux_counts[int(e)] += 1
     # public document frequency of every q-gram (weighted by public entity counts)
     tot = max(1, sum(aux_counts.values()))
     gram_w = {}
@@ -83,6 +114,11 @@ def _base_row(method, l, k, q, scen, eps):
 
 def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool = DEFAULT_PAD,
               eps: float = math.inf, bit_top: int = BIT_ATTACK_TOP_BITS) -> dict:
+    validate_dataset(ds)
+    eps = validate_eps(eps)
+    bit_top = validate_bit_top(bit_top)
+    if k > l:
+        raise ValueError("k must be <= l")
     enc = BloomEncoder(l, k, scen.key, q, pad)
     dp_rng = np.random.default_rng(np.random.SeedSequence([scen.seed, 77, l, k, int(min(eps, 1e6) * 100)]))
     atk_rng = np.random.default_rng(np.random.SeedSequence([scen.seed, 99, l, k]))
@@ -120,12 +156,13 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
     load = metrics.collision_load(nq, k, l)
     fm, fs = metrics.fill_stats(bf_a)
     row.update(fill=fm, fill_std=fs, fill_expected=metrics.expected_fill(load), entropy=metrics.bit_entropy(bf_a),
-               load=load, nq_mean=nq, degenerate=int(fm > DEGENERATE_FILL))
+               load=load, nq_mean=nq)
     return row
 
 
 def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     """Exact matching baseline: HMAC-SHA256(secret salt, normalized string)."""
+    validate_dataset(ds)
     def tok(s):
         return hmac.new(scen.key, s.encode(), hashlib.sha256).digest()
 
@@ -143,5 +180,5 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     row["freq_success"] = attacks.frequency_attack(tok_v, scen.victim_ids, scen.aux_counts, atk_rng)
     row.update(bit_success=float("nan"), bit_baseline=float("nan"), bit_qgrams_per_bit=float("nan"),
                fill=float("nan"), fill_std=float("nan"), fill_expected=float("nan"), entropy=float("nan"),
-               load=float("nan"), nq_mean=float("nan"), degenerate=0)
+               load=float("nan"), nq_mean=float("nan"))
     return row

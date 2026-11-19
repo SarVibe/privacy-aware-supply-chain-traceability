@@ -19,8 +19,8 @@ from collections import Counter
 
 import numpy as np
 
-from .config import REID_DELTA, REID_TOPK
-from .matching import dice_matrix
+from .experiment_config import REID_DELTA, REID_TOPK
+from .similarity_matching import dice_matrix
 
 TIE_EPS = 1e-9
 
@@ -71,6 +71,10 @@ def exact_reid_attack(victim_tokens, victim_truth, dict_tokens, dict_ids, topk=R
 
 def frequency_attack(tokens, truth, aux_counts: dict, rng: np.random.Generator) -> float:
     """Record-weighted fraction of stored records whose token is mapped to the correct entity."""
+    if not tokens:
+        raise ValueError("tokens must not be empty")
+    if not aux_counts:
+        raise ValueError("aux_counts must not be empty")
     cnt = Counter(tokens)
     toks = list(cnt)
     rng.shuffle(toks)                        # random tie-break among equal counts

@@ -18,12 +18,12 @@ import logging
 from typing import Dict, Optional, Any
 import pandas as pd
 
-from src.config import Config
+from src.application_config import Config
 from src.common.preprocessor import TextPreprocessor
 from src.common.keyed_bloom_filter import KeyedBloomFilter
-from src.common.differential_privacy import LocalDifferentialPrivacy
+from src.rq2.bitarray_differential_privacy import LocalDifferentialPrivacy
 from src.rq1.entity_resolver import EntityResolver
-from src.common.blockchain_client import BlockchainClient
+from src.rq2.blockchain_client import BlockchainClient
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

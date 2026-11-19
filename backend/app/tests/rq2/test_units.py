@@ -1,14 +1,19 @@
 import math
+from pathlib import Path
+import hashlib
 
 import numpy as np
-from src.rq2 import attacks, matching, metrics
-from src.rq2.bloom import BloomEncoder
-from src.rq2.data import load_dataset, synthetic_dataset
-from src.rq2.dp import flip_probability, randomized_response
-from src.rq2.noise import add_noise, add_typos
-from src.rq2.preprocess import normalize
-from src.rq2.qgrams import qgram_set, qgrams
-from src.config import Config
+from src.rq2 import privacy_attacks as attacks
+from src.rq2 import similarity_matching as matching
+from src.rq2 import privacy_metrics as metrics
+from src.rq2.bloom_encoder import BloomEncoder
+from src.rq2.rq2_dataset import load_dataset, synthetic_dataset
+from src.rq2.numpy_randomized_response import flip_probability, randomized_response
+from src.common.noise_injection import add_noise, add_typos
+from src.rq2.text_normalizer import normalize
+from src.rq2.qgram_utils import qgram_set, qgrams
+from src.application_config import Config
+from src.common.noise_injection import NoiseSpec
 
 KEY = b"k" * 32
 
@@ -54,6 +59,18 @@ def test_positions_distinct_and_in_range():
         pos = enc.gram_positions([a + b for a in "abcde" for b in "fghij"])
         assert pos.min() >= 0 and pos.max() < l
         assert all(len(set(row)) == 30 for row in pos)      # k distinct bits per q-gram (power-of-two l)
+
+
+def test_positions_distinct_for_non_power_of_two_lengths():
+    for l in (6, 100, 768, 1000, 1023, 1536):
+        for k in (1, 2, 4, 15, min(64, l)):
+            if k > l:
+                continue
+            enc = BloomEncoder(l, k, KEY)
+            pos = enc.gram_positions([a + b for a in "abc" for b in "xyz"])
+            assert pos.shape == (9, k)
+            assert pos.min() >= 0 and pos.max() < l
+            assert all(len(set(row)) == k for row in pos)
 
 
 def test_encoder_deterministic_and_keyed():
@@ -118,6 +135,7 @@ def test_dp_flip_rate():
     bf = np.zeros((200, 1000), dtype=np.uint8)
     flipped = randomized_response(bf, eps, k, np.random.default_rng(0))
     assert abs(flipped.mean() - p) < 0.005
+    assert flip_probability(10000.0, k) == 0.0
 
 
 def test_reid_attack_collisions_reduce_success():

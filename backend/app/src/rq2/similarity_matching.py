@@ -7,7 +7,7 @@ import numpy as np
 from collections import Counter
 from scipy.stats import rankdata
 
-from .config import TAU_GRID
+from .experiment_config import TAU_GRID
 
 
 def dice_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:

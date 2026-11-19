@@ -1,5 +1,5 @@
 """
-src/config.py
+src/application_config.py
 Component 1: Pre-Ledger Cross-Organizational Data Harmonization
 
 Role:
@@ -14,6 +14,8 @@ Role:
 
 import os
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Tuple
 from dotenv import load_dotenv
 
 # Application data directory
@@ -23,6 +25,34 @@ PROJECT_ROOT = BASE_DIR.parent.parent
 # Load the single project-level environment file used by every component.
 ENV_FILE = PROJECT_ROOT / ".env"
 load_dotenv(dotenv_path=ENV_FILE)
+
+
+@dataclass(frozen=True)
+class ExperimentConfig:
+    q: int = 2
+    pad: bool = False
+    tau_grid: Tuple[float, ...] = tuple(
+        float(round(v, 4)) for v in __import__("numpy").arange(0.30, 1.0001, 0.005)
+    )
+    degenerate_fill: float = 0.95
+    standard: Tuple[int, int] = (1024, 4)
+    reid_topk: Tuple[int, ...] = (1, 5, 10)
+    reid_delta: float = 0.02
+    bit_top: int = 100
+    n_entities: int = 1000
+    n_records: int = 3000
+    seeds: Tuple[int, ...] = tuple(range(20))
+    extra_columns: Tuple[str, ...] = ("dosage", "dosage_form", "pack_size")
+    tau_primary: float = 0.85
+    tau_secondary: float = 0.80
+    bloom_length: int = 1024
+    k_primary: int = 4
+    k_secondary: int = 30
+    rq1_noise_min_len: int = 3
+    rq1_noise_min_edits: int = 1
+
+
+EXPERIMENT_CONFIG = ExperimentConfig()
 
 
 class Config:

@@ -15,7 +15,7 @@ Role:
 from typing import Optional
 import numpy as np
 from bitarray import bitarray
-from src.config import Config
+from src.application_config import Config
 
 
 class LocalDifferentialPrivacy:

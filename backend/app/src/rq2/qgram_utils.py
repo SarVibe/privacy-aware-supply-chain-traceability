@@ -1,6 +1,3 @@
-"""q-gram extraction. A Bloom filter stores a *set* of q-grams (no counts)."""
-
-
 def qgrams(s: str, q: int = 2, pad: bool = False) -> list:
     if pad:
         s = "_" * (q - 1) + s + "_" * (q - 1)

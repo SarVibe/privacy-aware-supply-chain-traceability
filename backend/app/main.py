@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.config import Config
+from src.application_config import Config
 from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 

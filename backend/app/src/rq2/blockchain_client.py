@@ -28,7 +28,7 @@ from bitarray import bitarray
 # pyrefly: ignore[missing-import]
 from web3 import Web3
 
-from src.config import Config
+from src.application_config import Config
 from src.common.keyed_bloom_filter import KeyedBloomFilter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

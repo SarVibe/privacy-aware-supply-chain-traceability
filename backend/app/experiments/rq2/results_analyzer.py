@@ -1,6 +1,6 @@
 """Aggregate results -> tables, hypothesis tests (H1-H3), operating-point selection and figures.
 
-  python -m experiments.rq2.analyze --grid backend/app/results/rq2/raw/exp2_grid.csv [--dp backend/app/results/rq2/raw/exp2_dp.csv] [--noise 0.15]
+  python -m experiments.rq2.results_analyzer --grid backend/app/results/rq2/raw/exp2_grid.csv [--dp backend/app/results/rq2/raw/exp2_dp.csv] [--noise 0.15]
 
 Operating-point selection uses the first half of the seeds; the baseline comparison and the
 Wilcoxon tests use the remaining seeds, so the 'tuned' configuration is not evaluated on the
@@ -9,6 +9,7 @@ data that selected it.
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -18,8 +19,10 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from src.config import Config
-from src.rq2.config import DEGENERATE_FILL, STANDARD_CONFIG
+from src.application_config import Config
+from src.common.experiment_metadata import write_markdown, write_run_csv, parse_standard
+from src.rq2.results_schema import validate_results, SchemaError
+from src.rq2.experiment_config import EXPERIMENT_CONFIG
 
 BLUE, ORANGE, AQUA, INK, MUTED = "#2a78d6", "#eb6834", "#1baf7a", "#0b0b0b", "#52514e"
 METRICS = ["precision", "recall", "f1", "fpr", "auc", "reid_top1", "reid_top5", "reid_ties", "reid_cands_delta",
@@ -68,6 +71,91 @@ def pareto_front(points):
     return sorted(front)
 
 
+def holm_bonferroni(p_values):
+    """Return adjusted p-values for a test family."""
+    p_values = np.asarray(p_values, dtype=float)
+    m = len(p_values)
+    order = np.argsort(p_values)
+    adjusted = np.empty(m, dtype=float)
+    running = 0.0
+    for rank, index in enumerate(order):
+        adjusted[index] = min(1.0, max(running, (m - rank) * p_values[index]))
+        running = adjusted[index]
+    return adjusted
+
+
+def paired_effect(differences, rng_seed=2026):
+    differences = np.asarray(differences, dtype=float)
+    differences = differences[~np.isnan(differences)]
+    if len(differences) == 0:
+        return {"n": 0, "hodges_lehmann": None, "hl_ci95": [None, None],
+                "rank_biserial": None, "cohens_dz": None}
+    pairwise = (differences[:, None] + differences[None, :]) / 2.0
+    hl = float(np.median(pairwise.ravel()))
+    rng = np.random.default_rng(rng_seed)
+    boot = []
+    for _ in range(2000):
+        sample = rng.choice(differences, size=len(differences), replace=True)
+        pairwise_boot = (sample[:, None] + sample[None, :]) / 2.0
+        boot.append(float(np.median(pairwise_boot.ravel())))
+    ci = np.quantile(boot, [0.025, 0.975]).tolist()
+    positive = np.sum(differences > 0)
+    negative = np.sum(differences < 0)
+    r = (positive - negative) / (positive + negative) if positive + negative else 0.0
+    dz = float(differences.mean() / differences.std(ddof=1)) if len(differences) > 1 and differences.std(ddof=1) > 0 else 0.0
+    return {"n": int(len(differences)), "hodges_lehmann": hl,
+            "hl_ci95": [float(ci[0]), float(ci[1])],
+            "rank_biserial": float(r), "cohens_dz": dz}
+
+
+def merge_paired(a: pd.DataFrame, b: pd.DataFrame, metric: str):
+    if "seed" not in a or "seed" not in b:
+        raise ValueError("paired comparison requires a seed column")
+    a_seeds = set(a["seed"].tolist())
+    b_seeds = set(b["seed"].tolist())
+    if a_seeds != b_seeds:
+        raise ValueError(f"paired seed sets do not match: {sorted(a_seeds)} != {sorted(b_seeds)}")
+    merged = a.merge(b, on="seed", validate="one_to_one",
+                     suffixes=("_standard", "_tuned"))
+    x = merged[f"{metric}_standard"].to_numpy(dtype=float)
+    y = merged[f"{metric}_tuned"].to_numpy(dtype=float)
+    differences = x - y
+    differences = differences[differences != 0]
+    return differences, len(merged)
+
+
+def load_run_meta(csv_path: str) -> dict:
+    csv_path = Path(csv_path)
+    candidates = (
+        csv_path.with_name(csv_path.stem + "_run_meta.json"),
+        csv_path.with_name(csv_path.stem + "_meta.json"),
+        csv_path.with_name("run_meta.json"),
+    )
+    meta_path = next((path for path in candidates if path.exists()), None)
+    if meta_path is None:
+        raise SystemExit(f"missing run metadata for {csv_path}")
+    return json.loads(meta_path.read_text(encoding="utf-8"))
+
+
+def validate_run_metas(meta_paths: list[tuple[str, dict]], degenerate_fill: float):
+    required = ("q", "pad", "data_mode", "tau_grid", "degenerate_fill")
+    reference_name, reference = meta_paths[0]
+    ref_cfg = reference["experiment_config"]
+    for name, meta in meta_paths:
+        cfg = meta["experiment_config"]
+        for key in required:
+            if key not in cfg or cfg[key] != ref_cfg[key]:
+                raise SystemExit(
+                    f"run metadata mismatch for {key}: {reference_name}={ref_cfg[key]!r}, "
+                    f"{name}={cfg.get(key)!r}"
+                )
+    if float(ref_cfg["degenerate_fill"]) != float(degenerate_fill):
+        raise SystemExit(
+            f"metadata degenerate_fill={ref_cfg['degenerate_fill']} does not match "
+            f"configured threshold={degenerate_fill}"
+        )
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--grid", default=str(Config.RQ2_RAW_DIR / "exp2_grid.csv"))
@@ -76,18 +164,46 @@ def main():
     ap.add_argument("--noise", type=float, default=0.05, help="noise level used for the main analysis")
     ap.add_argument("--f1-min", type=float, default=0.85, help="utility constraint for the operating point")
     ap.add_argument("--outdir", default=str(Config.RQ2_TABLES_DIR))
+    ap.add_argument("--standard", default="1024:4", help="standard Bloom configuration as l:k")
     a = ap.parse_args()
+    try:
+        sl, sk = parse_standard(a.standard)
+    except ValueError as exc:
+        ap.error(str(exc))
     out = Path(a.outdir)
     out.mkdir(parents=True, exist_ok=True)
     figs = Config.RQ2_FIGURES_DIR
     figs.mkdir(parents=True, exist_ok=True)
+    metas = [("grid", load_run_meta(a.grid))]
+    if a.dp:
+        metas.append(("dp", load_run_meta(a.dp)))
+    if a.overlap_csv:
+        metas.append(("overlap", load_run_meta(a.overlap_csv)))
+    degenerate_fill = float(metas[0][1]["experiment_config"]["degenerate_fill"])
+    validate_run_metas(metas, degenerate_fill)
+
     df = pd.read_csv(a.grid)
+    try:
+        validate_results(df)
+    except SchemaError as exc:
+        raise SystemExit(str(exc)) from exc
+    available_noise = set(df["noise"].dropna().astype(float))
+    if float(a.noise) not in available_noise:
+        raise SystemExit(
+            f"requested --noise {a.noise} is not present in CSV; available: {sorted(available_noise)}"
+        )
+    grid_configs = set(zip(df[df.method == "bloom"]["l"].astype(int), df[df.method == "bloom"]["k"].astype(int)))
+    if (sl, sk) not in grid_configs:
+        raise SystemExit(f"standard configuration {sl}:{sk} is not present in the grid")
     df["eps"] = df["eps"].replace([np.inf], np.inf)
     main_df = df[df.overlap == 1.0]
 
     # ---------- summary of everything ----------
     summary = aggregate(main_df, ["method", "l", "k", "noise", "eps"])
-    summary.to_csv(out / "summary.csv", index=False)
+    write_run_csv(summary, out / "summary.csv",
+                  q=metas[0][1]["experiment_config"]["q"],
+                  pad=metas[0][1]["experiment_config"]["pad"],
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
 
     d = main_df[(main_df.noise == a.noise)]
     if d.empty:
@@ -102,7 +218,7 @@ def main():
 
     # ---------- operating-point selection (selection seeds only) ----------
     sel = bf[bf.seed.isin(sel_seeds)].groupby(["l", "k"])[["f1", "reid_top1", "fill"]].mean().reset_index()
-    cand = sel[(sel.fill <= DEGENERATE_FILL)]
+    cand = sel[(sel.fill <= degenerate_fill)]
     ok = cand[cand.f1 >= a.f1_min]
     note = ""
     if ok.empty:
@@ -111,7 +227,7 @@ def main():
         note = f"no config reached F1>={a.f1_min}; relaxed to 0.9*best F1 = {thr:.3f}"
     tuned = ok.sort_values(["reid_top1", "f1"], ascending=[True, False]).iloc[0]
     tl, tk = int(tuned.l), int(tuned.k)
-    sl, sk = STANDARD_CONFIG
+    sl, sk = sl, sk
     print(f"standard=({sl},{sk})  tuned=({tl},{tk})  {note}")
 
     # ---------- baseline comparison table (evaluation seeds) ----------
@@ -137,24 +253,55 @@ def main():
                 f"tuned_bf_l{tl}_k{tk}": z[(z.method == "bloom") & (z.l == tl) & (z.k == tk)]}
         table["freq_success@noise0"] = [f"{zsel[n]['freq_success'].mean():.3f} ± {ci95(zsel[n]['freq_success']):.3f}"
                                          for n in table["setup"]]
-    table.to_csv(out / "table_baselines.csv", index=False)
-    (out / "table_baselines.md").write_text(table.to_markdown(index=False) if hasattr(table, "to_markdown") else table.to_string(index=False))
+    write_run_csv(table, out / "table_baselines.csv",
+                  q=metas[0][1]["experiment_config"]["q"],
+                  pad=metas[0][1]["experiment_config"]["pad"],
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
+    write_markdown(table, out / "table_baselines.md")
     print("\nBaseline comparison (mean ± 95% CI, evaluation seeds)\n", table.to_string(index=False))
 
     # ---------- hypothesis tests ----------
     res = {"noise": a.noise, "standard": [sl, sk], "tuned": [tl, tk],
            "selection_seeds": [int(s) for s in sel_seeds], "eval_seeds": [int(s) for s in eval_seeds],
-           "selection_note": note}
+           "selection_note": note,
+           "limitations": {
+               "entities": "All seeds use the same fixed entity set; the key, noise realization, split, and victim sample vary.",
+               "generalizability": "P-values describe replicate variability on the current dataset and do not establish generalizability to other datasets.",
+               "selection_leakage": "The tuned configuration is selected using the same entity set, with entity-level tuning/evaluation leakage caveat.",
+           }}
     std_e = parts[f"standard_bf_l{sl}_k{sk}"].sort_values("seed")
     tun_e = parts[f"tuned_bf_l{tl}_k{tk}"].sort_values("seed")
     paired = {}
+    paired_raw_p = []
     for m in ["f1", "reid_top1", "freq_success", "bit_success"]:
-        x, y = std_e[m].to_numpy(), tun_e[m].to_numpy()
-        if len(x) == len(y) and len(x) >= 5 and np.any(x != y):
-            w = stats.wilcoxon(x, y)
-            paired[m] = {"standard_mean": float(x.mean()), "tuned_mean": float(y.mean()), "p": float(w.pvalue)}
+        differences, total_n = merge_paired(std_e, tun_e, m)
+        x = std_e.merge(tun_e, on="seed", validate="one_to_one", suffixes=("_standard", "_tuned"))
+        standard_values = x[f"{m}_standard"].to_numpy(dtype=float)
+        tuned_values = x[f"{m}_tuned"].to_numpy(dtype=float)
+        effective_n = len(differences)
+        if effective_n >= 1:
+            w = stats.wilcoxon(differences, alternative="two-sided")
+            p = float(w.pvalue)
         else:
-            paired[m] = {"standard_mean": float(x.mean()), "tuned_mean": float(y.mean()), "p": None}
+            p = None
+        # The exact minimum achievable two-sided p cannot be less than 1 / 2^n.
+        minimum_p = float(2.0 ** (-effective_n)) if effective_n > 0 else None
+        effect = paired_effect(differences)
+        paired[m] = {
+            "standard_mean": float(standard_values.mean()),
+            "tuned_mean": float(tuned_values.mean()),
+            "n_total": int(total_n),
+            "n_effective_after_zero_removal": int(effective_n),
+            "minimum_achievable_p": minimum_p,
+            "p": p,
+            "effect": effect,
+        }
+        paired_raw_p.append(p)
+    paired_adjusted = holm_bonferroni(
+        np.array([1.0 if p is None else p for p in paired_raw_p], dtype=float)
+    )
+    for m, adjusted in zip(["f1", "reid_top1", "freq_success", "bit_success"], paired_adjusted):
+        paired[m]["p_holm"] = None if paired[m]["p"] is None else float(adjusted)
     res["wilcoxon_standard_vs_tuned"] = paired
 
     per_seed = {"H1_rho_l_vs_top1": [], "H2_rho_k_vs_top1": [], "H3_rho_load_vs_f1": [], "H3_rho_load_vs_top1": []}
@@ -170,10 +317,37 @@ def main():
               "H3_rho_load_vs_f1": "expect < 0 (more collisions -> lower F1)",
               "H3_rho_load_vs_top1": "expect < 0 (more collisions -> lower attack success)"}
     res["spearman_per_seed"] = {}
-    for name, vals in per_seed.items():
+    trend_alternatives = {
+        "H1_rho_l_vs_top1": "greater",
+        "H2_rho_k_vs_top1": "less",
+        "H3_rho_load_vs_f1": "less",
+        "H3_rho_load_vs_top1": "less",
+    }
+    trend_names = list(per_seed)
+    trend_raw = []
+    for name in trend_names:
+        vals = per_seed[name]
         v = np.array(vals, float); v = v[~np.isnan(v)]
-        p = float(stats.wilcoxon(v).pvalue) if len(v) >= 5 and np.any(v != 0) else None
-        res["spearman_per_seed"][name] = {"mean_rho": float(v.mean()) if len(v) else None, "p_vs_0": p, "expectation": expect[name]}
+        alternative = trend_alternatives[name]
+        p = float(stats.wilcoxon(v, alternative=alternative).pvalue) if len(v) >= 5 and np.any(v != 0) else None
+        rng = np.random.default_rng(2026)
+        boot = [float(np.mean(rng.choice(v, size=len(v), replace=True))) for _ in range(2000)] if len(v) else []
+        ci = np.quantile(boot, [0.025, 0.975]).tolist() if boot else [None, None]
+        res["spearman_per_seed"][name] = {
+            "mean_rho": float(v.mean()) if len(v) else None,
+            "ci95_mean_rho": ci,
+            "p_raw": p,
+            "alternative": alternative,
+            "expectation": expect[name],
+        }
+        trend_raw.append(p)
+    trend_adjusted = holm_bonferroni(
+        np.array([1.0 if p is None else p for p in trend_raw], dtype=float)
+    )
+    for name, adjusted in zip(trend_names, trend_adjusted):
+        res["spearman_per_seed"][name]["p_holm"] = (
+            None if res["spearman_per_seed"][name]["p_raw"] is None else float(adjusted)
+        )
     (out / "stats.json").write_text(json.dumps(res, indent=2))
     print("\nHypothesis tests:\n", json.dumps(res["spearman_per_seed"], indent=2))
     print("Standard vs tuned:\n", json.dumps(paired, indent=2))
@@ -200,12 +374,13 @@ def main():
         ax.legend(fontsize=7, ncol=2, frameon=False)
     fig.tight_layout(); fig.savefig(figs / "sweeps_l_k.png", bbox_inches="tight"); plt.close(fig)
 
-    pts = [(r.f1_mean, r.reid_top1_mean, f"{int(r.l)}/{int(r.k)}") for r in am.itertuples() if r.fill_mean <= DEGENERATE_FILL]
+    pts = [(r.f1_mean, r.reid_top1_mean, f"{int(r.l)}/{int(r.k)}") for r in am.itertuples() if r.fill_mean <= degenerate_fill]
     front = pareto_front(pts)
     fig, ax = plt.subplots(figsize=(6.5, 4.6))
     ax.scatter([p[0] for p in pts], [p[1] for p in pts], s=34, color=BLUE, label="non-degenerate (l/k)", zorder=3)
-    dg = am[am.fill_mean > DEGENERATE_FILL]
-    ax.scatter(dg.f1_mean, dg.reid_top1_mean, s=34, color=MUTED, marker="x", label="degenerate (fill>0.95)")
+    dg = am[am.fill_mean > degenerate_fill]
+    ax.scatter(dg.f1_mean, dg.reid_top1_mean, s=34, color=MUTED, marker="x",
+               label=f"degenerate (fill>{degenerate_fill:.2f})")
     ax.plot([p[0] for p in front], [p[1] for p in front], color=ORANGE, lw=2, label="Pareto front", zorder=2)
     for f, t, lab in front:
         ax.annotate(lab, (f, t), fontsize=6.5, xytext=(3, 3), textcoords="offset points", color=MUTED)
@@ -214,7 +389,11 @@ def main():
     ax.set_xlabel("utility: test F1 (higher is better)"); ax.set_ylabel("privacy loss: re-id top-1 (lower is better)")
     ax.set_title(f"Privacy-utility trade-off (noise={a.noise})"); ax.legend(fontsize=7, frameon=False)
     fig.tight_layout(); fig.savefig(figs / "pareto.png", bbox_inches="tight"); plt.close(fig)
-    pd.DataFrame(front, columns=["f1", "reid_top1", "config"]).to_csv(out / "pareto_front.csv", index=False)
+    write_run_csv(pd.DataFrame(front, columns=["f1", "reid_top1", "config"]),
+                  out / "pareto_front.csv",
+                  q=metas[0][1]["experiment_config"]["q"],
+                  pad=metas[0][1]["experiment_config"]["pad"],
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
 
     # noise robustness
     fig, axs = plt.subplots(1, 2, figsize=(10, 3.6))
@@ -234,13 +413,19 @@ def main():
         ov = pd.read_csv(a.overlap_csv)
         ov = ov[(ov.noise == a.noise) & (ov.method == "bloom")]
         ovs = ov.groupby(["l", "k", "overlap"])[["f1", "reid_top1", "freq_success"]].mean().reset_index()
-        ovs.to_csv(out / "table_overlap.csv", index=False)
+        write_run_csv(ovs, out / "table_overlap.csv",
+                      q=metas[0][1]["experiment_config"]["q"],
+                      pad=metas[0][1]["experiment_config"]["pad"],
+                      data_mode=metas[0][1]["experiment_config"]["data_mode"])
         print("\nDictionary-overlap sensitivity (E2.7)\n", ovs.to_string(index=False))
     if a.dp:
         dp = pd.read_csv(a.dp)
         dp["eps"] = dp["eps"].astype(float)
         agg = dp.groupby(["l", "k", "eps"])[["f1", "reid_top1", "freq_success", "bit_success", "flip_p"]].mean().reset_index()
-        agg.to_csv(out / "table_dp.csv", index=False)
+        write_run_csv(agg, out / "table_dp.csv",
+                      q=metas[0][1]["experiment_config"]["q"],
+                      pad=metas[0][1]["experiment_config"]["pad"],
+                      data_mode=metas[0][1]["experiment_config"]["data_mode"])
         print("\nDP ablation (E2.8)\n", agg.to_string(index=False))
         fig, axs = plt.subplots(1, 2, figsize=(10, 3.6))
         for c, ((l, k), g) in zip([BLUE, ORANGE, AQUA, MUTED], agg.groupby(["l", "k"])):

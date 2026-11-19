@@ -1,5 +1,5 @@
 """
-experiments/noise_generator.py
+experiments/rq1/noise_dataset_generator.py
 Component 1: Experimental Evaluation Engine (RQ1 & RQ2)
 
 Role:
@@ -24,7 +24,8 @@ for p in [Path.cwd(), Path(__file__).resolve().parent.parent, Path(__file__).res
         load_dotenv(dotenv_path=env_file)
         break
 
-from src.config import Config
+from src.application_config import Config
+from src.common.noise_injection import inject_typo
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -57,32 +58,7 @@ class SyntheticNoiseGenerator:
         Mutates characters within text proportional to noise_rate.
         Leaves short numbers (< 3 digits) intact when possible to prevent random number corruptions.
         """
-        if noise_rate <= 0.0 or not text:
-            return text
-
-        chars = list(text)
-        num_mutations = max(1, int(len(chars) * noise_rate))
-
-        for _ in range(num_mutations):
-            if len(chars) <= 3:
-                break
-
-            mutation = rng.choice(["substitute", "delete", "insert", "transpose"])
-            idx = rng.randint(0, len(chars) - 1)
-
-            if mutation == "substitute":
-                chars[idx] = rng.choice(self.alphabet)
-
-            elif mutation == "delete" and len(chars) > 3:
-                chars.pop(idx)
-
-            elif mutation == "insert":
-                chars.insert(idx, rng.choice(self.alphabet))
-
-            elif mutation == "transpose" and idx < len(chars) - 1:
-                chars[idx], chars[idx + 1] = chars[idx + 1], chars[idx]
-
-        return "".join(chars)
+        return inject_typo(text, noise_rate, rng)
 
     def generate_noisy_datasets(
         self,

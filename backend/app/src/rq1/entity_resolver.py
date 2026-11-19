@@ -13,8 +13,8 @@ from typing import Dict, List, Tuple, Optional
 from bitarray import bitarray
 import pandas as pd
 
-from src.config import Config
-from src.common.dice import DiceSimilarityEngine
+from src.application_config import Config
+from src.rq1.dice_similarity import DiceSimilarityEngine
 
 
 class ClusterEntity:

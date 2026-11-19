@@ -24,7 +24,7 @@ for p in [Path.cwd(), Path(__file__).resolve().parent.parent, Path(__file__).res
         load_dotenv(dotenv_path=env_file)
         break
 
-from src.config import Config
+from src.application_config import Config
 from src.common.preprocessor import TextPreprocessor
 
 logging.basicConfig(

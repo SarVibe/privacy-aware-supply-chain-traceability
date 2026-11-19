@@ -1,7 +1,7 @@
 import pandas as pd
 
 from src.rq1.exact_matcher import ExactMatcher
-from src.rq2.metrics import LinkageMetrics
+from src.rq1.record_linkage_metrics import LinkageMetrics
 
 
 def test_raw_exact_matching_does_not_strip_input():
