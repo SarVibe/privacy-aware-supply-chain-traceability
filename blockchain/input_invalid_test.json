@@ -1,0 +1,26 @@
+{
+  "actual": {
+    "product_id": "PROD-1001",
+    "product_name": "Test Product",
+    "batch_number": "BATCH-001",
+    "manufacturer_id": "MFG-001",
+    "shipment_id": "SHIP-001",
+    "source_location": "Colombo",
+    "destination_location": "Jaffna",
+    "manufacturing_date": "20261101",
+    "expiry_date": "20271101",
+    "quantity": "100"
+  },
+  "expected": {
+    "product_id": "PROD-1001",
+    "product_name": "Test Product",
+    "batch_number": "BATCH-001",
+    "manufacturer_id": "MFG-001",
+    "shipment_id": "SHIP-001",
+    "source_location": "Colombo",
+    "destination_location": "Jaffna",
+    "manufacturing_date": "20261101",
+    "expiry_date": "20271101",
+    "quantity": "200"
+  }
+}
