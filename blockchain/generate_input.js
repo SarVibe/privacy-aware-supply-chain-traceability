@@ -4,74 +4,160 @@ import fs from "node:fs";
 
 const poseidon = await buildPoseidon();
 
+const STRING_ATTRIBUTES = [
+    "product_id",
+    "product_name",
+    "batch_number",
+    "manufacturer_id",
+    "shipment_id",
+    "source_location",
+    "destination_location"
+];
 
-function encodeString(value) {
-    const bytes = Array.from(Buffer.from(value, "utf8"));
+const NUMERIC_ATTRIBUTES = [
+    "manufacturing_date",
+    "expiry_date",
+    "quantity"
+];
 
-    if (bytes.length > 62) {
-        throw new Error(`String exceeds 62 UTF-8 bytes: ${value}`);
+// Encode actual and expected string values
+function encodeString(actualValue, expectedValue) {
+    const actualBytes = Array.from(
+        Buffer.from(String(actualValue), "utf8")
+    );
+
+    const expectedBytes = Array.from(
+        Buffer.from(String(expectedValue), "utf8")
+    );
+
+    if (actualBytes.length > 62 || expectedBytes.length > 62) {
+        throw new Error("String exceeds 62 UTF-8 bytes");
     }
 
-    // Always create exactly 62 bytes.
-    const paddedBytes = new Array(62).fill(0);
+    const actualPadded = new Array(62).fill(0);
+    const expectedPadded = new Array(62).fill(0);
 
-    for (let i = 0; i < bytes.length; i++) {
-        paddedBytes[i] = bytes[i];
+    actualBytes.forEach((byte, i) => {
+        actualPadded[i] = byte;
+    });
+
+    expectedBytes.forEach((byte, i) => {
+        expectedPadded[i] = byte;
+    });
+
+    function pack(bytes, start) {
+        let packed = 0n;
+
+        for (let i = 0; i < 31; i++) {
+            packed += BigInt(bytes[start + i]) * (256n ** BigInt(i));
+        }
+
+        return packed;
     }
 
-    let packed0 = 0n;
-    let packed1 = 0n;
+    const actualPacked0 = pack(actualPadded, 0);
+    const actualPacked1 = pack(actualPadded, 31);
 
-    for (let i = 0; i < 31; i++) {
-        packed0 += BigInt(paddedBytes[i]) * (256n ** BigInt(i));
-    }
+    const expectedPacked0 = pack(expectedPadded, 0);
+    const expectedPacked1 = pack(expectedPadded, 31);
 
-    for (let i = 31; i < 62; i++) {
-        packed1 += BigInt(paddedBytes[i]) * (256n ** BigInt(i - 31));
-    }
-
-    const hash = poseidon([packed0, packed1, BigInt(bytes.length)]);
+    const expectedHash = poseidon([
+        expectedPacked0,
+        expectedPacked1,
+        BigInt(expectedBytes.length)
+    ]);
 
     return {
-        bytes: paddedBytes.map(String),
-        length: String(bytes.length),
-        expectedHash: poseidon.F.toString(hash)
+        bytes: actualPadded.map(String),
+        length: String(actualBytes.length),
+        expectedHash: poseidon.F.toString(expectedHash)
     };
 }
 
+// Validate and encode date or quantity values
+function validateNumeric(value, attribute) {
+    const number = BigInt(value);
+
+    if (number < 0n) {
+        throw new Error(`${attribute} cannot be negative`);
+    }
+
+    if (attribute === "quantity" && number > (2n ** 64n - 1n)) {
+        throw new Error("Quantity exceeds uint64 range");
+    }
+
+    if (
+        attribute !== "quantity" &&
+        number > (2n ** 27n - 1n)
+    ) {
+        throw new Error(`${attribute} exceeds 27-bit range`);
+    }
+
+    return number.toString();
+}
+
+// Read input and output file paths
+const inputPath = process.argv[2];
+const outputPath = process.argv[3];
+
+if (!inputPath || !outputPath) {
+    throw new Error(
+        "Usage: node generate_input.js <source.json> <output.json>"
+    );
+}
+
+const source = JSON.parse(
+    fs.readFileSync(inputPath, "utf8")
+);
+
+if (!source.actual || !source.expected) {
+    throw new Error("Both actual and expected objects are required");
+}
 
 const input = {};
 
-const stringAttributes = {
-    product_id: "PROD-1001",
-    product_name: "Test Product",
-    batch_number: "BATCH-001",
-    manufacturer_id: "MFG-001",
-    shipment_id: "SHIP-001",
-    source_location: "Colombo",
-    destination_location: "Jaffna"
-};
+// Process seven string attributes
+for (const attribute of STRING_ATTRIBUTES) {
+    if (
+        source.actual[attribute] === undefined ||
+        source.expected[attribute] === undefined
+    ) {
+        throw new Error(`Missing attribute: ${attribute}`);
+    }
 
-for (const [attribute, value] of Object.entries(stringAttributes)) {
-    const encoded = encodeString(value);
+    const encoded = encodeString(
+        source.actual[attribute],
+        source.expected[attribute]
+    );
 
     input[`${attribute}_bytes`] = encoded.bytes;
     input[`${attribute}_length`] = encoded.length;
     input[`${attribute}_expectedHash`] = encoded.expectedHash;
 }
 
-// Exact-match test values
-input.manufacturing_date = "20261101";
-input.manufacturing_date_expected = "20261101";
+// Process two dates and quantity
+for (const attribute of NUMERIC_ATTRIBUTES) {
+    if (
+        source.actual[attribute] === undefined ||
+        source.expected[attribute] === undefined
+    ) {
+        throw new Error(`Missing attribute: ${attribute}`);
+    }
 
-input.expiry_date = "20271101";
-input.expiry_date_expected = "20271101";
+    input[attribute] = validateNumeric(
+        source.actual[attribute],
+        attribute
+    );
 
-input.quantity = "100";
-input.quantity_expected = "100";
+    input[`${attribute}_expected`] = validateNumeric(
+        source.expected[attribute],
+        attribute
+    );
+}
 
-fs.writeFileSync("input.json", JSON.stringify(input, null, 2));
+// Save generated Circom input
+fs.writeFileSync(outputPath, JSON.stringify(input, null, 2));
 
-console.log("input.json generated successfully!");
-console.log("String attributes encoded:", Object.keys(stringAttributes).length);
-console.log("Total attributes: 10");
+console.log("ZKP input generated successfully!");
+console.log("String attributes:", STRING_ATTRIBUTES.length);
+console.log("Total attributes:", 10);
