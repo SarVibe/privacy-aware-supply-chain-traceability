@@ -29,7 +29,9 @@ def main():
     ap.add_argument("--frequency-data", default=None,
                     help="raw CSV used only to preserve real entity frequencies for A2")
     ap.add_argument("--noise", type=float, default=0.05)
-    ap.add_argument("--configs", nargs="+", default=["1024:4", "512:4"], help="l:k pairs, e.g. 1024:4 512:15")
+    ap.add_argument("--configs", nargs="+",
+                    default=["1024:4", "512:15", "256:8", "256:30"],
+                    help="l:k pairs, e.g. 1024:4 512:15")
     ap.add_argument("--eps", type=float, nargs="+", default=[2, 4, 8, 16, 32, 64, float("inf")])
     ap.add_argument("--out", default=str(Config.RQ2_RAW_DIR / "exp2_dp.csv"))
     a = ap.parse_args()
@@ -63,8 +65,13 @@ def main():
         seed_values = list(range(42, 57))
         if a.seeds < len(seed_values):
             seed_values = seed_values[:a.seeds]
+        elif a.seeds > len(seed_values) and a.seed_values is None:
+            ap.error(
+                "controlled-noise mode has only 15 generated seeds (42-56); "
+                "generate the requested noise files or use --noise-source inline"
+            )
     else:
-        seed_values = list(range(a.seeds))
+        seed_values = list(range(a.n_selection, a.seeds))
     for seed in seed_values:
         if a.noise_source == "files":
             ds = controlled_noise_dataset(

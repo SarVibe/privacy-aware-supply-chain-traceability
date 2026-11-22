@@ -20,13 +20,19 @@ import pandas as pd
 from scipy import stats
 
 from src.application_config import Config
-from src.common.experiment_metadata import write_markdown, write_run_csv, parse_standard
+from src.common.experiment_metadata import (
+    data_fingerprint,
+    write_markdown,
+    write_run_csv,
+    parse_standard,
+)
 from src.rq2.results_schema import validate_results, SchemaError
 from src.rq2.experiment_config import EXPERIMENT_CONFIG
 
 BLUE, ORANGE, AQUA, INK, MUTED = "#2a78d6", "#eb6834", "#1baf7a", "#0b0b0b", "#52514e"
 METRICS = ["precision", "recall", "f1", "fpr", "auc", "reid_top1", "reid_top5", "reid_ties", "reid_cands_delta",
-           "freq_success", "bit_success", "bit_baseline", "fill", "entropy", "load", "tau"]
+           "reid_top1_conditional", "freq_success", "bit_success", "bit_baseline", "fill", "entropy", "load", "tau",
+           "f1_unc", "precision_unc", "recall_unc", "fpr_unc", "f1_01", "f1_05"]
 plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
                      "axes.edgecolor": MUTED, "axes.labelcolor": INK, "text.color": INK,
                      "xtick.color": MUTED, "ytick.color": MUTED, "axes.grid": True, "grid.color": "#e6e5e1",
@@ -41,13 +47,14 @@ def ci95(x):
 
 def aggregate(df, keys):
     g = df.groupby(keys, dropna=False)
-    out = g[METRICS].mean().add_suffix("_mean")
-    out = out.join(g[METRICS].std().add_suffix("_std")).join(g[METRICS].agg(ci95).add_suffix("_ci95"))
+    present_metrics = [m for m in METRICS if m in df.columns]
+    out = g[present_metrics].mean().add_suffix("_mean")
+    out = out.join(g[present_metrics].std().add_suffix("_std")).join(g[present_metrics].agg(ci95).add_suffix("_ci95"))
     out["n_seeds"] = g["seed"].nunique()
     return out.reset_index()
 
 
-def heatmap(ax, piv, title, fmt="{:.2f}", cmap="Blues", vmin=0, vmax=1):
+def heatmap(ax, piv, title, fmt="{:.2f}", cmap="Blues", vmin=0, vmax=1, infeasible_mask=None):
     im = ax.imshow(piv.values, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto")
     ax.set_xticks(range(piv.shape[1])); ax.set_xticklabels(piv.columns)
     ax.set_yticks(range(piv.shape[0])); ax.set_yticklabels(piv.index)
@@ -56,7 +63,14 @@ def heatmap(ax, piv, title, fmt="{:.2f}", cmap="Blues", vmin=0, vmax=1):
     for i in range(piv.shape[0]):
         for j in range(piv.shape[1]):
             v = piv.values[i, j]
-            if not np.isnan(v):
+            is_infeasible = (infeasible_mask is not None and
+                             not np.isnan(infeasible_mask.values[i, j]) and
+                             infeasible_mask.values[i, j])
+            if is_infeasible:
+                rect = plt.Rectangle([j - 0.5, i - 0.5], 1, 1, fill=False, hatch="//", color=MUTED, linewidth=0)
+                ax.add_patch(rect)
+                ax.text(j, i, "infeasible\n@FPR≤0.01", ha="center", va="center", fontsize=6, color=MUTED)
+            elif not np.isnan(v):
                 dark = (v - vmin) / (vmax - vmin + 1e-12) > 0.6
                 ax.text(j, i, fmt.format(v), ha="center", va="center", fontsize=8, color="white" if dark else INK)
     return im
@@ -119,7 +133,7 @@ def merge_paired(a: pd.DataFrame, b: pd.DataFrame, metric: str):
                      suffixes=("_standard", "_tuned"))
     x = merged[f"{metric}_standard"].to_numpy(dtype=float)
     y = merged[f"{metric}_tuned"].to_numpy(dtype=float)
-    differences = x - y
+    differences = y - x  # tuned - standard: positive means tuned is better
     differences = differences[differences != 0]
     return differences, len(merged)
 
@@ -163,7 +177,11 @@ def main():
     ap.add_argument("--overlap-csv", default=None, help="optional CSV from the E2.7 overlap run")
     ap.add_argument("--noise", type=float, default=0.05, help="noise level used for the main analysis")
     ap.add_argument("--f1-min", type=float, default=0.85, help="utility constraint for the operating point")
+    ap.add_argument("--min-privacy-gain", type=float, default=2.0,
+                    help="minimum selected/standard median anonymity-set ratio")
+    ap.add_argument("--n-selection", type=int, default=10)
     ap.add_argument("--outdir", default=str(Config.RQ2_TABLES_DIR))
+    ap.add_argument("--figures-dir", type=Path, help="output directory for figures (default: <outdir>/figures)")
     ap.add_argument("--standard", default="1024:4", help="standard Bloom configuration as l:k")
     a = ap.parse_args()
     try:
@@ -172,7 +190,7 @@ def main():
         ap.error(str(exc))
     out = Path(a.outdir)
     out.mkdir(parents=True, exist_ok=True)
-    figs = Config.RQ2_FIGURES_DIR
+    figs = a.figures_dir if a.figures_dir is not None else out / "figures"
     figs.mkdir(parents=True, exist_ok=True)
     metas = [("grid", load_run_meta(a.grid))]
     if a.dp:
@@ -183,6 +201,23 @@ def main():
     validate_run_metas(metas, degenerate_fill)
 
     df = pd.read_csv(a.grid)
+    source_runs = {
+        "grid": {
+            "path": str(Path(a.grid).resolve()),
+            "sha256": data_fingerprint(a.grid)["sha256"],
+        }
+    }
+    if a.overlap_csv:
+        source_runs["overlap"] = {
+            "path": str(Path(a.overlap_csv).resolve()),
+            "sha256": data_fingerprint(a.overlap_csv)["sha256"],
+        }
+    analysis_scope = {
+        "noise": float(a.noise),
+        "overlap": 1.0,
+        "standard": [sl, sk],
+        "tau_grid": list(metas[0][1]["experiment_config"]["tau_grid"]),
+    }
     try:
         validate_results(df)
     except SchemaError as exc:
@@ -195,15 +230,21 @@ def main():
     grid_configs = set(zip(df[df.method == "bloom"]["l"].astype(int), df[df.method == "bloom"]["k"].astype(int)))
     if (sl, sk) not in grid_configs:
         raise SystemExit(f"standard configuration {sl}:{sk} is not present in the grid")
-    df["eps"] = df["eps"].replace([np.inf], np.inf)
+    if "eps" in df.columns:
+        df["eps"] = df["eps"].replace([np.inf], np.inf)
     main_df = df[df.overlap == 1.0]
 
     # ---------- summary of everything ----------
-    summary = aggregate(main_df, ["method", "l", "k", "noise", "eps"])
+    summary_keys = ["method", "l", "k", "noise"]
+    if "eps" in main_df.columns:
+        summary_keys.append("eps")
+    summary = aggregate(main_df, summary_keys)
     write_run_csv(summary, out / "summary.csv",
                   q=metas[0][1]["experiment_config"]["q"],
                   pad=metas[0][1]["experiment_config"]["pad"],
-                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                  source_runs=source_runs,
+                  analysis_scope=analysis_scope)
 
     d = main_df[(main_df.noise == a.noise)]
     if d.empty:
@@ -211,32 +252,40 @@ def main():
     bf = d[d.method == "bloom"]
     ex = d[d.method == "exact_hash"]
     seeds = sorted(d.seed.unique())
-    sel_seeds = seeds[: max(1, math.ceil(len(seeds) / 2))]
+    n_selection = min(max(1, a.n_selection), max(1, len(seeds) - 1))
+    sel_seeds = seeds[:n_selection]
     eval_seeds = [s for s in seeds if s not in sel_seeds] or seeds
     if eval_seeds == seeds and len(seeds) > 1:
         print("WARNING: too few seeds to split selection/evaluation; using all seeds for both.")
 
     # ---------- operating-point selection (selection seeds only) ----------
-    sel = bf[bf.seed.isin(sel_seeds)].groupby(["l", "k"])[["f1", "reid_top1", "fill"]].mean().reset_index()
-    cand = sel[(sel.fill <= degenerate_fill)]
-    ok = cand[cand.f1 >= a.f1_min]
-    note = ""
-    if ok.empty:
-        thr = 0.9 * cand.f1.max()
-        ok = cand[cand.f1 >= thr]
-        note = f"no config reached F1>={a.f1_min}; relaxed to 0.9*best F1 = {thr:.3f}"
-    tuned = ok.sort_values(["reid_top1", "f1"], ascending=[True, False]).iloc[0]
-    tl, tk = int(tuned.l), int(tuned.k)
+    sel_f1_col = "f1_unc" if "f1_unc" in bf.columns else "f1"
+    sel_feas_col = "feasible_01" if "feasible_01" in bf.columns else None
+    anon_col = "anonymity_set" if "anonymity_set" in bf.columns else None
+    sel_grp_cols = [sel_f1_col, "fill"] + ([anon_col] if anon_col else [])
+    sel = bf[bf.seed.isin(sel_seeds)].groupby(["l", "k"])[sel_grp_cols].mean().reset_index()
+    cand = sel[sel.fill <= degenerate_fill]
+    ok = cand[cand[sel_f1_col] >= a.f1_min]
+    note = "" if not ok.empty else f"no config reached F1>={a.f1_min}"
+    selected_config = None
+    if not ok.empty:
+        sort_cols = [anon_col, sel_f1_col, "fill"] if anon_col else [sel_f1_col, "fill"]
+        tuned = ok.sort_values(sort_cols, ascending=[False, False, True]).iloc[0]
+        tl, tk = int(tuned.l), int(tuned.k)
+        selected_config = [tl, tk]
+    else:
+        tl, tk = sl, sk
     sl, sk = sl, sk
-    print(f"standard=({sl},{sk})  tuned=({tl},{tk})  {note}")
+    print(f"standard=({sl},{sk})  selected={selected_config}  {note}")
 
     # ---------- baseline comparison table (evaluation seeds) ----------
     ev = d[d.seed.isin(eval_seeds)]
     parts = {"exact_hash": ev[ev.method == "exact_hash"],
              f"standard_bf_l{sl}_k{sk}": ev[(ev.method == "bloom") & (ev.l == sl) & (ev.k == sk)],
              f"tuned_bf_l{tl}_k{tk}": ev[(ev.method == "bloom") & (ev.l == tl) & (ev.k == tk)]}
-    cols = ["precision", "recall", "f1", "auc", "reid_top1", "reid_top5", "reid_cands_delta", "freq_success",
-            "bit_success", "bit_baseline", "fill", "entropy"]
+    cols = ["precision", "recall", "f1", "auc", "reid_top1", "reid_top1_conditional",
+            "reid_top5", "reid_cands_delta", "freq_success", "bit_success", "bit_baseline", "fill", "entropy"]
+    cols = [c for c in cols if c != "reid_top1_conditional" or c in ev.columns]
     rows = []
     for name, part in parts.items():
         r = {"setup": name, "n_seeds": part.seed.nunique()}
@@ -244,8 +293,7 @@ def main():
             r[c] = f"{part[c].mean():.3f} ± {ci95(part[c]):.3f}" if part[c].notna().any() else "n/a"
         rows.append(r)
     table = pd.DataFrame(rows)
-    # The frequency attack (A2) is only informative when stored records of one entity coincide,
-    # i.e. at noise = 0 (with typos every record is unique for *every* method). Report that case too.
+    # Report A2 at noise zero, when repeated records of an entity retain the same token.
     z = main_df[(main_df.noise == 0.0) & main_df.seed.isin(eval_seeds)]
     if not z.empty:
         zsel = {"exact_hash": z[z.method == "exact_hash"],
@@ -256,19 +304,42 @@ def main():
     write_run_csv(table, out / "table_baselines.csv",
                   q=metas[0][1]["experiment_config"]["q"],
                   pad=metas[0][1]["experiment_config"]["pad"],
-                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
-    write_markdown(table, out / "table_baselines.md")
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                  source_runs=source_runs,
+                  analysis_scope=analysis_scope)
+    # Rename columns with attack labels before writing the markdown (T6)
+    table_md = table.rename(columns={
+        "reid_top1": "reid_top1 [A1, insider, key known]",
+        "reid_top1_conditional": "reid_top1_conditional [A1, insider, key known]",
+        "reid_top5": "reid_top5 [A1, insider, key known]",
+        "reid_cands_delta": "reid_cands_delta [A1, insider, key known]",
+        "freq_success": "freq_success [A2, external]",
+        "bit_success": "bit_success [A3, external]",
+        "bit_baseline": "bit_baseline [A3, external]",
+    })
+    if "freq_success@noise0" in table_md.columns:
+        table_md = table_md.rename(columns={"freq_success@noise0": "freq_success@noise0 [A2, external]"})
+    write_markdown(table_md, out / "table_baselines.md")
     print("\nBaseline comparison (mean ± 95% CI, evaluation seeds)\n", table.to_string(index=False))
 
     # ---------- hypothesis tests ----------
-    res = {"noise": a.noise, "standard": [sl, sk], "tuned": [tl, tk],
-           "selection_seeds": [int(s) for s in sel_seeds], "eval_seeds": [int(s) for s in eval_seeds],
+    res = {"noise": a.noise, "standard": [sl, sk], "tuned": selected_config,
+           "selected_config": selected_config,
+           "selection_seeds": [int(s) for s in sel_seeds],
+           "evaluation_seeds": [int(s) for s in eval_seeds],
+           "eval_seeds": [int(s) for s in eval_seeds],
+           "n_selection": len(sel_seeds), "n_evaluation": len(eval_seeds),
+           "minimum_attainable_p": float(2.0 / (2.0 ** len(eval_seeds))),
+           "holm_family": ["f1", "reid_top1", "freq_success", "bit_success"],
+           "underpowered": len(eval_seeds) < 12,
            "selection_note": note,
            "limitations": {
                "entities": "All seeds use the same fixed entity set; the key, noise realization, split, and victim sample vary.",
                "generalizability": "P-values describe replicate variability on the current dataset and do not establish generalizability to other datasets.",
                "selection_leakage": "The tuned configuration is selected using the same entity set, with entity-level tuning/evaluation leakage caveat.",
            }}
+    if res["underpowered"]:
+        print("WARNING: fewer than 12 evaluation seeds; results are underpowered.", file=sys.stderr)
     std_e = parts[f"standard_bf_l{sl}_k{sk}"].sort_values("seed")
     tun_e = parts[f"tuned_bf_l{tl}_k{tk}"].sort_values("seed")
     paired = {}
@@ -285,11 +356,25 @@ def main():
         else:
             p = None
         # The exact minimum achievable two-sided p cannot be less than 1 / 2^n.
-        minimum_p = float(2.0 ** (-effective_n)) if effective_n > 0 else None
+        minimum_p = float(2.0 / (2.0 ** effective_n)) if effective_n > 0 else None
         effect = paired_effect(differences)
+        std_mean = float(standard_values.mean())
+        tun_mean = float(tuned_values.mean())
+        abs_diff_pp = (tun_mean - std_mean) * 100.0  # percentage points, positive = tuned better
+        rel_diff_pct = (abs_diff_pp / (abs(std_mean) * 100.0 + 1e-12)) * 100.0  # % relative
+        # Rename HL key to clarify sign convention: positive = tuned better
+        hl_val = effect.pop("hodges_lehmann", None)
+        hl_ci = effect.pop("hl_ci95", None)
+        effect["hodges_lehmann_tuned_minus_standard"] = hl_val
+        effect["hl_ci95_tuned_minus_standard"] = hl_ci
         paired[m] = {
-            "standard_mean": float(standard_values.mean()),
-            "tuned_mean": float(tuned_values.mean()),
+            "standard_mean": std_mean,
+            "tuned_mean": tun_mean,
+            "abs_diff_pp": round(abs_diff_pp, 2),
+            "abs_diff_pp_str": f"{abs_diff_pp:+.1f} pp",
+            "rel_diff_pct": round(rel_diff_pct, 2),
+            "rel_diff_pct_str": f"{rel_diff_pct:+.1f}% relative",
+            "sign_convention": "tuned - standard (positive = tuned is better)",
             "n_total": int(total_n),
             "n_effective_after_zero_removal": int(effective_n),
             "minimum_achievable_p": minimum_p,
@@ -305,7 +390,7 @@ def main():
     res["wilcoxon_standard_vs_tuned"] = paired
 
     per_seed = {"H1_rho_l_vs_top1": [], "H2_rho_k_vs_top1": [], "H3_rho_load_vs_f1": [], "H3_rho_load_vs_top1": []}
-    for s, g in bf.groupby("seed"):
+    for s, g in ev[ev.method == "bloom"].groupby("seed"):
         r1 = [stats.spearmanr(x.l, x.reid_top1)[0] for _, x in g.groupby("k") if x.l.nunique() > 2]
         r2 = [stats.spearmanr(x.k, x.reid_top1)[0] for _, x in g.groupby("l") if x.k.nunique() > 2]
         per_seed["H1_rho_l_vs_top1"].append(np.nanmean(r1) if r1 else np.nan)
@@ -348,19 +433,94 @@ def main():
         res["spearman_per_seed"][name]["p_holm"] = (
             None if res["spearman_per_seed"][name]["p_raw"] is None else float(adjusted)
         )
+    if selected_config is None:
+        res["gate_result"] = {
+            "passed": False,
+            "reason": f"F1_MIN={a.f1_min} was unreachable on selection seeds",
+        }
+    elif "anonymity_set" in std_e and "anonymity_set" in tun_e:
+        standard_privacy = float(std_e["anonymity_set"].median())
+        tuned_privacy = float(tun_e["anonymity_set"].median())
+        gain = tuned_privacy / standard_privacy if standard_privacy > 0 else float("inf")
+        res["gate_result"] = {
+            "passed": bool(gain >= a.min_privacy_gain),
+            "privacy_gain_ratio": gain,
+            "minimum_ratio": a.min_privacy_gain,
+            "reason": "meaningful privacy gain" if gain >= a.min_privacy_gain
+                      else "NO OPERATING POINT with meaningful privacy gain",
+        }
+    else:
+        res["gate_result"] = {
+            "passed": False,
+            "reason": "anonymity_set metrics are unavailable",
+        }
     (out / "stats.json").write_text(json.dumps(res, indent=2))
     print("\nHypothesis tests:\n", json.dumps(res["spearman_per_seed"], indent=2))
     print("Standard vs tuned:\n", json.dumps(paired, indent=2))
 
+    # ---------- sensitivity and feasibility tables (T1) ----------
+    bloom_all = main_df[main_df.method == "bloom"]
+    if "f1_unc" in bloom_all.columns and "feasible_01" in bloom_all.columns:
+        # Sensitivity table: per (l, k, noise), mean of f1_unc / f1_05 / f1_01 / feasibility
+        sens_rows = []
+        for (lv, kv, nv), grp in bloom_all.groupby(["l", "k", "noise"]):
+            sens_rows.append({
+                "l": lv, "k": kv, "noise": nv,
+                "f1_unc": grp["f1_unc"].mean() if "f1_unc" in grp else float("nan"),
+                "f1_05": grp["f1_05"].mean() if "f1_05" in grp else float("nan"),
+                "f1_01": grp["f1_01"].mean() if "f1_01" in grp else float("nan"),
+                "feasible_05": bool(grp["feasible_05"].all()) if "feasible_05" in grp else False,
+                "feasible_01": bool(grp["feasible_01"].all()) if "feasible_01" in grp else False,
+                "n_seeds": grp["seed"].nunique(),
+            })
+        sens_df = pd.DataFrame(sens_rows)
+        write_run_csv(sens_df, out / "table_sensitivity_fpr.csv",
+                      q=metas[0][1]["experiment_config"]["q"],
+                      pad=metas[0][1]["experiment_config"]["pad"],
+                      data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                      source_runs=source_runs, analysis_scope=analysis_scope)
+        print(f"\nSensitivity table -> {out / 'table_sensitivity_fpr.csv'}")
+
+        # Feasibility table: per (l, k, noise), fraction of seeds feasible_01
+        feas_rows = []
+        for (lv, kv, nv), grp in bloom_all.groupby(["l", "k", "noise"]):
+            n_total = len(grp)
+            n_feasible = int(grp["feasible_01"].sum()) if "feasible_01" in grp else 0
+            feas_rows.append({
+                "l": lv, "k": kv, "noise": nv,
+                "n_feasible_01": n_feasible,
+                "n_total": n_total,
+                "frac_feasible_01": n_feasible / n_total if n_total > 0 else float("nan"),
+            })
+        feas_df = pd.DataFrame(feas_rows)
+        write_run_csv(feas_df, out / "table_feasibility.csv",
+                      q=metas[0][1]["experiment_config"]["q"],
+                      pad=metas[0][1]["experiment_config"]["pad"],
+                      data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                      source_runs=source_runs, analysis_scope=analysis_scope)
+        print(f"Feasibility table -> {out / 'table_feasibility.csv'}")
+
     # ---------- figures ----------
     am = aggregate(bf, ["l", "k"])
     ls, ks = sorted(am.l.unique(), reverse=True), sorted(am.k.unique())
+
+    # Build infeasible mask for heatmap hatching
+    infeasible_mask = None
+    if "feasible_01" in bf.columns:
+        feas_grp = bf.groupby(["l", "k"])["feasible_01"].all().reset_index()
+        feas_grp["infeasible_all"] = ~feas_grp["feasible_01"]
+        infeasible_piv = feas_grp.pivot(index="l", columns="k", values="infeasible_all").reindex(index=ls, columns=ks)
+        infeasible_mask = infeasible_piv
+
+    # Use f1_unc if available, else fallback to f1
+    f1_col_mean = "f1_unc_mean" if "f1_unc_mean" in am.columns else "f1_mean"
     fig, axs = plt.subplots(1, 4, figsize=(17, 3.8))
-    for ax, (col, title, kw) in zip(axs, [("f1_mean", "Test F1 (utility)", {}),
+    for ax, (col, title, kw) in zip(axs, [(f1_col_mean, "Test F1 unconstrained (utility)", {}),
                                           ("reid_top1_mean", "Re-identification top-1 (A1 attack)", {"cmap": "Oranges"}),
                                           ("freq_success_mean", "Frequency-attack success (A2)", {"cmap": "Oranges"}),
                                           ("fill_mean", "Fill ratio", {"cmap": "Greens"})]):
-        heatmap(ax, am.pivot(index="l", columns="k", values=col).reindex(index=ls, columns=ks), title, **kw)
+        piv = am.pivot(index="l", columns="k", values=col).reindex(index=ls, columns=ks)
+        heatmap(ax, piv, title, infeasible_mask=infeasible_mask if col == f1_col_mean else None, **kw)
     fig.suptitle(f"(l, k) grid at noise={a.noise}", y=1.02); fig.tight_layout()
     fig.savefig(figs / "heatmaps.png", bbox_inches="tight"); plt.close(fig)
 
@@ -369,17 +529,17 @@ def main():
         for c, gv in zip([BLUE, ORANGE, AQUA, MUTED], sorted(am[grp].unique())[::max(1, len(am[grp].unique()) // 4)]):
             s = am[am[grp] == gv].sort_values(xvar)
             ax.plot(s[xvar], s["reid_top1_mean"], "-o", color=c, label=f"{grp}={gv}  attack top-1", lw=2, ms=6)
-            ax.plot(s[xvar], s["f1_mean"], "--s", color=c, label=f"{grp}={gv}  F1", lw=1.2, ms=5, alpha=0.7)
+            ax.plot(s[xvar], s[f1_col_mean], "--s", color=c, label=f"{grp}={gv}  F1 unc", lw=1.2, ms=5, alpha=0.7)
         ax.set_xscale("log", base=2); ax.set_xlabel(xvar); ax.set_ylabel("rate"); ax.set_ylim(-0.02, 1.02)
         ax.legend(fontsize=7, ncol=2, frameon=False)
     fig.tight_layout(); fig.savefig(figs / "sweeps_l_k.png", bbox_inches="tight"); plt.close(fig)
 
-    pts = [(r.f1_mean, r.reid_top1_mean, f"{int(r.l)}/{int(r.k)}") for r in am.itertuples() if r.fill_mean <= degenerate_fill]
+    pts = [(getattr(r, f1_col_mean), r.reid_top1_mean, f"{int(r.l)}/{int(r.k)}") for r in am.itertuples() if r.fill_mean <= degenerate_fill]
     front = pareto_front(pts)
     fig, ax = plt.subplots(figsize=(6.5, 4.6))
     ax.scatter([p[0] for p in pts], [p[1] for p in pts], s=34, color=BLUE, label="non-degenerate (l/k)", zorder=3)
     dg = am[am.fill_mean > degenerate_fill]
-    ax.scatter(dg.f1_mean, dg.reid_top1_mean, s=34, color=MUTED, marker="x",
+    ax.scatter(dg[f1_col_mean], dg.reid_top1_mean, s=34, color=MUTED, marker="x",
                label=f"degenerate (fill>{degenerate_fill:.2f})")
     ax.plot([p[0] for p in front], [p[1] for p in front], color=ORANGE, lw=2, label="Pareto front", zorder=2)
     for f, t, lab in front:
@@ -393,17 +553,21 @@ def main():
                   out / "pareto_front.csv",
                   q=metas[0][1]["experiment_config"]["q"],
                   pad=metas[0][1]["experiment_config"]["pad"],
-                  data_mode=metas[0][1]["experiment_config"]["data_mode"])
+                  data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                  source_runs=source_runs,
+                  analysis_scope=analysis_scope)
 
     # noise robustness
     fig, axs = plt.subplots(1, 2, figsize=(10, 3.6))
+    noise_f1_col = "f1_unc" if "f1_unc" in main_df.columns else "f1"
     series = [("exact hash", main_df[main_df.method == "exact_hash"], AQUA),
               (f"standard BF {sl}/{sk}", main_df[(main_df.method == "bloom") & (main_df.l == sl) & (main_df.k == sk)], BLUE),
               (f"tuned BF {tl}/{tk}", main_df[(main_df.method == "bloom") & (main_df.l == tl) & (main_df.k == tk)], ORANGE)]
-    for ax, (m, ttl) in zip(axs, [("f1", "Test F1"), ("reid_top1", "Re-identification top-1")]):
+    for ax, (m, ttl) in zip(axs, [(noise_f1_col, "Test F1 (unconstrained)"), ("reid_top1", "Re-identification top-1")]):
         for name, part, c in series:
-            g = part.groupby("noise")[m].mean()
-            ax.plot(g.index, g.values, "-o", color=c, label=name, lw=2)
+            if m in part.columns:
+                g = part.groupby("noise")[m].mean()
+                ax.plot(g.index, g.values, "-o", color=c, label=name, lw=2)
         ax.set_xlabel("typo noise rate"); ax.set_title(ttl); ax.set_ylim(-0.02, 1.02)
     axs[0].legend(fontsize=7, frameon=False); fig.tight_layout()
     fig.savefig(figs / "noise_robustness.png", bbox_inches="tight"); plt.close(fig)
@@ -416,7 +580,9 @@ def main():
         write_run_csv(ovs, out / "table_overlap.csv",
                       q=metas[0][1]["experiment_config"]["q"],
                       pad=metas[0][1]["experiment_config"]["pad"],
-                      data_mode=metas[0][1]["experiment_config"]["data_mode"])
+                      data_mode=metas[0][1]["experiment_config"]["data_mode"],
+                      source_runs=source_runs,
+                      analysis_scope=analysis_scope)
         print("\nDictionary-overlap sensitivity (E2.7)\n", ovs.to_string(index=False))
     if a.dp:
         dp = pd.read_csv(a.dp)
@@ -436,6 +602,35 @@ def main():
             ax.set_xscale("log", base=2); ax.set_xlabel("ε (smaller = more noise)"); ax.set_title(t); ax.set_ylim(-0.02, 1.02)
         axs[0].legend(fontsize=7, frameon=False); fig.tight_layout()
         fig.savefig(figs / "dp_ablation.png", bbox_inches="tight"); plt.close(fig)
+    manifest = {
+        "source_runs": source_runs,
+        "analysis_scope": analysis_scope,
+        "tables": {
+            name: str((out / name).resolve())
+            for name in (
+                "summary.csv",
+                "table_baselines.csv",
+                "table_baselines.md",
+                "pareto_front.csv",
+                "table_overlap.csv",
+            )
+            if (out / name).exists()
+        },
+        "figures": {
+            name: str((figs / name).resolve())
+            for name in (
+                "heatmaps.png",
+                "sweeps_l_k.png",
+                "pareto.png",
+                "noise_robustness.png",
+            )
+            if (figs / name).exists()
+        },
+    }
+    (out / "consistency_manifest.json").write_text(
+        json.dumps(manifest, indent=2),
+        encoding="utf-8",
+    )
     print(f"\nfigures -> {figs}")
 
 

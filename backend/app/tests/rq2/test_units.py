@@ -108,10 +108,45 @@ def test_threshold_tuning_and_metrics():
     D = np.array([[0.95, 0.2, 0.3], [0.1, 0.9, 0.4], [0.3, 0.2, 0.85]])  # perfectly separable
     tau = matching.tune_tau(D)
     m = matching.metrics_at(D, tau)
-    assert m["f1"] == 1.0 and 0.41 <= tau <= 0.85
+    assert m["f1"] == 1.0 and 0.30 <= tau <= 0.99
     auc, sep = matching.auc_and_separation(D)
     assert auc == 1.0 and sep > 0.5
     assert matching.metrics_at(D, 0.99)["recall"] == 0.0
+
+
+def test_tune_tau_full_basic():
+    """tune_tau_full returns the expected structure and tau_unc is always present."""
+    D = np.array([[0.95, 0.2, 0.3], [0.1, 0.9, 0.4], [0.3, 0.2, 0.85]])
+    result = matching.tune_tau_full(D)
+    assert "tau_unc" in result
+    assert "tau_c01" in result
+    assert "tau_c05" in result
+    assert "feasible_01" in result
+    assert "feasible_05" in result
+    # For a separable matrix, unconstrained F1 should be 1.0
+    m = matching.metrics_at(D, result["tau_unc"])
+    assert m["f1"] == 1.0
+
+
+def test_tune_tau_full_saturated_infeasible():
+    """For a saturated / degenerate similarity matrix, feasible_01 should be False."""
+    # All-ones matrix: every pair looks like a match (FPR = 1.0 for any tau < max)
+    n = 10
+    D_sat = np.ones((n, n), dtype=float)
+    result = matching.tune_tau_full(D_sat)
+    # tau_unc must still be a valid float (never raises)
+    assert isinstance(result["tau_unc"], float)
+    # For a fully saturated matrix, FPR can't be <= 0.01 at any threshold
+    assert result["feasible_01"] == False
+    assert result["tau_c01"] is None
+
+
+def test_tune_tau_never_raises_on_saturated():
+    """tune_tau (backward compat) must never raise even for saturated inputs."""
+    n = 8
+    D_sat = np.ones((n, n), dtype=float)
+    tau = matching.tune_tau(D_sat)
+    assert isinstance(tau, float) and 0.30 <= tau <= 0.99
 
 
 def test_exact_metrics():
@@ -146,7 +181,7 @@ def test_reid_attack_collisions_reduce_success():
         enc = BloomEncoder(l, k, KEY)
         bf = enc.encode_many(ds.norm)
         res[l] = attacks.reid_attack(bf, ids, bf, ids)
-    assert res[2048]["reid_top1"] > 0.95 and res[2048]["reid_cands_delta"] < 3
+    assert res[2048]["reid_top1"] > 0.95 and res[2048]["reid_cands_delta"] <= 1.0
     assert res[64]["reid_top1"] < res[2048]["reid_top1"] - 0.3
     assert res[64]["reid_cands_delta"] > res[2048]["reid_cands_delta"]
 
@@ -161,8 +196,10 @@ def test_reid_attack_respects_dictionary_coverage():
 
 
 def test_exact_reid_attack():
-    r = attacks.exact_reid_attack([b"a", b"b", b"c"], [0, 1, 2], [b"a", b"b"], [0, 1])
-    assert abs(r["reid_top1"] - 2 / 3) < 1e-12
+    r = attacks.exact_reid_attack([b"a", b"a", b"c"], [0, 2, 3], [b"a", b"a"], [0, 1])
+    assert r["reid_top1"] == 0.5 / 3
+    assert r["reid_top1_conditional"] == 0.5 / 2
+    assert r["reid_ties"] == r["reid_cands_delta"] == 2
 
 
 def test_frequency_attack_perfect_with_distinct_frequencies():

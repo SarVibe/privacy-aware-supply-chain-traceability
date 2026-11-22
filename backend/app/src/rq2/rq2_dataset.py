@@ -253,7 +253,7 @@ def apply_real_frequency_counts(
     raw_path: str,
     seed: int = 0,
 ) -> Dataset:
-    """Apply original raw-CSV entity frequencies to a controlled/clean entity list."""
+    """Apply raw shipment-row counts by normalized description, with a floor of one."""
     frequency_ds = csv_dataset(
         raw_path,
         "raw_item_description",

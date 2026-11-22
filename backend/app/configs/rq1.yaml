@@ -1,0 +1,13 @@
+max_records_per_entity: 20
+sample_entities: null
+sample_entities_seed: 0
+noise_levels: [0.0, 0.05, 0.15, 0.30]
+typos_per_selected_record: [1, 2]
+noise_fields: [raw_item_description]
+val_fraction: 0.30
+tau_grid:
+  start: 0.60
+  stop: 0.99
+  step: 0.01
+field_sets: [description, composite]
+methods: [raw_exact, normalized_exact, bloom_fuzzy]

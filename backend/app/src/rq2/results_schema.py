@@ -14,7 +14,7 @@ class SchemaError(ValueError):
 
 
 REQUIRED_COLUMNS = (
-    "method", "l", "k", "q", "noise", "seed", "overlap", "eps",
+    "method", "l", "k", "q", "noise", "seed", "overlap",
     "precision", "recall", "f1", "fpr", "auc", "reid_top1",
     "reid_top5", "reid_cands_delta", "freq_success", "bit_success",
     "fill", "entropy",
@@ -22,7 +22,7 @@ REQUIRED_COLUMNS = (
 
 BOUNDED_COLUMNS = (
     "precision", "recall", "f1", "fpr", "auc", "reid_top1",
-    "reid_top5", "reid_ties", "reid_cands_delta", "freq_success",
+    "reid_top5", "reid_top1_conditional", "freq_success",
     "bit_success", "fill",
 )
 
@@ -37,7 +37,7 @@ def validate_results(df: pd.DataFrame) -> pd.DataFrame:
         errors.append("missing required columns: " + ", ".join(missing))
 
     if not errors:
-        numeric = ("l", "k", "q", "noise", "seed", "overlap", "eps",
+        numeric = ("l", "k", "q", "noise", "seed", "overlap",
                    "precision", "recall", "f1", "fpr", "auc",
                    "reid_top1", "reid_top5", "reid_cands_delta",
                    "freq_success", "bit_success", "fill", "entropy")
@@ -52,8 +52,14 @@ def validate_results(df: pd.DataFrame) -> pd.DataFrame:
             bad = values.notna() & ((values < 0) | (values > 1))
             if bad.any():
                 errors.append(f"{c} contains values outside [0,1]")
+        for c in ("reid_ties", "reid_cands_delta", "reid_ties_count", "reid_cands_delta_count"):
+            if c not in df.columns:
+                continue
+            values = pd.to_numeric(df[c], errors="coerce")
+            if (np.isfinite(values) & (values < 1)).any():
+                errors.append(f"{c} contains counts below 1")
 
-        key = ("method", "l", "k", "noise", "overlap", "eps", "seed", "data_mode")
+        key = ("method", "l", "k", "noise", "overlap", "seed", "data_mode")
         present = [c for c in key if c in df.columns]
         if present:
             duplicate_mask = df.duplicated(subset=present, keep=False)
@@ -70,19 +76,19 @@ def validate_results(df: pd.DataFrame) -> pd.DataFrame:
                     errors.append(f"bloom rows contain NaN in {c}")
 
         if "method" in df.columns and "seed" in df.columns:
-            bloom = df[df["method"] == "bloom"]
-            if not bloom.empty:
+            exact = df[df["method"] == "exact_hash"]
+            if not exact.empty:
                 seed_sets = [
                     set(g["seed"].dropna().astype(int))
-                    for _, g in bloom.groupby(
-                        [c for c in ("l", "k", "noise", "overlap", "eps") if c in bloom],
+                    for _, g in exact.groupby(
+                        [c for c in ("noise", "overlap") if c in exact.columns],
                         dropna=False,
                     )
                 ]
                 if seed_sets:
                     first = seed_sets[0]
                     if any(s != first for s in seed_sets[1:]):
-                        errors.append("bloom configurations have imbalanced seed sets")
+                        errors.append("exact baseline configurations have imbalanced seed sets")
 
     if errors:
         raise SchemaError(errors)

@@ -1,0 +1,29 @@
+paths:
+  raw: data/raw
+  raw_filename: Suppy_Chain_Shipment_Data.csv
+  prepared: data/generated/prepared
+  splits: data/generated/splits
+  noisy: data/generated/noisy
+  results: results
+columns:
+  record_id: record_id
+  entity_id: entity_id
+  description: raw_item_description
+  molecule: molecule_test_type
+  dosage: dosage
+  dosage_form: dosage_form
+  pack_size: pack_size
+raw_columns:
+  description: item description
+  molecule: molecule/test type
+  dosage: dosage
+  dosage_form: dosage form
+  pack_size: unit of measure (per pack)
+bloom:
+  l: 1024
+  k: 4
+  q: 2
+  pad_char: "_"
+  # Fixed public key for reproducible research, never a production secret.
+  hmac_key: "525131207075626c6963207265736561726368206b6579207631203230323621"
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

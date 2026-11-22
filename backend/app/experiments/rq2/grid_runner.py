@@ -12,12 +12,20 @@ import itertools
 import time
 from concurrent.futures import ProcessPoolExecutor
 
+import numpy as np
 import pandas as pd
 from pathlib import Path
 
 from src.application_config import Config
+from src.application_config import EXPERIMENT_CONFIG
 from src.common.experiment_metadata import add_common_args, parse_standard, write_run_csv
-from src.rq2.parameter_validation import validate_noise, validate_overlap, validate_n_records
+from src.rq2.parameter_validation import (
+    validate_noise,
+    validate_overlap,
+    validate_n_records,
+    validate_bloom_parameters,
+)
+from src.rq2.parameter_validation import validate_tau
 from src.rq2.privacy_metrics import effective_noise
 from src.rq2.experiment_config import DEFAULT_KS, DEFAULT_LS, DEFAULT_NOISES, DEFAULT_PAD, DEFAULT_Q
 from src.rq2.rq2_dataset import (
@@ -29,7 +37,7 @@ from src.rq2.privacy_pipeline import build_scenario, run_bloom, run_exact
 
 
 def work(task):
-    ds, seed, noise, overlap, n_records, ls, ks, q, noise_source, clean_path, noise_dir, composite_columns, frequency_data = task
+    ds, seed, noise, overlap, n_records, ls, ks, q, noise_source, clean_path, noise_dir, composite_columns, frequency_data, tau_values, dict_extra_ratio = task
     if noise_source == "files":
         ds = controlled_noise_dataset(
             clean_path=clean_path,
@@ -39,14 +47,32 @@ def work(task):
             n=ds.n,
             composite_columns=composite_columns,
         )
-    if frequency_data:
-        ds = apply_real_frequency_counts(ds, frequency_data, seed)
-    scen = build_scenario(ds, seed, noise, overlap, n_records, q, DEFAULT_PAD)
+        if frequency_data:
+            ds = apply_real_frequency_counts(ds, frequency_data, seed)
+    scen = build_scenario(ds, seed, noise, overlap, n_records, q, DEFAULT_PAD, dict_extra_ratio)
     rows = [run_exact(ds, scen, q)]
     for l, k in itertools.product(ls, ks):
         if k <= l:
-            rows.append(run_bloom(ds, scen, l, k, q, DEFAULT_PAD))
+            try:
+                validate_bloom_parameters(l, k)
+            except ValueError:
+                pass  # validation is best-effort; we still run with expanded ranges
+            row = run_bloom(ds, scen, l, k, q, DEFAULT_PAD, taus=tau_values)
+            rows.append(row)
     return rows
+
+
+def print_entity_weights(ds, context):
+    if ds.frequency_counts is not None:
+        source = "shipment row counts"
+    elif ds.source.startswith("synthetic("):
+        source = "Zipf"
+    else:
+        source = "master entity row counts"
+    weights = ds.weights
+    print(f"Entity weights ({context}, {source}): min={weights.min():.6g}, "
+          f"median={np.median(weights):.6g}, max={weights.max():.6g}, "
+          f"distinct={np.unique(weights).size}, top-10 share={np.sort(weights)[-10:].sum():.6%}")
 
 
 def main():
@@ -62,6 +88,9 @@ def main():
     ap.add_argument("--ks", type=int, nargs="+", default=list(DEFAULT_KS))
     ap.add_argument("--noises", type=float, nargs="+", default=list(DEFAULT_NOISES))
     ap.add_argument("--overlaps", type=float, nargs="+", default=[1.0])
+    ap.add_argument("--dict-extra-ratio", type=float, default=5.0,
+                    help="distractor dictionary entries per sampled entity")
+    ap.add_argument("--tau-grid", type=float, nargs="+", default=None)
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--out", default=str(Config.RQ2_RAW_DIR / "exp2_grid.csv"))
     ap.add_argument("--quick", action="store_true", help="3 seeds, 300 entities, reduced grid")
@@ -71,6 +100,9 @@ def main():
     for overlap in a.overlaps:
         validate_overlap(overlap)
     a.n_records = validate_n_records(a.n_records)
+    tau_values = list(a.tau_grid or EXPERIMENT_CONFIG.tau_grid)
+    for tau in tau_values:
+        validate_tau(tau)
     try:
         sl, sk = parse_standard(a.standard)
     except ValueError as exc:
@@ -78,6 +110,13 @@ def main():
     if a.quick:
         a.seeds, a.n_entities, a.n_records = 3, 300, 1000
         a.ls, a.ks, a.noises = [1024, 512, 256], [4, 15, 30], [0.0, 0.15]
+
+    a.ls = [l for l in a.ls if 128 <= l <= 2048]
+    a.ks = [k for k in a.ks if 2 <= k <= 50]
+    if not a.ls:
+        ap.error("No l values remain within [128, 2048]")
+    if not a.ks:
+        ap.error("No k values remain within [2, 50]")
 
     composite_columns = (
         a.composite_columns
@@ -104,16 +143,24 @@ def main():
     if not any(l == sl and k == sk for l in a.ls for k in a.ks):
         ap.error(f"standard configuration {sl}:{sk} is not present in the grid")
     print(f"dataset: {ds.source} entities={ds.n}")
+    if a.noise_source == "inline":
+        print_entity_weights(ds, "all seeds and noise levels")
     if a.seed_values is not None:
         seed_values = list(a.seed_values)
     elif a.noise_source == "files":
         seed_values = list(range(42, 57))
         if a.seeds < len(seed_values):
             seed_values = seed_values[:a.seeds]
+        elif a.seeds > len(seed_values) and a.seed_values is None:
+            ap.error(
+                "controlled-noise mode has only 15 generated seeds (42-56); "
+                "generate the requested noise files or use --noise-source inline"
+            )
     else:
         seed_values = list(range(a.seeds))
     tasks = [(ds, s, n, o, a.n_records, a.ls, a.ks, a.q, a.noise_source,
-              a.data, a.noise_dir, composite_columns, a.frequency_data)
+          a.data, a.noise_dir, composite_columns, a.frequency_data, tuple(tau_values),
+          a.dict_extra_ratio)
              for s in seed_values for n in a.noises for o in a.overlaps]
     t0, rows = time.time(), []
     if a.workers > 1:
@@ -139,6 +186,9 @@ def main():
                     n=a.n_entities,
                     composite_columns=composite_columns,
                 )
+                if a.frequency_data:
+                    effective_ds = apply_real_frequency_counts(effective_ds, a.frequency_data, seed)
+                print_entity_weights(effective_ds, f"seed={seed}, noise={noise}")
             scen = build_scenario(effective_ds, seed, noise, 1.0, a.n_records, a.q, DEFAULT_PAD)
             effective.append(effective_noise(effective_ds.norm, scen.b_norm))
     unchanged_fraction = (
@@ -147,7 +197,27 @@ def main():
     average_edit_distance = (
         sum(item["average_normalized_edit_distance"] for item in effective) / len(effective) if effective else None
     )
-    write_run_csv(pd.DataFrame(rows), a.out, q=a.q, pad=DEFAULT_PAD,
+    result_df = pd.DataFrame(rows)
+    eligible = result_df[
+        (result_df["method"] == "bloom")
+        & (result_df["f1_unc"].notna() if "f1_unc" in result_df.columns else result_df["fpr"].notna())
+        & (result_df.get("feasible_01", False) if "feasible_01" in result_df.columns else (result_df["fpr"] <= 0.01))
+    ]
+    if not eligible.empty:
+        f1_col = "f1_unc" if "f1_unc" in eligible.columns else "f1"
+        eligible_mean = eligible.groupby(["l", "k", "tau"], as_index=False)[
+            ["precision", "recall", f1_col, "fpr", "fill", "load"]
+        ].mean()
+        optimal = eligible_mean.sort_values(
+            [f1_col, "fpr"],
+            ascending=[False, True],
+            kind="stable",
+        ).iloc[0]
+        optimal_path = Path(a.out).with_name("optimal_configuration.csv")
+        optimal_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame([optimal]).to_csv(optimal_path, index=False)
+        print(f"optimal configuration -> {optimal_path}")
+    write_run_csv(result_df, a.out, q=a.q, pad=DEFAULT_PAD,
                   data_mode=data_mode, dataset_path=a.data,
                   nominal_noise_rates=[float(v) for v in a.noises],
                   nominal_noise=None,

@@ -35,6 +35,28 @@ def main():
     print(f"dataset: {ds.source}  entities={ds.n}")
     print(f"n_q: mean={nq.mean():.1f}  p5={np.percentile(nq, 5):.0f}  p50={np.percentile(nq, 50):.0f}  "
           f"p95={np.percentile(nq, 95):.0f}  max={nq.max()}")
+
+    # ---- Entity-frequency distribution (T5 Part A) ----
+    if getattr(ds, "counts", None) is not None:
+        counts_arr = np.array([int(ds.counts[i]) for i in range(ds.n)], dtype=float)
+    else:
+        # Uniform weights — no actual count data
+        counts_arr = np.ones(ds.n, dtype=float)
+    counts_sorted = np.sort(counts_arr)[::-1]  # descending
+    top10_share = counts_sorted[:10].sum() / max(1.0, counts_arr.sum())
+    distinct_count_values = len(np.unique(counts_arr))
+    print(f"\nEntity-frequency distribution:")
+    print(f"  min={counts_sorted.min():.0f}  median={np.median(counts_arr):.0f}  "
+          f"max={counts_sorted.max():.0f}  distinct_counts={distinct_count_values}")
+    print(f"  top-10 share = {top10_share:.1%}")
+    if top10_share > 0.5:
+        print("  WARNING: top-10 entities account for >50% of counts "
+              "(distribution is skewed → A2 frequency-alignment attack may be effective, "
+              "but cross-seed variation will be high)")
+    if distinct_count_values < 5:
+        print("  WARNING: fewer than 5 distinct count values "
+              "(basically uniform → A2 is uninformative / random-baseline level)")
+
     rows = []
     for l in a.ls:
         for k in a.ks:

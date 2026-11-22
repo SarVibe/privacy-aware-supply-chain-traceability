@@ -1,0 +1,150 @@
+entity_id,molecule_test_type,dosage,dosage_form,pack_size,record_count
+E0001,abacavir,20mg/ml,oral solution,240,20
+E0002,abacavir,300mg,tablet,60,20
+E0003,abacavir,300mg,tablet - blister,60,9
+E0004,abacavir,60mg,chewable/dispersible tablet,60,5
+E0005,abacavir/lamivudine,60/30mg,chewable/dispersible tablet - fdc,60,19
+E0006,abacavir/lamivudine,60/30mg,tablet - fdc,30,2
+E0007,abacavir/lamivudine,60/30mg,tablet - fdc,60,20
+E0008,abacavir/lamivudine,600/300mg,tablet - fdc,30,20
+E0009,abacavir/lamivudine/zidovudine,300/150/300mg,tablet - fdc,60,20
+E0010,artemether/lumefantrine,20/120mg,tablet - fdc + blister,540,7
+E0011,artemether/lumefantrine,20/120mg,tablet - fdc + blister,720,5
+E0012,artesunate+amodiaquine,50+153mg,tablet - fdc + co-blister,12,2
+E0013,artesunate+amodiaquine,50+153mg,tablet - fdc + co-blister,24,2
+E0014,atazanavir,150mg,capsule,60,20
+E0015,atazanavir,200mg,capsule,60,3
+E0016,atazanavir,300mg,capsule,30,4
+E0017,atazanavir/ritonavir,300/100mg,tablet,30,20
+E0018,"chase buffer, determine, 100 tests, 2.5ml x 1 vial",,test kit - ancillary,1,20
+E0019,chloroquine base (as phosphate),150mg,tablet,1000,3
+E0020,darunavir,300mg,tablet,120,20
+E0021,darunavir,600mg,tablet,60,14
+E0022,didanosine,100mg,chewable/dispersible tablet,60,20
+E0023,didanosine,125mg,delayed-release capsules,30,4
+E0024,didanosine,200mg,chewable/dispersible tablet,60,20
+E0025,didanosine,200mg,delayed-release capsules,30,15
+E0026,didanosine,200mg,tablet,60,4
+E0027,didanosine,250mg,delayed-release capsules,30,20
+E0028,didanosine,25mg,chewable/dispersible tablet,60,20
+E0029,didanosine,2g,powder for oral solution,200,11
+E0030,didanosine,400mg,delayed-release capsules,30,20
+E0031,didanosine,50mg,chewable/dispersible tablet,60,19
+E0032,didanosine ec,250mg,delayed-release capsules - blister,30,16
+E0033,didanosine ec,400mg,delayed-release capsules - blister,30,20
+E0034,efavirenz,200mg,capsule,90,20
+E0035,efavirenz,200mg,tablet,30,1
+E0036,efavirenz,200mg,tablet,90,20
+E0037,efavirenz,30mg/ml,oral solution,180,20
+E0038,efavirenz,50mg,capsule,30,20
+E0039,efavirenz,600mg,tablet,30,20
+E0040,efavirenz/emtricitabine/tenofovir disoproxil fumarate,600/200/300mg,tablet - fdc,30,20
+E0041,efavirenz/lamivudine/tenofovir disoproxil fumarate,600/300/300mg,tablet - fdc,30,20
+E0042,emtricitabine/tenofovir disoproxil fumarate,200/300mg,tablet - fdc,30,20
+E0043,emtricitabine/tenofovir disoproxil fumarate,300/200mg,tablet - fdc,30,20
+E0044,etravirine,100mg,tablet,120,20
+E0045,"hiv 1, uni-gold recombigen hiv control, vial 2 x 0.5 ml",,test kit - ancillary,2,4
+E0046,"hiv 1/2, bioline 3.0 diluent, 25 tests",,test kit - ancillary,1,4
+E0047,"hiv 1/2, bioline 3.0 kit",,test kit,100,2
+E0048,"hiv 1/2, bioline 3.0 kit (no accessories)",,test kit,30,19
+E0049,"hiv 1/2, bioline 3.0 kit, lancets, capillary pipets, alcohol swabs included",,test kit,25,20
+E0050,"hiv 1/2, bundi rapid hiv kit",,test kit,1,2
+E0051,"hiv 1/2, capillus hiv kit",,test kit,100,20
+E0052,"hiv 1/2, clearview complete kit",,test kit,25,19
+E0053,"hiv 1/2, colloidal gold, diagnostic kit set (includes lancet, transfer pipette & alcohol prep pad)",,test kit,1,1
+E0054,"hiv 1/2, colloidal gold, diagnostic kit, antibody",,test kit,1,20
+E0055,"hiv 1/2, determine complete hiv kit",,test kit,100,20
+E0056,"hiv 1/2, determine hiv kit, without lancets",,test kit,100,20
+E0057,"hiv 1/2, determine kit without lancets, buffer or capillary tubes, 100 tests",,test kit,100,9
+E0058,"hiv 1/2, doublecheck gold kit",,test kit,20,3
+E0059,"hiv 1/2, doublecheck ii kit",,test kit,40,2
+E0060,"hiv 1/2, genie iii kit",,test kit,50,7
+E0061,"hiv 1/2, hexagon rapid hiv kit",,test kit,100,3
+E0062,"hiv 1/2, immunocomb ii bispot eia kit",,test kit,36,1
+E0063,"hiv 1/2, immunocomb trispot ag - ab kit",,test kit,36,2
+E0064,"hiv 1/2, instantchek hiv 1+2 kit",,test kit,100,2
+E0065,"hiv 1/2, insti hiv 1/2 antibody kit",,test kit,48,1
+E0066,"hiv 1/2, insti hiv antibody individual poc, 1 test",,test kit,1,4
+E0067,"hiv 1/2, oraquick advance hiv rapid antibody kit",,test kit,100,20
+E0068,"hiv 1/2, oraquick rapid antibody kit",,test kit,100,2
+E0069,"hiv 1/2, stat-pak buffer only",,test kit - ancillary,1,2
+E0070,"hiv 1/2, stat-pak dipstick assay kit",,test kit,30,15
+E0071,"hiv 1/2, stat-pak hiv, kit",,test kit,20,20
+E0072,"hiv 1/2, uni-gold hiv kit",,test kit,20,20
+E0073,"hiv 1/2, visitect kit",,test kit,25,1
+E0074,"hiv 1/2/o, first response hiv 1-2.0, v.3.0 cards kit",,test kit,30,15
+E0075,"hiv 2, new lav blot 2 hiv kit",,test kit,18,4
+E0076,"hiv, bioline hiv 1/2 3.0 kit",,test kit,25,2
+E0077,"hiv, capillary tubes, for determine, edta, 50ul,100 pcs",,test kit - ancillary,100,20
+E0078,"hiv, genie ii hiv-1/hiv-2 kit",,test kit,40,20
+E0079,"hiv, lancet, safety, for hiv test kits, 100 pcs",,test kit - ancillary,100,20
+E0080,"hiv, multispot hiv-1/hiv-2 rapid test kit",,test kit,50,5
+E0081,"hiv, oraquick controls kit, 3 vials",,test kit - ancillary,1,3
+E0082,"hiv, oraquick controls kit, 3 vials",,test kit - ancillary,3,8
+E0083,"hiv, pepti-lav 1|2 (hiv-1|2 ab differenciation, immuno-blot)",,test kit - ancillary,1,1
+E0084,"hiv, reveal g3 rapid hiv-1 antibody test",,test kit,30,3
+E0085,indinavir,400mg,capsule,180,20
+E0086,lamivudine,10mg/ml,oral solution,240,20
+E0087,lamivudine,150mg,tablet,60,20
+E0088,lamivudine,300mg,tablet,30,3
+E0089,lamivudine/nevirapine/stavudine,150/200/30mg,tablet - fdc,60,20
+E0090,lamivudine/nevirapine/stavudine,150/200/40mg,tablet - fdc,60,5
+E0091,lamivudine/nevirapine/stavudine,30/50/6mg,chewable/dispersible tablet - fdc,60,19
+E0092,lamivudine/nevirapine/stavudine,60/100/12mg,chewable/dispersible tablet - fdc,60,12
+E0093,lamivudine/nevirapine/zidovudine,150/300/200mg,tablet - fdc,60,20
+E0094,lamivudine/nevirapine/zidovudine,30/50/60mg,chewable/dispersible tablet - fdc,60,20
+E0095,lamivudine/stavudine,150/30mg,tablet - fdc,30,20
+E0096,lamivudine/stavudine,150/30mg,tablet - fdc,60,20
+E0097,lamivudine/stavudine,30/6mg,chewable/dispersible tablet - fdc,60,14
+E0098,lamivudine/stavudine,60/12mg,chewable/dispersible tablet - fdc,60,5
+E0099,lamivudine/tenofovir disoproxil fumarate,300/300mg,tablet - fdc,30,20
+E0100,lamivudine/zidovudine,150/300mg,tablet - fdc,60,20
+E0101,lamivudine/zidovudine,30/60mg,chewable/dispersible tablet - fdc,60,20
+E0102,lamivudine/zidovudine,30/60mg,tablet - fdc,60,20
+E0103,lamivudine/zidovudine+abacavir,150/300+300mg,tablet - fdc + co-blister,120,1
+E0104,lamivudine/zidovudine+efavirenz,150/300mg+600mg,tablet - fdc + co-blister,90,7
+E0105,lamivudine/zidovudine+nevirapine,150/300+200mg,tablet - fdc + co-blister,120,8
+E0106,lopinavir/ritonavir,100/25mg,tablet,60,20
+E0107,lopinavir/ritonavir,133.3/33.3mg,capsule,180,7
+E0108,lopinavir/ritonavir,200/50mg,tablet,120,20
+E0109,lopinavir/ritonavir,80/20mg/ml,oral solution,160,1
+E0110,lopinavir/ritonavir,80/20mg/ml,oral solution,300,20
+E0111,"malaria antigen p.f , hrp2, kit",,test kit,25,1
+E0112,"malaria antigen p.f kit, 30 x 1 test",,test kit,30,1
+E0113,malaria paramax-3 kit,,test kit,25,5
+E0114,"malaria, antigen p.f., hrp2 carestart kit",,test kit,60,1
+E0115,mefloquine (as hydrochloride),250mg,tablet,100,1
+E0116,nelfinavir,50mg/g,oral powder,144,1
+E0117,nelfinavir (as mesilate),250mg,tablet,270,10
+E0118,nevirapine,10mg/ml,oral suspension,100,19
+E0119,nevirapine,10mg/ml,oral suspension,240,20
+E0120,nevirapine,200mg,tablet,60,20
+E0121,nevirapine,50mg,chewable/dispersible tablet,30,20
+E0122,nevirapine,50mg,chewable/dispersible tablet,60,1
+E0123,primaquine base (as diphosphate),15mg,tablet,1000,1
+E0124,quinine,300mg,tablet,1000,1
+E0125,quinine (as dihydrochloride),600mg/2ml,injection,100,2
+E0126,quinine (as sulfate),300mg,tablet - blister,1000,1
+E0127,raltegravir,400mg,tablet,60,20
+E0128,ritonavir,100mg,capsule,168,3
+E0129,ritonavir,100mg,capsule,336,20
+E0130,ritonavir,100mg,capsule,84,20
+E0131,ritonavir,100mg,tablet,30,20
+E0132,ritonavir,100mg,tablet,60,20
+E0133,ritonavir,80mg/ml,oral solution,90,13
+E0134,saquinavir,200mg,capsule,270,20
+E0135,saquinavir,500mg,tablet,120,10
+E0136,stavudine,15mg,capsule,60,20
+E0137,stavudine,1mg/ml,oral solution,200,20
+E0138,stavudine,1mg/ml,powder for oral solution,200,17
+E0139,stavudine,20mg,capsule,60,20
+E0140,stavudine,30mg,capsule,60,20
+E0141,stavudine,40mg,capsule,60,6
+E0142,sulfadoxine/pyrimethamine,500/25mg,tablet - fdc,1000,10
+E0143,sulfadoxine/pyrimethamine,500/25mg,tablet - fdc + blister,30,3
+E0144,tenofovir disoproxil fumarate,300mg,tablet,30,20
+E0145,zidovudine,100mg,capsule,100,20
+E0146,zidovudine,10mg/ml,injection,5,4
+E0147,zidovudine,10mg/ml,oral solution,200,11
+E0148,zidovudine,10mg/ml,oral solution,240,20
+E0149,zidovudine,300mg,tablet,60,20

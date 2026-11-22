@@ -32,14 +32,36 @@ def reid_attack(victim_bf, victim_truth, dict_bf, dict_ids, topk=REID_TOPK, delt
     j_true = np.array([pos_of.get(int(t), -1) for t in victim_truth])
     in_dict = j_true >= 0
     best = D.max(axis=1)
+    denominator = max(1, dict_bf.shape[0])
+    reid_ties_count = float((D >= best[:, None] - TIE_EPS).sum(1).mean())
+    reid_cands_delta_count = float((D >= best[:, None] - delta).sum(1).mean())
     out = {
-        "reid_ties": float((D >= best[:, None] - TIE_EPS).sum(1).mean()),
-        "reid_cands_delta": float((D >= best[:, None] - delta).sum(1).mean()),
+        "reid_ties_frac": reid_ties_count / denominator,
+        "reid_cands_delta_frac": reid_cands_delta_count / denominator,
+        # integer (rounded) mean counts — the primary reported columns
+        "reid_ties_count": int(round(reid_ties_count)),
+        "reid_cands_delta_count": int(round(reid_cands_delta_count)),
+        "reid_ties": int(round(reid_ties_count)),
+        "reid_cands_delta": int(round(reid_cands_delta_count)),
         "dict_coverage": float(in_dict.mean()),
     }
     s_true = np.where(in_dict, D[np.arange(n), np.maximum(j_true, 0)], np.nan)
     greater = (D > s_true[:, None] + TIE_EPS).sum(1)
     ties = np.maximum((np.abs(D - s_true[:, None]) <= TIE_EPS).sum(1), 1)
+    anonymity_sets = np.where(
+        in_dict,
+        (D >= s_true[:, None] - TIE_EPS).sum(1),
+        np.nan,
+    )
+    ranks = np.where(
+        in_dict,
+        1.0 + greater + 0.5 * np.maximum(ties - 1, 0),
+        np.nan,
+    )
+    out["anonymity_set"] = float(np.nanmedian(anonymity_sets)) if in_dict.any() else float("nan")
+    out["anonymity_set_mean"] = float(np.nanmean(anonymity_sets)) if in_dict.any() else float("nan")
+    out["mean_rank"] = float(np.nanmean(ranks)) if in_dict.any() else float("nan")
+    out["mrr"] = float(np.nanmean(1.0 / ranks)) if in_dict.any() else float("nan")
     for k in topk:
         p = np.clip((k - greater) / ties, 0.0, 1.0)
         out[f"reid_top{k}"] = float(np.where(in_dict, p, 0.0).mean())
@@ -52,6 +74,7 @@ def exact_reid_attack(victim_tokens, victim_truth, dict_tokens, dict_ids, topk=R
     for t, e in zip(dict_tokens, dict_ids):
         by_tok.setdefault(t, []).append(int(e))
     hit = {k: 0.0 for k in topk}
+    top1_hits = 0.0
     cand_sizes = []
     for t, truth in zip(victim_tokens, victim_truth):
         c = by_tok.get(t)
@@ -59,13 +82,26 @@ def exact_reid_attack(victim_tokens, victim_truth, dict_tokens, dict_ids, topk=R
             continue
         cand_sizes.append(len(c))
         if int(truth) in c:
+            top1_hits += 1.0 / len(c)
             for k in topk:
                 hit[k] += min(1.0, k / len(c))
     n = len(victim_tokens)
-    out = {f"reid_top{k}": hit[k] / n for k in topk}
-    out["reid_ties"] = float(np.mean(cand_sizes)) if cand_sizes else float("nan")
+    out = {f"reid_top{k}": hit[k] / n if n else float("nan") for k in topk}
+    out["reid_top1_conditional"] = top1_hits / len(cand_sizes) if cand_sizes else float("nan")
+    denominator = max(1, len(dict_tokens))
+    # Rounded mean dictionary candidate count among victims with candidates.
+    ties_count_mean = float(np.mean(cand_sizes)) if cand_sizes else float("nan")
+    out["reid_ties"] = int(round(ties_count_mean)) if cand_sizes else float("nan")
+    out["reid_ties_frac"] = ties_count_mean / denominator if cand_sizes else float("nan")
+    out["reid_ties_count"] = out["reid_ties"]
     out["reid_cands_delta"] = out["reid_ties"]
+    out["reid_cands_delta_frac"] = out["reid_ties_frac"]
+    out["reid_cands_delta_count"] = out["reid_ties_count"]
     out["dict_coverage"] = float(np.mean([int(t) in set(dict_ids) for t in victim_truth])) if n else 0.0
+    out["anonymity_set"] = ties_count_mean if cand_sizes else float("nan")
+    out["anonymity_set_mean"] = ties_count_mean if cand_sizes else float("nan")
+    out["mean_rank"] = 1.0 if cand_sizes else float("nan")
+    out["mrr"] = 1.0 if cand_sizes else float("nan")
     return out
 
 

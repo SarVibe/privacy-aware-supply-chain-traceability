@@ -32,7 +32,7 @@ class ExperimentConfig:
     q: int = 2
     pad: bool = False
     tau_grid: Tuple[float, ...] = tuple(
-        float(round(v, 4)) for v in __import__("numpy").arange(0.30, 1.0001, 0.005)
+        float(round(v, 4)) for v in __import__("numpy").arange(0.30, 0.9901, 0.005)
     )
     degenerate_fill: float = 0.95
     standard: Tuple[int, int] = (1024, 4)
@@ -41,7 +41,7 @@ class ExperimentConfig:
     bit_top: int = 100
     n_entities: int = 1000
     n_records: int = 3000
-    seeds: Tuple[int, ...] = tuple(range(20))
+    seeds: Tuple[int, ...] = tuple(range(40))
     extra_columns: Tuple[str, ...] = ("dosage", "dosage_form", "pack_size")
     tau_primary: float = 0.85
     tau_secondary: float = 0.80
@@ -144,7 +144,6 @@ class Config:
             cls.RQ1_FIGURES_DIR,
             cls.RQ2_RAW_DIR,
             cls.RQ2_TABLES_DIR,
-            cls.RQ2_FIGURES_DIR,
         ]:
             path.mkdir(parents=True, exist_ok=True)
 

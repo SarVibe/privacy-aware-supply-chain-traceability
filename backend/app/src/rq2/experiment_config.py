@@ -1,8 +1,8 @@
 """RQ2 aliases for the shared experiment configuration."""
 from src.application_config import EXPERIMENT_CONFIG
 
-DEFAULT_LS = (2048, EXPERIMENT_CONFIG.bloom_length, 512, 256)
-DEFAULT_KS = (2, EXPERIMENT_CONFIG.k_primary, 8, 15, EXPERIMENT_CONFIG.k_secondary)
+DEFAULT_LS = (2048, 1024, 512, 256, 128)
+DEFAULT_KS = (2, 4, 8, 15, 30, 50)
 DEFAULT_NOISES = (0.0, 0.05, 0.15, 0.30)
 DEFAULT_Q = EXPERIMENT_CONFIG.q
 DEFAULT_PAD = EXPERIMENT_CONFIG.pad

@@ -8,6 +8,9 @@ from collections import Counter
 from scipy.stats import rankdata
 
 from .experiment_config import TAU_GRID
+from .parameter_validation import validate_tau
+
+MAX_FPR = 0.01
 
 
 def dice_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -39,11 +42,58 @@ def sweep(D: np.ndarray, taus=TAU_GRID):
     return np.array(out)  # columns: P, R, F1, FPR
 
 
+def tune_tau_full(D_val: np.ndarray, taus=TAU_GRID) -> dict:
+    """Return unconstrained and FPR-constrained best-F1 thresholds.
+
+    Returns a dict with keys:
+      tau_unc     - argmax F1 on val split over the FULL grid (no FPR constraint)
+      tau_c01     - best-F1 tau with val FPR<=0.01, or None if infeasible
+      tau_c05     - best-F1 tau with val FPR<=0.05, or None if infeasible
+      feasible_01 - bool: True if any threshold satisfies FPR<=0.01
+      feasible_05 - bool: True if any threshold satisfies FPR<=0.05
+    """
+    taus = tuple(validate_tau(value) for value in taus)
+    res = sweep(D_val, taus)  # columns: P, R, F1, FPR
+
+    # Unconstrained: argmax F1 over the full grid
+    best_f1 = res[:, 2].max()
+    unc_indices = np.flatnonzero(res[:, 2] >= best_f1 - 1e-12)
+    tau_unc = float(taus[unc_indices[-1]])
+
+    # FPR <= 0.01 constrained
+    el_01 = np.flatnonzero(res[:, 3] <= 0.01)
+    if el_01.size > 0:
+        best_01 = res[el_01, 2].max()
+        best_01_idx = el_01[np.flatnonzero(res[el_01, 2] >= best_01 - 1e-12)]
+        tau_c01 = float(taus[best_01_idx[-1]])
+        feasible_01 = True
+    else:
+        tau_c01 = None
+        feasible_01 = False
+
+    # FPR <= 0.05 constrained
+    el_05 = np.flatnonzero(res[:, 3] <= 0.05)
+    if el_05.size > 0:
+        best_05 = res[el_05, 2].max()
+        best_05_idx = el_05[np.flatnonzero(res[el_05, 2] >= best_05 - 1e-12)]
+        tau_c05 = float(taus[best_05_idx[-1]])
+        feasible_05 = True
+    else:
+        tau_c05 = None
+        feasible_05 = False
+
+    return {
+        "tau_unc": tau_unc,
+        "tau_c01": tau_c01,
+        "tau_c05": tau_c05,
+        "feasible_01": feasible_01,
+        "feasible_05": feasible_05,
+    }
+
+
 def tune_tau(D_val: np.ndarray, taus=TAU_GRID) -> float:
-    """Best-F1 threshold on the validation split (ties -> the higher, more conservative tau)."""
-    res = sweep(D_val, taus)
-    best = res[:, 2].max()
-    return float(taus[np.flatnonzero(res[:, 2] >= best - 1e-12)[-1]])
+    """Backward-compatible wrapper: returns unconstrained best-F1 tau (never raises)."""
+    return tune_tau_full(D_val, taus)["tau_unc"]
 
 
 def metrics_at(D: np.ndarray, tau: float) -> dict:

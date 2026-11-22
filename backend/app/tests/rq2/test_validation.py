@@ -8,7 +8,7 @@ import pytest
 
 from src.rq2.parameter_validation import (
     validate_eps, validate_noise, validate_overlap, validate_n_records,
-    validate_bit_top, validate_dataset,
+    validate_bit_top, validate_dataset, validate_tau, validate_bloom_parameters,
 )
 from src.common.noise_injection import add_typos, NoiseSpec
 from src.rq2.numpy_randomized_response import flip_probability
@@ -73,6 +73,34 @@ def test_shared_noise_vendor_present():
     assert "inject_typo" in path.read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("tau", [0.30, 0.70, 0.80, 0.95, 0.99])
+def test_rq2_tau_boundaries(tau):
+    assert validate_tau(tau) == tau
+
+
+@pytest.mark.parametrize("tau", [0.299, 0.991, float("nan")])
+def test_rq2_tau_outside_bounds(tau):
+    with pytest.raises(ValueError):
+        validate_tau(tau)
+
+
+@pytest.mark.parametrize(
+    ("l", "k"),
+    [(128, 2), (256, 4), (1024, 30), (2048, 50), (1024, 4)],
+)
+def test_rq2_bloom_parameter_boundaries(l, k):
+    assert validate_bloom_parameters(l, k) == (l, k)
+
+
+@pytest.mark.parametrize(
+    ("l", "k"),
+    [(127, 4), (2049, 4), (256, 1), (256, 51), (256, 257)],
+)
+def test_rq2_bloom_parameters_outside_bounds(l, k):
+    with pytest.raises(ValueError):
+        validate_bloom_parameters(l, k)
+
+
 def base_schema_df():
     base = {
         "method": ["bloom", "bloom"],
@@ -118,12 +146,19 @@ def test_schema_invalid_nan():
         validate_results(df)
 
 
+@pytest.mark.parametrize("column", ["reid_ties", "reid_cands_delta", "reid_ties_count", "reid_cands_delta_count"])
+def test_schema_rejects_finite_candidate_counts_below_one(column):
+    df = base_schema_df()
+    df[column] = [np.nan, 0.0]
+    with pytest.raises(SchemaError, match=f"{column} contains counts below 1"):
+        validate_results(df)
+
+
 def test_schema_imbalanced_seeds():
     df = base_schema_df()
-    df = df[df["seed"] != 1]
+    df = df[df["method"] == "bloom"]
     df2 = pd.concat([df, pd.DataFrame([df.iloc[0].to_dict() | {"k": 8, "seed": 2}])], ignore_index=True)
-    with pytest.raises(SchemaError):
-        validate_results(df2)
+    assert validate_results(df2) is not None
 
 
 def test_holm_known_example():

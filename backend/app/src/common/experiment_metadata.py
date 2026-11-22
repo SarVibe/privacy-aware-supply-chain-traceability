@@ -19,6 +19,8 @@ def add_common_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ap.add_argument("--n-entities", type=int, default=EXPERIMENT_CONFIG.n_entities)
     ap.add_argument("--n-records", type=int, default=EXPERIMENT_CONFIG.n_records)
     ap.add_argument("--seeds", type=int, default=len(EXPERIMENT_CONFIG.seeds))
+    ap.add_argument("--n-selection", type=int, default=10,
+                    help="number of initial seeds reserved for operating-point selection")
     ap.add_argument("--q", type=int, default=EXPERIMENT_CONFIG.q)
     ap.add_argument("--pad", action="store_true", default=EXPERIMENT_CONFIG.pad)
     ap.add_argument("--standard", default="1024:4",
@@ -91,7 +93,9 @@ def write_run_csv(df: pd.DataFrame, csv_path: str | Path, *,
                   argv: list[str] | None = None, nominal_noise: float | None = None,
                   unchanged_fraction: float | None = None,
                   average_normalized_edit_distance: float | None = None,
-                  nominal_noise_rates: list[float] | None = None) -> None:
+                  nominal_noise_rates: list[float] | None = None,
+                  source_runs: dict | None = None,
+                  analysis_scope: dict | None = None) -> None:
     csv_path = Path(csv_path)
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(csv_path, index=False)
@@ -100,6 +104,8 @@ def write_run_csv(df: pd.DataFrame, csv_path: str | Path, *,
         "package_versions": package_versions(),
         "argv": sys.argv if argv is None else argv,
         "dataset_fingerprint": data_fingerprint(dataset_path),
+        "source_runs": source_runs or {},
+        "analysis_scope": analysis_scope or {},
         "noise": {
             "nominal_noise_rate": nominal_noise,
             "nominal_noise_rates": nominal_noise_rates,
@@ -123,3 +129,43 @@ def write_markdown(df: pd.DataFrame, path: str | Path) -> None:
         for row in df.itertuples(index=False, name=None):
             text += "| " + " | ".join("" if value is None else str(value) for value in row) + " |\n"
     path.write_text(text, encoding="utf-8")
+
+
+def write_metadata(
+    path: str | Path,
+    cfg: object,
+    seeds: list[int] | tuple[int, ...],
+    extra: dict | None = None,
+) -> None:
+    """Write experiment provenance with a fingerprint in place of the HMAC key."""
+    import platform
+    import subprocess
+    from dataclasses import asdict
+    from datetime import datetime, timezone
+
+    snapshot = asdict(cfg)
+    key = snapshot["bloom"].pop("hmac_key")
+    snapshot["bloom"]["hmac_key_fingerprint"] = hashlib.sha256(bytes.fromhex(key)).hexdigest()[:12]
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=Path(__file__).resolve().parent,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        commit = None
+    metadata = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "package_versions": package_versions(),
+        "platform": platform.platform(),
+        "git_commit": commit,
+        "config": snapshot,
+        "seeds": list(seeds),
+        "extra": {} if extra is None else extra,
+    }
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,107 @@
+"""Aggregate experiment runs and compare matched seed-level outcomes."""
+
+from collections.abc import Callable, Mapping, Sequence
+from math import sqrt
+
+import numpy as np
+import pandas as pd
+from scipy.stats import PermutationMethod, t, wilcoxon
+
+HYPOTHESIS_NOISE_LEVELS = (0.05, 0.15, 0.30)
+_SEED = "seed"
+_NOISE = "noise_level"
+_FIELD_SET = "field_set"
+_RunFilter = Mapping[str, object] | Callable[[pd.DataFrame], pd.Series]
+
+
+def aggregate_runs(df: pd.DataFrame, group_cols: Sequence[str], metrics: Sequence[str]) -> pd.DataFrame:
+    """Report each metric's mean and sample standard deviation, plus distinct seed counts."""
+    columns = {
+        f"{metric}_{stat}": (metric, stat)
+        for metric in metrics
+        for stat in ("mean", "std")
+    }
+    grouped = df.groupby(list(group_cols), sort=False, dropna=False, observed=True)
+    return grouped.agg(**columns, n_seeds=(_SEED, "nunique")).reset_index()
+
+
+def holm_adjust(p_values: Sequence[float]) -> np.ndarray:
+    """Adjust p-values in input order, reserving a family slot for each missing result."""
+    original = np.asarray(p_values, dtype=float)
+    if original.ndim != 1 or ((original < 0) | (original > 1)).any():
+        raise ValueError("Holm adjustment requires a one-dimensional sequence of p-values in [0, 1]")
+    order = np.argsort(original, kind="stable")
+    ranked = np.nan_to_num(original[order], nan=1.0)
+    corrected = np.minimum(1.0, np.maximum.accumulate(ranked * np.arange(len(ranked), 0, -1)))
+    adjusted = np.empty_like(original)
+    adjusted[order] = corrected
+    adjusted[np.isnan(original)] = np.nan
+    return adjusted
+
+
+def _select(df: pd.DataFrame, criteria: _RunFilter) -> pd.DataFrame:
+    if callable(criteria):
+        return df.loc[criteria(df)]
+    mask = pd.Series(True, index=df.index)
+    for column, value in criteria.items():
+        mask &= df[column].eq(value)
+    return df.loc[mask]
+
+
+def _wilcoxon_greater(differences: np.ndarray) -> float:
+    # Round subtraction artefacts before ranking. The Wilcox rule drops exact zero differences.
+    ranked = np.round(differences, 15)
+    nonzero = ranked[ranked != 0]
+    if not len(nonzero):
+        return 1.0
+    method = "exact"
+    if len(np.unique(np.abs(nonzero))) < len(nonzero):
+        # Rank ties require an exhaustive sign permutation with the observed ranks.
+        method = PermutationMethod(n_resamples=2 ** len(nonzero), batch=1024)
+    return float(wilcoxon(nonzero, alternative="greater", method=method).pvalue)
+
+
+def paired_difference(
+    df: pd.DataFrame,
+    a_filter: _RunFilter,
+    b_filter: _RunFilter,
+    metric: str,
+    key_cols: Sequence[str] = (_SEED, _NOISE, _FIELD_SET),
+    *,
+    infer: bool = True,
+) -> pd.DataFrame:
+    """Compare A minus B on matching seeds, with a t interval and optional exact inference.
+
+    The one-sided Wilcoxon test and Holm adjustment apply only to the three
+    hypothesis noise levels, separately for each field set. Incomplete seed
+    pairs are excluded. Sample SD and the t interval require at least two pairs.
+    """
+    keys = list(key_cols)
+    if not {_SEED, _NOISE, _FIELD_SET} <= set(keys):
+        raise ValueError("Pairing keys must include seed, noise_level and field_set")
+    columns = [*keys, metric]
+    a = _select(df, a_filter).loc[:, columns].rename(columns={metric: "_a"})
+    b = _select(df, b_filter).loc[:, columns].rename(columns={metric: "_b"})
+    paired = a.merge(b, on=keys, validate="one_to_one").dropna(subset=["_a", "_b"])
+    rows = []
+    for (noise, field), group in paired.groupby([_NOISE, _FIELD_SET], sort=False, observed=True):
+        deltas = (group["_a"] - group["_b"]).to_numpy(dtype=float)
+        n = len(deltas)
+        if group[_SEED].nunique() != n:
+            raise ValueError("Expected one paired observation per seed, noise level and field set")
+        mean = float(deltas.mean())
+        std = float(deltas.std(ddof=1)) if n > 1 else np.nan
+        margin = float(t.ppf(0.975, n - 1)) * std / sqrt(n) if n > 1 else np.nan
+        p = _wilcoxon_greater(deltas) if infer and noise in HYPOTHESIS_NOISE_LEVELS else np.nan
+        rows.append((noise, field, mean, std, mean - margin, mean + margin, int((deltas > 0).sum()), n, p))
+
+    result = pd.DataFrame(
+        rows, columns=(_NOISE, _FIELD_SET, "mean", "std", "ci_low", "ci_high", "wins", "n_seeds", "p_value")
+    )
+    result["p_holm"] = np.nan
+    if infer:
+        for _, group in result.groupby(_FIELD_SET, sort=False, observed=True):
+            family = group.set_index(_NOISE)["p_value"].reindex(HYPOTHESIS_NOISE_LEVELS)
+            adjusted = pd.Series(holm_adjust(family.to_numpy()), index=family.index)
+            result.loc[group.index, "p_holm"] = group[_NOISE].map(adjusted)
+    return result

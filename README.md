@@ -87,6 +87,39 @@ backend\venv313\Scripts\python.exe -m experiments.rq2.profile_data
 
 Each experiment writes its CSV result to `data\tables`.
 
+RQ2 uses 40 seeds by default (10 selection, 30 evaluation). The grid runner
+supports `--n-selection`, `--dict-extra-ratio` (default `5`), and `--workers`.
+The default tau grid is 0.30--0.99 in 0.005 increments.
+
+### Metric dictionary
+
+| Metric | Unit | Range | Definition |
+|---|---|---:|---|
+| `f1_unc` | score | [0, 1] | Test F1 at the validation-split best-F1 tau, without an FPR constraint |
+| `f1_01`, `f1_05` | score | [0, 1] | Test F1 at the best validation tau constrained to FPR <= 0.01 or 0.05 |
+| `anonymity_set` | count | [1, dictionary size] | Median number of dictionary entries tied with or above the true entry |
+| `mean_rank` | rank | [1, dictionary size] | Mean tie-averaged rank of the true dictionary entry |
+| `mrr` | score | (0, 1] | Mean reciprocal tie-averaged rank |
+| `reid_cands_delta`, `reid_ties` | count | >= 1 | Mean near-candidate or exact-tie counts; the normalized `*_frac` columns are separate |
+
+Absolute score differences are reported in percentage points (`pp`); relative
+changes are labeled `% relative`. Positive paired differences always mean
+`tuned - standard`.
+
+## Threat Model
+
+The empirical privacy evaluation uses three attack classes. See [`docs/threat_model.md`](docs/threat_model.md) for the full threat model specification.
+
+| Attack | Attacker type | Knowledge | PRIMARY? |
+|--------|--------------|-----------|----------|
+| **A1** – Dictionary re-identification | Insider (consortium member) | HMAC key known | **YES** (shared-key architecture) |
+| **A2** – Frequency alignment | External observer | Key secret | No – meaningful only at noise=0 |
+| **A3** – Bit/q-gram frequency | External observer | Key secret | No – simplified attack, lower bound |
+
+> **Key management in C1: SHARED KEY** — all organizations hold the HMAC key to encode their own records; therefore A1 represents a realistic insider threat from any consortium participant.
+
+> **Limitations**: Empirical privacy against tested attacks only; not a formal guarantee. A3 is a simplified attack, not a reimplementation of published cryptanalysis.
+
 ### RQ1 reproducible benchmark
 
 Generate the single-source seeded inputs before running RQ1:
