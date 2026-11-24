@@ -16,6 +16,8 @@ export const CONTRACT_ABI = [
   "function acceptShipment(bytes32 commitment)",
   "function getProduct(bytes32 commitment) view returns (address manufacturer,address currentOwner,address pendingDistributor,uint64 createdBlock,uint64 bloomGroup,uint8 status,bool exists)",
   "function getProductCommitments() view returns (bytes32[])",
+  "function getProductCommitmentCount() view returns (uint256)",
+  "function getProductCommitmentsPage(uint256 offset,uint256 limit) view returns (bytes32[] commitments,uint256 total)",
   "function mightContain(uint256 bloomGroup, bytes32 commitment) view returns (bool)",
   "function getQgramCandidateBlocks(bytes32[] queryQgramHashes,uint256 minimumMatches,uint256 firstBlockIndex,uint256 blockLimit) view returns (uint256[] candidateBlocks,uint256 totalBlocks)",
   "function verifyProof(bytes32 commitment,uint256[2] a,uint256[2][2] b,uint256[2] c,uint256[1] publicSignals) view returns (bool)",

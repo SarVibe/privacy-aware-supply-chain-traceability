@@ -37,26 +37,18 @@ const EMPTY_PRODUCT = {
   price: ""
 };
 const BATCH_SIZES = [2, 5, 10, 20, 50];
-const MAX_CSV_ROWS = 6000;
-const MAX_CSV_FILE_SIZE_BYTES = 10_000_000;
+const MAX_CSV_ROWS = 200_000;
+const MAX_CSV_FILE_SIZE_BYTES = 100_000_000;
 const MAX_PRODUCT_QGRAMS = 256;
 const QGRAM_BLOCKS_PER_SCREEN_CALL = 16;
+const COMMITMENT_PAGE_SIZE = 100;
 
 function bytes32(value) {
   return zeroPadValue(toBeHex(value), 32);
 }
 
-function minimumDiceOverlap(queryCount, thresholdPercent) {
-  let minimumOverlap = Infinity;
-  for (let candidateCount = 1; candidateCount <= MAX_PRODUCT_QGRAMS; candidateCount += 1) {
-    const requiredOverlap = Math.ceil(
-      thresholdPercent * (queryCount + candidateCount) / 200
-    );
-    if (requiredOverlap <= Math.min(queryCount, candidateCount)) {
-      minimumOverlap = Math.min(minimumOverlap, requiredOverlap);
-    }
-  }
-  return Number.isFinite(minimumOverlap) ? minimumOverlap : queryCount + 1;
+function minimumBlockQueryOverlap(queryCount, thresholdPercent) {
+  return Math.ceil(queryCount * thresholdPercent / 100);
 }
 
 function contiguousBlockRanges(blockNumbers) {
@@ -289,6 +281,10 @@ function App() {
   const [csvFile, setCsvFile] = useState(null);
   const [recipient, setRecipient] = useState("");
   const [products, setProducts] = useState([]);
+  const [ledgerPage, setLedgerPage] = useState(0);
+  const [ledgerPageTotal, setLedgerPageTotal] = useState(0);
+  const [ledgerProducts, setLedgerProducts] = useState([]);
+  const [csvFailures, setCsvFailures] = useState([]);
   const [verifyProduct, setVerifyProduct] = useState(EMPTY_PRODUCT);
   const [verification, setVerification] = useState(null);
   const [comparisonResults, setComparisonResults] = useState({});
@@ -349,6 +345,47 @@ function App() {
     );
     setProducts(records.filter((record) => record.exists).reverse());
   }, [contract]);
+
+  const loadLedgerPage = useCallback(async (
+    page = ledgerPage,
+    activeContract = contract
+  ) => {
+    if (!activeContract) return;
+    const offset = page * COMMITMENT_PAGE_SIZE;
+    let commitments;
+    let total;
+    try {
+      const pageResult = await activeContract.getProductCommitmentsPage(
+        offset,
+        COMMITMENT_PAGE_SIZE
+      );
+      commitments = Array.from(pageResult[0]);
+      total = Number(pageResult[1]);
+    } catch (caught) {
+      if (!/could not detect|decode|missing|unknown/i.test(errorMessage(caught))) throw caught;
+      const allCommitments = await activeContract.getProductCommitments();
+      total = allCommitments.length;
+      commitments = allCommitments.slice(offset, offset + COMMITMENT_PAGE_SIZE);
+    }
+    const records = await Promise.all(
+      commitments.map(async (commitment) => {
+        const record = await activeContract.getProduct(commitment);
+        return {
+          commitment,
+          manufacturer: record.manufacturer,
+          currentOwner: record.currentOwner,
+          pendingDistributor: record.pendingDistributor,
+          createdBlock: Number(record.createdBlock),
+          bloomGroup: Number(record.bloomGroup),
+          status: Number(record.status),
+          exists: record.exists
+        };
+      })
+    );
+    setLedgerPage(page);
+    setLedgerPageTotal(total);
+    setLedgerProducts(records.filter((record) => record.exists).reverse());
+  }, [contract, ledgerPage]);
 
   const applySession = useCallback(async (profile) => {
     setUsername(profile.username);
@@ -611,6 +648,7 @@ function App() {
     setBusy(true);
     setError("");
     setNotice("");
+    setCsvFailures([]);
     let submittedCount = 0;
     try {
       if (!csvFile) throw new Error("Choose a CSV file first.");
@@ -619,7 +657,7 @@ function App() {
       }
       if (role !== 1) throw new Error("The connected wallet needs the Manufacturer role.");
       if (csvFile.size > MAX_CSV_FILE_SIZE_BYTES) {
-        throw new Error("CSV file must be smaller than 10 MB.");
+        throw new Error("CSV file must be smaller than 100 MB.");
       }
 
       const contents = await csvFile.text();
@@ -632,53 +670,116 @@ function App() {
       const pendingCommitments = new Set(
         status.pendingRegistrations.map((item) => item.commitment.toLowerCase())
       );
-      const registeredCommitments = new Set(
-        Array.from(
-          await contract.getProductCommitments(),
-          (commitment) => commitment.toLowerCase()
-        )
-      );
+      const registeredCommitments = new Set();
+      try {
+        const registeredCount = Number(await contract.getProductCommitmentCount());
+        for (
+          let offset = 0;
+          offset < registeredCount;
+          offset += COMMITMENT_PAGE_SIZE
+        ) {
+          const [commitments] = await contract.getProductCommitmentsPage(
+            offset,
+            COMMITMENT_PAGE_SIZE
+          );
+          for (const commitment of commitments) {
+            registeredCommitments.add(commitment.toLowerCase());
+          }
+        }
+      } catch (caught) {
+        if (!/could not detect|decode|missing|unknown/i.test(errorMessage(caught))) throw caught;
+        const commitments = await contract.getProductCommitments();
+        for (const commitment of commitments) {
+          registeredCommitments.add(commitment.toLowerCase());
+        }
+      }
       const prepared = [];
-      const fileCommitments = new Set();
+      const fileCommitments = new Map();
+      const failures = [];
       for (const { rowNumber, product: csvProduct } of rows) {
-        validateCsvProduct(csvProduct, rowNumber);
-        const circuitInput = productCircuitInput(csvProduct);
-        const commitment = await calculateCommitment(circuitInput);
-        const digest = bytes32(commitment);
-        const qgramHashes = productQgramHashes(csvProduct);
-        const key = digest.toLowerCase();
-        if (fileCommitments.has(key)) {
-          throw new Error(`CSV row ${rowNumber}: this product duplicates another row's commitment.`);
+        try {
+          validateCsvProduct(csvProduct, rowNumber);
+          const circuitInput = productCircuitInput(csvProduct);
+          const commitment = await calculateCommitment(circuitInput);
+          const digest = bytes32(commitment);
+          const qgramHashes = productQgramHashes(csvProduct);
+          const key = digest.toLowerCase();
+          if (fileCommitments.has(key)) {
+            failures.push({
+              rowNumber,
+              commitment: digest,
+              reason: `Duplicate commitment; matches CSV row ${fileCommitments.get(key)}.`,
+              product: csvProduct
+            });
+            continue;
+          }
+          if (pendingCommitments.has(key)) {
+            failures.push({
+              rowNumber,
+              commitment: digest,
+              reason: "Commitment is already pending registration.",
+              product: csvProduct
+            });
+            continue;
+          }
+          if (registeredCommitments.has(key)) {
+            failures.push({
+              rowNumber,
+              commitment: digest,
+              reason: "Commitment is already registered.",
+              product: csvProduct
+            });
+            continue;
+          }
+          fileCommitments.set(key, rowNumber);
+          prepared.push({ digest, qgramHashes, rowNumber, product: csvProduct });
+        } catch (caught) {
+          failures.push({
+            rowNumber,
+            commitment: "",
+            reason: errorMessage(caught),
+            product: csvProduct
+          });
         }
-        if (pendingCommitments.has(key)) {
-          throw new Error(`CSV row ${rowNumber}: this product is already pending registration.`);
-        }
-        if (registeredCommitments.has(key)) {
-          throw new Error(`CSV row ${rowNumber}: this product is already registered.`);
-        }
-        fileCommitments.add(key);
-        prepared.push({ digest, qgramHashes, rowNumber });
       }
 
       for (const item of prepared) {
-        const result = await postJson("/api/transactions", {
-          operation: "registerProduct",
-          arguments: {
+        try {
+          const result = await postJson("/api/transactions", {
+            operation: "registerProduct",
+            arguments: {
+              commitment: item.digest,
+              qgramHashes: item.qgramHashes,
+              csvRowNumber: item.rowNumber
+            }
+          });
+          submittedCount += 1;
+          setNotice(
+            result.pending
+              ? `Submitted ${submittedCount} of ${prepared.length} CSV registration transactions. They remain pending until the batch threshold is reached.`
+              : `Submitted ${submittedCount} of ${prepared.length} CSV registration transactions. The batch was confirmed in the local chain.`
+          );
+        } catch (caught) {
+          failures.push({
+            rowNumber: item.rowNumber,
             commitment: item.digest,
-            qgramHashes: item.qgramHashes
-          }
-        });
-        submittedCount += 1;
-        setNotice(
-          result.pending
-            ? `Submitted ${submittedCount} of ${prepared.length} CSV registration transactions. They remain pending until the batch threshold is reached.`
-            : `Submitted ${submittedCount} of ${prepared.length} CSV registration transactions. The batch was confirmed in the local chain.`
+            reason: errorMessage(caught),
+            product: item.product
+          });
+        }
+      }
+      setCsvFailures(failures);
+      if (failures.length) {
+        setError(
+          `${failures.length} CSV record(s) failed. Submitted ${submittedCount} of ${prepared.length} valid records. Review the failed-record details below.`
         );
       }
       setCsvFile(null);
       if (csvInputRef.current) csvInputRef.current.value = "";
       await refreshBatchStatus();
-      setNotice(`Submitted ${submittedCount} separate product-registration transactions from CSV. They will be mined when the batch threshold is reached.`);
+      if (failures.length === 0) {
+        setNotice(`Submitted ${submittedCount} separate product-registration transactions from CSV. They will be mined when the batch threshold is reached.`);
+      }
     } catch (caught) {
       const message = errorMessage(caught);
       setError(
@@ -810,7 +911,7 @@ function App() {
       setFuzzyThreshold(activeThreshold);
       setSelectedFuzzyThreshold(String(activeThreshold));
       setStage("Screening q-gram Bloom blocks");
-      const minimumOverlap = minimumDiceOverlap(queryHashes.length, activeThreshold);
+      const minimumOverlap = minimumBlockQueryOverlap(queryHashes.length, activeThreshold);
       const bloomScreeningStarted = performance.now();
       const candidateBlocks = [];
       let totalBlockCount = 0;
@@ -927,6 +1028,7 @@ function App() {
           }).map(([name, duration]) => [name, duration.toFixed(2)])
         ),
         queryQgramCount: queryHashes.length,
+        minimumBlockQueryOverlap: minimumOverlap,
         totalBlockCount,
         candidateBlockCount: candidateBlocks.length,
         blockComparisonCount,
@@ -947,7 +1049,7 @@ function App() {
           : scoredProducts.length
             ? `No product met the ${activeThreshold}% Dice threshold. The q-gram Bloom filter passed ${candidateBlocks.length} of ${totalBlockCount} blocks; closest products in those blocks are shown for reference.`
             : totalBlockCount && candidateBlocks.length === 0
-              ? `No q-gram Bloom blocks passed the safe screening threshold, so no product records were Dice-scored.`
+              ? `No q-gram Bloom blocks passed the configured block similarity threshold, so no product records were Dice-scored.`
               : candidateBlocks.length
                 ? "Blocks passed q-gram Bloom screening, but they contain no q-gram events to score. Products registered without q-gram data cannot be searched fuzzily."
                 : "No product q-gram records were found. Older registrations without q-gram data cannot be searched fuzzily."
@@ -1179,7 +1281,11 @@ function App() {
                 Block batching configuration
               </button>
             )}
-            <button className="secondary" onClick={() => setActiveModal("ledger")}>
+            <button className="secondary" onClick={() => {
+              setLedgerPage(0);
+              setActiveModal("ledger");
+              void loadLedgerPage(0);
+            }}>
               On-chain product records
             </button>
             {role === 1 && (
@@ -1470,6 +1576,12 @@ function App() {
                             B = {comparisonResults.fuzzy.totalBlockCount.toLocaleString("en-US")} blockchain blocks screened; {comparisonResults.fuzzy.candidateBlockCount.toLocaleString("en-US")} passed the q-gram Bloom filter.
                           </small>
                           <small>
+                            K = ceil(Q × threshold / 100) = ceil({comparisonResults.fuzzy.queryQgramCount.toLocaleString("en-US")} × {comparisonResults.fuzzy.fuzzyThreshold.toLocaleString("en-US")} / 100) = {comparisonResults.fuzzy.minimumBlockQueryOverlap?.toLocaleString("en-US") || "0"} required query-q-gram matches for block-level screening.
+                          </small>
+                          <small>
+                            Block-level pass rule: intersection(A, B) / |A| ≥ threshold. A is the query Bloom-filter set and B is the block-level Bloom-filter set.
+                          </small>
+                          <small>
                             BQ = B × Q = {comparisonResults.fuzzy.totalBlockCount.toLocaleString("en-US")} × {comparisonResults.fuzzy.queryQgramCount.toLocaleString("en-US")} = {comparisonResults.fuzzy.blockComparisonCount.toLocaleString("en-US")} maximum q-gram Bloom membership checks.
                           </small>
                           <small>
@@ -1488,7 +1600,7 @@ function App() {
                             Q + BQ + Σqᵢ + NQ + N log₂N = {comparisonResults.fuzzy.complexitySum.toLocaleString("en-US")} total growth-term units.
                           </small>
                           <small>
-                            These are illustrative complexity terms; RPC event retrieval is excluded. Bloom screening uses a conservative overlap bound derived from the Dice threshold and the 256-q-gram per-product limit, so a product meeting the threshold is not screened out.
+                            These are illustrative complexity terms; RPC event retrieval is excluded. Block-level screening uses |A∩B|/|A| with the shared threshold. Each passing block is then checked at product level using Dice similarity 2|A∩B|/(|A|+|B|).
                           </small>
                 </div>
               )}
@@ -1597,7 +1709,7 @@ function App() {
           <p className="muted">
             Import product fields using the same commitment process as the form.
             Each row is independently signed by the local backend for this authenticated manufacturer account.
-            Imports support up to {MAX_CSV_ROWS.toLocaleString("en-US")} product rows and CSV files smaller than 10 MB.
+            Imports support up to {MAX_CSV_ROWS.toLocaleString("en-US")} product rows and CSV files smaller than 100 MB.
           </p>
           <form onSubmit={registerProductsCsv}>
             <label>
@@ -1619,19 +1731,38 @@ function App() {
               <span className="muted">Required columns: {CSV_HEADERS.join(", ")}.</span>
             </div>
           </form>
+          {csvFailures.length > 0 && (
+            <div className="csv-failure-list">
+              <h3>Failed CSV records</h3>
+              {csvFailures.map((failure) => (
+                <div className="csv-failure" key={`${failure.rowNumber}-${failure.commitment || "none"}`}>
+                  <strong>CSV row {failure.rowNumber}</strong>
+                  <small>Reason: {failure.reason}</small>
+                  {failure.commitment && <code>Commitment: {failure.commitment}</code>}
+                  {failure.product && (
+                    <code>
+                      {failure.product.productName} | {failure.product.manufacturerName} |
+                      {" "}{failure.product.dosageForm} | {failure.product.manufacturingDate} |
+                      {" "}{failure.product.expiryDate} | {failure.product.price}
+                    </code>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </Modal>
       )}
 
       {activeModal === "ledger" && account && contract && (
         <Modal title="On-chain product records" onClose={() => setActiveModal("")}>
           <div className="ledger-actions">
-            <button className="text-button" onClick={() => loadProducts()} disabled={busy}>Refresh</button>
+            <button className="text-button" onClick={() => loadLedgerPage(ledgerPage)} disabled={busy}>Refresh</button>
           </div>
-          {products.length === 0 ? <p className="muted">No products registered yet.</p> : (
+          {ledgerProducts.length === 0 ? <p className="muted">No products registered yet.</p> : (
             <div className="table-scroll">
               <table>
                 <thead><tr><th>Commitment</th><th>Manufacturer</th><th>Current owner</th><th>Status</th><th>Registration block</th><th>Bloom group</th></tr></thead>
-                <tbody>{products.map((item) => (
+                <tbody>{ledgerProducts.map((item) => (
                   <tr key={item.commitment}>
                     <td><code>{shorten(item.commitment)}</code></td>
                     <td>{shorten(item.manufacturer)}</td>
@@ -1644,6 +1775,25 @@ function App() {
               </table>
             </div>
           )}
+          <div className="actions">
+            <button
+              className="secondary"
+              disabled={busy || ledgerPage === 0}
+              onClick={() => loadLedgerPage(ledgerPage - 1)}
+            >
+              Previous
+            </button>
+            <span className="muted">
+              Page {ledgerPage + 1} · {ledgerPageTotal.toLocaleString("en-US")} records
+            </span>
+            <button
+              className="secondary"
+              disabled={busy || (ledgerPage + 1) * COMMITMENT_PAGE_SIZE >= ledgerPageTotal}
+              onClick={() => loadLedgerPage(ledgerPage + 1)}
+            >
+              Next
+            </button>
+          </div>
           <p className="privacy-footnote">
             Product names, manufacturer names, dosage forms, dates, and prices are not stored in this contract or in a database.
           </p>

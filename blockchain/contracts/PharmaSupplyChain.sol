@@ -166,6 +166,8 @@ contract PharmaSupplyChain {
         fuzzyThresholdPercent = threshold;
     }
 
+    // minimumMatches is ceil(|A| * blockThreshold / 100) for block-level screening:
+    // |A intersect B| / |A| >= blockThreshold.
     function getQgramCandidateBlocks(
         bytes32[] calldata queryQgramHashes,
         uint256 minimumMatches,
@@ -293,6 +295,27 @@ contract PharmaSupplyChain {
 
     function getProductCommitments() external view returns (bytes32[] memory) {
         return productCommitments;
+    }
+
+    function getProductCommitmentCount() external view returns (uint256) {
+        return productCommitments.length;
+    }
+
+    function getProductCommitmentsPage(
+        uint256 offset,
+        uint256 limit
+    ) external view returns (bytes32[] memory commitments, uint256 total) {
+        require(limit > 0 && limit <= 1000, "Invalid commitment page size");
+        total = productCommitments.length;
+        if (offset >= total) {
+            return (new bytes32[](0), total);
+        }
+        uint256 end = offset + limit;
+        if (end > total) end = total;
+        commitments = new bytes32[](end - offset);
+        for (uint256 index = offset; index < end; index++) {
+            commitments[index - offset] = productCommitments[index];
+        }
     }
 
     function mightContain(

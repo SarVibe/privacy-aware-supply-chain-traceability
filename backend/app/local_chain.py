@@ -274,6 +274,94 @@ class LocalChain:
             raise RuntimeError(response["error"]["message"])
         return response
 
+    def _receipt_diagnostics(
+        self,
+        transaction_hash: str,
+        receipt: dict[str, Any],
+        pending_transaction: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        gas_limit = int(receipt.get("gasUsed", 0))
+        transaction = pending_transaction
+        try:
+            transaction = self.web3.eth.get_transaction(transaction_hash)
+            gas_limit = int(transaction.get("gas", 0))
+        except TransactionNotFound:
+            transaction = pending_transaction
+
+        revert_reason = ""
+        revert_data = ""
+        try:
+            trace = self.web3.provider.make_request(
+                "debug_traceTransaction",
+                [transaction_hash, {"disableStorage": True, "disableMemory": True}],
+            )
+            trace_result = trace.get("result") if isinstance(trace, dict) else None
+            if isinstance(trace_result, dict):
+                revert_data = str(trace_result.get("return") or "")
+                if revert_data.startswith("0x"):
+                    revert_reason = self._decode_revert_data(revert_data)
+        except Exception as error:
+            revert_reason = f"trace unavailable: {type(error).__name__}"
+
+        if not revert_reason:
+            revert_reason = self._infer_registration_revert(
+                transaction_hash,
+                pending_transaction,
+            )
+
+        return {
+            "hash": transaction_hash,
+            "blockNumber": receipt.get("blockNumber"),
+            "transactionIndex": receipt.get("transactionIndex"),
+            "status": int(receipt.get("status", 0)),
+            "from": (pending_transaction or {}).get("from")
+            or (transaction or {}).get("from"),
+            "to": (pending_transaction or {}).get("to")
+            or (transaction or {}).get("to"),
+            "nonce": (pending_transaction or {}).get("nonce"),
+            "gasLimit": gas_limit,
+            "gasUsed": int(receipt.get("gasUsed", 0)),
+            "effectiveGasPrice": int(receipt.get("effectiveGasPrice", 0)),
+            "csvRowNumber": (pending_transaction or {}).get("csvRowNumber"),
+            "commitment": (pending_transaction or {}).get("commitment"),
+            "revertReason": revert_reason or "Unknown revert reason",
+            "revertData": revert_data,
+        }
+
+    @staticmethod
+    def _decode_revert_data(revert_data: str) -> str:
+        revert_data = revert_data.lower()
+        selector = revert_data[:10]
+        if selector == "0x4e487b71":
+            return "Solidity panic"
+        if selector != "0x08c379a0" or len(revert_data) < 138:
+            return ""
+        try:
+            encoded = bytes.fromhex(revert_data[10:])
+            offset = int.from_bytes(encoded[:32], "big")
+            length = int.from_bytes(encoded[offset:offset + 32], "big")
+            reason = encoded[offset + 32:offset + 32 + length]
+            return reason.decode("utf-8", errors="replace")
+        except (ValueError, UnicodeDecodeError):
+            return ""
+
+    def _infer_registration_revert(
+        self,
+        transaction_hash: str,
+        pending_transaction: dict[str, Any] | None,
+    ) -> str:
+        if not pending_transaction:
+            return ""
+        commitment = pending_transaction.get("commitment")
+        if commitment:
+            try:
+                record = self.contract.functions.getProduct(commitment).call()
+                if record[-1]:
+                    return "Product already registered"
+            except Exception:
+                pass
+        return ""
+
     def authenticate(self, username: str, password: str) -> str | None:
         user = self.users.get(username)
         password_hash = (
@@ -356,6 +444,24 @@ class LocalChain:
                     or len(qgram_hashes) > 256
                 ):
                     raise ValueError("qgramHashes must be a list of at most 256 hashes.")
+                if commitment == b"\x00" * 32:
+                    raise ValueError(
+                        "Commitment cannot be zero."
+                    )
+                if int(
+                    self.contract.functions.stakeholderRoles(sender).call()
+                ) != 1:
+                    raise PermissionError(
+                        "The connected account is not authorized as a manufacturer."
+                    )
+                existing = self.contract.functions.getProduct(
+                    Web3.to_hex(commitment)
+                ).call()
+                if existing[-1]:
+                    raise ValueError(
+                        "Product already registered. "
+                        f"Commitment: {Web3.to_hex(commitment)}."
+                    )
                 hashes = [
                     self._validated_bytes32({"value": value}, "value")
                     for value in qgram_hashes
@@ -405,7 +511,30 @@ class LocalChain:
 
         with self.lock:
             nonce = self._pending_nonce(sender)
-            gas_estimate = function.estimate_gas({"from": sender})
+            try:
+                gas_estimate = function.estimate_gas({"from": sender})
+            except ContractLogicError as error:
+                details = str(error)
+                if "missing revert data" in details.lower():
+                    if operation == "registerProduct":
+                        details = "Product registration would revert"
+                        if commitment == b"\x00" * 32:
+                            details = "Commitment cannot be zero"
+                        elif int(
+                            self.contract.functions.stakeholderRoles(sender).call()
+                        ) != 1:
+                            details = "The connected account is not authorized as a manufacturer"
+                        else:
+                            existing = self.contract.functions.getProduct(
+                                Web3.to_hex(commitment)
+                            ).call()
+                            if existing[-1]:
+                                details = "Product already registered"
+                    raise ValueError(
+                        f"Transaction would revert: {details}. "
+                        f"CSV row: {arguments.get('csvRowNumber', '-')}."
+                    ) from error
+                raise
             priority_fee = self.web3.eth.max_priority_fee
             if operation == "registerProduct":
                 registration_qgram_count = len(
@@ -452,13 +581,46 @@ class LocalChain:
                 raise ValueError(response["error"]["message"])
             transaction_hash = response["result"]
 
+            pending = self.pending_transactions.get(transaction_hash)
+            if pending is not None:
+                csv_row_number = arguments.get("csvRowNumber")
+                if isinstance(csv_row_number, int):
+                    pending["csvRowNumber"] = csv_row_number
+                if operation == "registerProduct":
+                    pending["commitment"] = Web3.to_hex(commitment)
+
         self.process_pending()
         try:
             receipt = self.web3.eth.get_transaction_receipt(transaction_hash)
         except TransactionNotFound:
             receipt = None
         if receipt is not None and receipt["status"] != 1:
-            raise ValueError(f"Transaction reverted: {transaction_hash}")
+            diagnostics = self._receipt_diagnostics(
+                transaction_hash,
+                receipt,
+                self.pending_transactions.get(transaction_hash),
+            )
+            logger.error(
+                "Transaction reverted | hash=%s | block=%s | nonce=%s | "
+                "from=%s | gasUsed=%s | gasLimit=%s | csvRow=%s | "
+                "commitment=%s | reason=%s | revertData=%s",
+                diagnostics["hash"],
+                diagnostics["blockNumber"],
+                diagnostics["nonce"],
+                diagnostics["from"],
+                diagnostics["gasUsed"],
+                diagnostics["gasLimit"],
+                diagnostics["csvRowNumber"] or "-",
+                diagnostics["commitment"] or "-",
+                diagnostics["revertReason"],
+                diagnostics["revertData"] or "-",
+            )
+            raise ValueError(
+                "Transaction reverted: "
+                f"{transaction_hash}. "
+                f"Reason: {diagnostics['revertReason']}. "
+                f"CSV row: {diagnostics['csvRowNumber'] or '-'}."
+            )
         return {
             "hash": transaction_hash,
             "pending": receipt is None,
@@ -807,6 +969,7 @@ class LocalChain:
             for item in block["transactions"]
         }
         included_registrations = []
+        reverted_registrations = []
         for item in registrations:
             transaction_hash = item["hash"].lower()
             if transaction_hash not in block_hashes:
@@ -814,6 +977,28 @@ class LocalChain:
             receipt = self.web3.eth.get_transaction_receipt(item["hash"])
             if receipt["status"] == 1 and receipt["blockNumber"] == block["number"]:
                 included_registrations.append(item["hash"])
+            else:
+                diagnostics = self._receipt_diagnostics(
+                    item["hash"],
+                    receipt,
+                    self.pending_transactions.get(transaction_hash),
+                )
+                reverted_registrations.append(diagnostics)
+                logger.error(
+                    "CSV/batch transaction reverted | hash=%s | block=%s | "
+                    "nonce=%s | from=%s | gasUsed=%s | gasLimit=%s | "
+                    "csvRow=%s | commitment=%s | reason=%s | revertData=%s",
+                    diagnostics["hash"],
+                    diagnostics["blockNumber"],
+                    diagnostics["nonce"],
+                    diagnostics["from"],
+                    diagnostics["gasUsed"],
+                    diagnostics["gasLimit"],
+                    diagnostics["csvRowNumber"] or "-",
+                    diagnostics["commitment"] or "-",
+                    diagnostics["revertReason"],
+                    diagnostics["revertData"] or "-",
+                )
 
         if registrations:
             self.last_block = {
@@ -822,6 +1007,7 @@ class LocalChain:
                 "transactionCount": len(block["transactions"]),
                 "registrationCount": len(included_registrations),
                 "transactionHashes": included_registrations,
+                "revertedRegistrations": reverted_registrations,
             }
         for transaction_hash, _ in queued:
             self.pending_transactions.pop(transaction_hash, None)

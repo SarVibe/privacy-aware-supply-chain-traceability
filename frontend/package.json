@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "ethers": "^6.15.0",
+    "pharmachain": "file:..",
+    "poseidon-lite": "^0.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "snarkjs": "^0.7.5",
-    "poseidon-lite": "^0.3.0"
+    "snarkjs": "^0.7.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.4.1",

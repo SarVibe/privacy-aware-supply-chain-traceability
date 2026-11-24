@@ -7,6 +7,9 @@ venv313/
 backend/venv313/
 .pytest_cache/
 
+# Node.js dependencies (including nested node_modules)
+**/node_modules/
+
 # Secrets
 .env
 .env.local

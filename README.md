@@ -61,10 +61,12 @@ needed.
    the q-grams against each block's Bloom filter. It retrieves `ProductQgrams`
    events only from blocks that pass, then compares those products with the
    query using Dice similarity. The administrator, manufacturer, or distributor
-   can set the shared minimum Dice threshold (initially 90%). The screening threshold is
-   conservatively derived from that Dice threshold and the 256-q-gram
-   per-product limit, so a product meeting the Dice threshold is not screened
-   out. Bloom false positives can let extra blocks through. Results identify
+   can set the shared minimum similarity threshold (initially 90%). Block-level
+   screening uses `|A∩B| / |A| >= threshold`, where `A` is the query's unique
+   q-gram set and `B` is the block-level Bloom-filter q-gram set. The required
+   block matches are `ceil(|A| × threshold / 100)`. For products inside a passing
+   block, matching retains the Dice equation `2|A∩B| / (|A|+|B|)`. Bloom false
+   positives can let extra blocks and products through. Results identify
    candidate products and show their scores and processing time, but fuzzy
    similarity is not proof that product details are identical.
 
@@ -121,6 +123,11 @@ event retrieval latency. `Q` is the query q-gram count, `B` is the number of
 Ethereum blocks with q-gram data screened, and `N` is the number of product
 records in passing blocks that are Dice-scored. `Σqᵢ` is the total q-gram count across
 those records. The q-gram Bloom check does at most `BQ` membership tests; the
+block-level pass condition is `|A∩B| / |A| >= threshold`, requiring
+`ceil(Q × threshold / 100)` matching query q-grams. Candidate blocks are then
+expanded to product records, and product-level similarity retains
+`2|A∩B| / (|A|+|B|)`; lower thresholds reduce `K` and can increase candidate
+blocks, while higher thresholds increase `K` and reduce query-overlap candidates.
 reusable query set is built once, candidate sets are built and compared by
 iterating the query set, and all scored records are sorted. The UI substitutes
 the current run's values into the terms, using a rounded `N log₂N` ranking
@@ -267,8 +274,8 @@ then submits each product separately through the authenticated backend signer;
 the contract also rejects duplicate commitments. Accepted transactions join the
 configured block batch. Raw
 product fields stay in the browser; the commitment and guessable q-gram hashes
-are sent on-chain. Each import supports up to 6,000 product rows and CSV files
-smaller than 10 MB.
+are sent on-chain. Each import supports up to 200,000 product rows and CSV files
+smaller than 100 MB.
 
 ## Tests
 

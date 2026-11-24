@@ -690,7 +690,7 @@ class LocalChainBatchTests(unittest.TestCase):
             )
             response = connection.getresponse()
             self.assertEqual(response.status, 400)
-            self.assertIn("Transaction would revert", json.loads(response.read())["error"])
+            self.assertIn("Commitment cannot be zero", json.loads(response.read())["error"])
 
             connection.request(
                 "GET",
