@@ -3,11 +3,11 @@ import math
 
 import numpy as np
 
+from src.common.encoding.bloom_filter import fill_ratio
 from src.common.noise_injection import levenshtein
-from src.rq2.text_normalizer import normalize
 
 def fill_stats(bf: np.ndarray):
-    fill = bf.mean(axis=1)
+    fill = fill_ratio(bf)
     return float(fill.mean()), float(fill.std())
 
 
@@ -27,11 +27,10 @@ def expected_fill(load: float) -> float:
 
 
 def effective_noise(originals: list, noisy: list) -> dict:
-    normalized_original = [normalize(str(s)) for s in originals]
-    normalized_noisy = [normalize(str(s)) for s in noisy]
-    unchanged = sum(a == b for a, b in zip(normalized_original, normalized_noisy))
-    distances = [levenshtein(a, b) for a, b in zip(normalized_original, normalized_noisy)]
-    n = len(normalized_original)
+    """Compare aligned, already normalized field strings."""
+    unchanged = sum(a == b for a, b in zip(originals, noisy, strict=True))
+    distances = [levenshtein(a, b) for a, b in zip(originals, noisy, strict=True)]
+    n = len(originals)
     return {
         "unchanged_fraction": unchanged / n if n else 0.0,
         "average_normalized_edit_distance": sum(distances) / n if n else 0.0,

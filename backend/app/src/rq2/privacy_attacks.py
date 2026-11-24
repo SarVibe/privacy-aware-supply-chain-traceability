@@ -20,7 +20,7 @@ from collections import Counter
 import numpy as np
 
 from .experiment_config import REID_DELTA, REID_TOPK
-from .similarity_matching import dice_matrix
+from src.common.similarity.dice import dice_matrix
 
 TIE_EPS = 1e-9
 
@@ -130,7 +130,7 @@ def bit_qgram_attack(bf_victim, encoder, aux_grams, aux_df, top_bits, rng: np.ra
         return float("nan"), float("nan"), float("nan")
     f = bf_victim.mean(axis=0)
     pos = encoder.gram_positions(aux_grams)                   # (G, k)
-    member = np.zeros((G, encoder.l), dtype=bool)
+    member = np.zeros((G, bf_victim.shape[1]), dtype=bool)
     member[np.arange(G)[:, None], pos] = True
     per_bit = member.sum(axis=0)
     top = np.argsort(-f, kind="stable")[:top_bits]

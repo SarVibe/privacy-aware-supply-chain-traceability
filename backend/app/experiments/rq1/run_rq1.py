@@ -3,7 +3,6 @@
 import argparse
 from collections.abc import Sequence
 from dataclasses import replace
-from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -13,7 +12,7 @@ from experiments.rq1.posthoc import (
     ANALYSES, POST_HOC_TITLE, post_hoc_destination, protect_frozen_results, tune_blocked_tau,
 )
 from experiments.rq1.rq1_methods import build_bloom_linker, build_exact_linkers
-from src.common.config import Config, TauGridConfig, load_config
+from src.common.config import Config, load_config
 from src.common.data.loader import load_noisy
 from src.common.data.splitting import apply_split, load_split, save_split, split_entities
 from src.common.evaluation.metrics import evaluate_clusters
@@ -23,6 +22,7 @@ from src.common.experiment_metadata import write_metadata
 from src.common.linking.base import Linker
 from src.common.linking.bloom_blocked import BLOOM_BLOCKED, DESCRIPTION, BloomBlockedLinker, blocking_fields
 from src.common.linking.threshold import select_per_noise_tau, select_single_tau, tune_tau
+from src.common.linking.threshold import threshold_values as _thresholds
 from src.common.paths import results_dir, splits_dir
 from src.common.seeding import make_rng
 
@@ -34,13 +34,6 @@ RAW_COLUMNS = (
 TAU_COLUMNS = ("seed", "field_set", "noise_level", "tau", "precision", "recall", "f1")
 _SMOKE_SEED = 0
 _SMOKE_MAX_ENTITIES = 300
-
-
-def _thresholds(cfg: TauGridConfig) -> tuple[float, ...]:
-    start, stop, step = (Decimal(str(value)) for value in (cfg.start, cfg.stop, cfg.step))
-    if not (0 <= start <= stop <= 1 and step > 0):
-        raise ValueError("tau_grid requires 0 <= start <= stop <= 1 and a positive step")
-    return tuple(float(start + i * step) for i in range(int((stop - start) // step) + 1))
 
 
 def _destination(cfg: Config, out_dir: Path | None, smoke: bool) -> Path:

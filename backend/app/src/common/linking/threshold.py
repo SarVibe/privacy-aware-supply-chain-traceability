@@ -1,11 +1,12 @@
 """Sweep and select Bloom thresholds using validation frames."""
 
 from collections.abc import Mapping, Sequence
+from decimal import Decimal
 from typing import NotRequired, TypedDict
 
 import pandas as pd
 
-from src.common.config import Config
+from src.common.config import Config, TauGridConfig
 from src.common.evaluation.metrics import evaluate_clusters
 from src.common.linking.bloom import BloomLinker
 
@@ -16,6 +17,14 @@ class BloomLinkerArgs(TypedDict):
     cfg: Config
     field_set: str
     name: NotRequired[str]
+
+
+def threshold_values(grid: TauGridConfig) -> tuple[float, ...]:
+    """Expand configured decimal endpoints without cumulative rounding error."""
+    start, stop, step = (Decimal(str(value)) for value in (grid.start, grid.stop, grid.step))
+    if not (0 <= start <= stop <= 1 and step > 0):
+        raise ValueError("tau_grid requires 0 <= start <= stop <= 1 and a positive step")
+    return tuple(float(start + i * step) for i in range(int((stop - start) // step) + 1))
 
 
 def tune_tau(

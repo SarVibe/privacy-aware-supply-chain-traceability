@@ -3,6 +3,7 @@
 from pandas import DataFrame
 
 from src.common.config import Config
+from src.common.experiment.io import require_columns
 
 
 def required_columns(cfg: Config) -> tuple[str, ...]:
@@ -12,11 +13,7 @@ def required_columns(cfg: Config) -> tuple[str, ...]:
 
 def validate_frame(df: DataFrame, cfg: Config) -> None:
     """Raise ValueError for missing columns, invalid record IDs or missing truth."""
-    if not df.columns.is_unique:
-        raise ValueError("Record table column names must be unique")
-    missing = [column for column in required_columns(cfg) if column not in df]
-    if missing:
-        raise ValueError(f"Record table is missing required columns: {', '.join(missing)}")
+    require_columns(df, required_columns(cfg), table="Record table")
     record_ids = df[cfg.columns.record_id]
     if record_ids.isna().any() or not record_ids.is_unique:
         raise ValueError(f"{cfg.columns.record_id} must be non-null and unique")

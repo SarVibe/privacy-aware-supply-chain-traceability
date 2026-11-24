@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.rq2.text_normalizer import normalize
+from src.common.preprocessing.normalizer import normalize
 
 
 @dataclass

@@ -3,10 +3,11 @@
 from math import isclose
 from pathlib import Path
 
-from pandas import DataFrame, read_csv
+from pandas import DataFrame
 
 from src.common.config import Config, load_config
 from src.common.data.schema import validate_frame
+from src.common.experiment.io import read_csv
 from src.common.paths import noisy_dir, prepared_dir, raw_csv_path
 
 BASE_DATASET_FILENAME = "base_dataset.csv"
@@ -14,9 +15,7 @@ ENTITY_MAP_FILENAME = "entity_map.csv"
 
 
 def _read_csv(path: Path, encoding: str = "utf-8") -> DataFrame:
-    return read_csv(
-        path, dtype=str, encoding=encoding, keep_default_na=False, na_values=[""], skip_blank_lines=False
-    )
+    return read_csv(path, encoding=encoding, as_text=True)
 
 
 def read_raw_csv(cfg: Config) -> DataFrame:

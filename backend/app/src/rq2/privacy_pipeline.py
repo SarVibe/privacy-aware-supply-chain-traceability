@@ -8,8 +8,6 @@ configurations are compared on *paired* data):
   * M stored victim records (Zipf-sampled entities, typos applied per record) and an
     independent public frequency sample used by the frequency attacks.
 """
-import hashlib
-import hmac
 import math
 from dataclasses import dataclass
 
@@ -19,11 +17,14 @@ from . import privacy_attacks as attacks
 from . import similarity_matching as matching
 from . import privacy_metrics as metrics
 from .experiment_config import (BIT_ATTACK_TOP_BITS, DEFAULT_PAD, DEFAULT_Q)
-from src.rq2.bloom_encoder import BloomEncoder
+from src.common.config import load_config
+from src.common.encoding.bloom_filter import BloomFilterEncoder
+from src.common.encoding.qgrams import extract_qgrams
+from src.common.linking.exact import keyed_sha256
+from src.common.noise_injection import add_noise
+from src.common.preprocessing.normalizer import normalize
+from src.common.similarity.dice import dice_matrix
 from src.rq2.numpy_randomized_response import flip_probability, randomized_response
-from src.common.noise_injection import add_noise, NoiseSpec
-from src.rq2.text_normalizer import normalize
-from src.rq2.qgram_utils import qgram_set
 from .parameter_validation import (validate_noise, validate_overlap, validate_n_records, validate_eps,
                        validate_dataset, validate_dictionary, validate_bit_top)
 
@@ -34,6 +35,7 @@ class Scenario:
     noise: float
     overlap: float
     key: bytes
+    pad_char: str
     b_norm: list
     val_idx: np.ndarray
     test_idx: np.ndarray
@@ -99,6 +101,8 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
         for e in aux_sample:
             if int(e) in aux_counts:
                 aux_counts[int(e)] += 1
+    bloom = load_config("rq1").bloom
+    pad_char = bloom.pad_char
     # public document frequency of every q-gram (weighted by public entity counts)
     tot = max(1, sum(aux_counts.values()))
     gram_w = {}
@@ -106,12 +110,12 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
         if int(e) < 0:
             continue
         w = aux_counts[int(e)] / tot
-        for g in qgram_set(text, q, pad):
+        for g in extract_qgrams(text, q, pad_char) if text else ():
             gram_w[g] = gram_w.get(g, 0.0) + w
     aux_grams = sorted(gram_w)
     aux_df = np.array([gram_w[g] for g in aux_grams])
-    key = hashlib.sha256(f"rq2-key-{seed}".encode()).digest()
-    return Scenario(seed, noise, overlap, key, b_norm, val_idx, test_idx, dict_ids, dict_norm,
+    key = bytes.fromhex(bloom.hmac_key)
+    return Scenario(seed, noise, overlap, key, pad_char, b_norm, val_idx, test_idx, dict_ids, dict_norm,
                     dict_extra_ratio,
                     victim_ids, victim_norm, aux_counts, aux_grams, aux_df)
 
@@ -132,9 +136,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
     validate_dataset(ds)
     eps = validate_eps(eps)
     bit_top = validate_bit_top(bit_top)
-    if k > l:
-        raise ValueError("k must be <= l")
-    enc = BloomEncoder(l, k, scen.key, q, pad)
+    enc = BloomFilterEncoder(l, k, q, scen.key, scen.pad_char)
     atk_rng = np.random.default_rng(np.random.SeedSequence([scen.seed, 99, l, k]))
     dp_rng = np.random.default_rng(
         np.random.SeedSequence([scen.seed, 77, l, k, int(min(eps, 1e6) * 100)])
@@ -154,7 +156,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
         row.update(eps=eps, flip_p=flip_probability(eps, k))
 
     # ---- utility: tune tau on val split, report on test split ----
-    D = matching.dice_matrix(bf_a, bf_b)
+    D = dice_matrix(bf_a, bf_b)
     v, t = scen.val_idx, scen.test_idx
     tuned = matching.tune_tau_full(D[np.ix_(v, v)], taus)
     tau_unc = tuned["tau_unc"]
@@ -206,7 +208,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
     row.update(bit_success=bs, bit_baseline=bb, bit_qgrams_per_bit=bq)
 
     # ---- structural ----
-    nq = float(np.mean([len(qgram_set(s, q, pad)) for s in ds.norm]))
+    nq = float(np.mean([len(enc.grams(s)) for s in ds.norm]))
     load = metrics.collision_load(nq, k, l)
     fm, fs = metrics.fill_stats(bf_a)
     row.update(fill=fm, fill_std=fs, fill_expected=metrics.expected_fill(load), entropy=metrics.bit_entropy(bf_a),
@@ -219,7 +221,7 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     """Exact matching baseline: HMAC-SHA256(secret salt, normalized string)."""
     validate_dataset(ds)
     def tok(s):
-        return hmac.new(scen.key, s.encode(), hashlib.sha256).digest()
+        return keyed_sha256(s, scen.key)
 
     tok_a = [tok(s) for s in ds.norm]
     tok_b = [tok(s) for s in scen.b_norm]

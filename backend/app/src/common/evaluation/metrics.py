@@ -9,6 +9,17 @@ def _count_pairs(sizes: Iterable[int]) -> int:
     return sum(n * (n - 1) // 2 for n in map(int, sizes))
 
 
+def pairwise_prf(
+    true_positives: int, predicted_pairs: int, true_pairs: int, *, empty_score: float = 1.0
+) -> tuple[float, float, float]:
+    """Score pair counts with an explicit convention for empty denominators."""
+    precision = true_positives / predicted_pairs if predicted_pairs else (empty_score if not true_pairs else 0.0)
+    recall = true_positives / true_pairs if true_pairs else empty_score
+    total_pairs = predicted_pairs + true_pairs
+    f1 = 2 * true_positives / total_pairs if total_pairs else empty_score
+    return precision, recall, f1
+
+
 def evaluate_clusters(
     entity_ids: pd.Series, cluster_labels: pd.Series
 ) -> dict[str, float | int]:
@@ -36,11 +47,7 @@ def evaluate_clusters(
     tp = _count_pairs(cells)
     predicted_pairs = _count_pairs(cluster_sizes)
     true_pairs = _count_pairs(entity_sizes)
-    precision = tp / predicted_pairs if predicted_pairs else float(true_pairs == 0)
-    recall = tp / true_pairs if true_pairs else 1.0
-    # The harmonic mean simplifies to 2 * TP / (predicted pairs + true pairs).
-    total_pairs = predicted_pairs + true_pairs
-    f1 = 2 * tp / total_pairs if total_pairs else 1.0
+    precision, recall, f1 = pairwise_prf(tp, predicted_pairs, true_pairs)
     fragmentation = float(by_entity.size()[entity_sizes >= 2].mean())
     return {
         "precision": precision,

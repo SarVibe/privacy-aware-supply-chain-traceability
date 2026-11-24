@@ -1,5 +1,6 @@
 """SHA-256 exact linking over raw or normalized field strings."""
 
+import hmac
 from hashlib import sha256
 
 import pandas as pd
@@ -16,17 +17,27 @@ def sha256_hex(text: str) -> str:
     return sha256(text.encode("utf-8")).hexdigest()
 
 
+def keyed_sha256(text: str, key: bytes) -> bytes:
+    """Return the HMAC-SHA256 token of a field string."""
+    return hmac.digest(key, text.encode("utf-8"), "sha256")
+
+
 class ExactLinker:
     """Group records with equal SHA-256 digests."""
 
-    def __init__(self, name: str, field_set: str, normalize: bool, cfg: Config) -> None:
+    def __init__(self, name: str, field_set: str, normalize: bool, cfg: Config, *, key: bytes | None = None) -> None:
         self.name = name
         self.field_set = field_set
         self.normalize = normalize
         self.cfg = cfg
+        self._key = key
 
     def link(self, df: pd.DataFrame) -> pd.Series:
         """Return an integer label for each record, indexed by record ID."""
         strings = build_field_strings(df, self.field_set, self.cfg, self.normalize)
-        labels, _ = pd.factorize(strings.map(sha256_hex), sort=False)
+        if self._key is None:
+            tokens = strings.map(sha256_hex)
+        else:
+            tokens = strings.map(lambda text: keyed_sha256(text, self._key))
+        labels, _ = pd.factorize(tokens, sort=False)
         return pd.Series(labels, index=strings.index)

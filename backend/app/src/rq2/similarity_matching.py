@@ -7,24 +7,17 @@ import numpy as np
 from collections import Counter
 from scipy.stats import rankdata
 
+from src.common.evaluation.metrics import pairwise_prf
+from src.common.similarity.dice import dice_matrix
+
 from .experiment_config import TAU_GRID
 from .parameter_validation import validate_tau
 
 MAX_FPR = 0.01
 
 
-def dice_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Pairwise Dice between rows of x (n,l) and rows of y (m,l) -> float64 (n,m)."""
-    xf, yf = x.astype(np.float32), y.astype(np.float32)
-    inter = (xf @ yf.T).astype(np.float64)
-    denom = xf.sum(1).astype(np.float64)[:, None] + yf.sum(1).astype(np.float64)[None, :]
-    return np.divide(2.0 * inter, denom, out=np.zeros_like(inter), where=denom > 0)
-
-
-def _prf(tp, pred, n):
-    p = tp / pred if pred > 0 else 0.0
-    r = tp / n if n > 0 else 0.0
-    f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+def _cross_party_rates(tp, pred, n):
+    p, r, f1 = pairwise_prf(tp, pred, n, empty_score=0.0)
     fpr = (pred - tp) / (n * n - n) if n > 1 else 0.0
     return p, r, f1, fpr
 
@@ -38,7 +31,7 @@ def sweep(D: np.ndarray, taus=TAU_GRID):
     for t in taus:
         pred = flat.size - np.searchsorted(flat, t - 1e-12, side="left")
         tp = diag.size - np.searchsorted(diag, t - 1e-12, side="left")
-        out.append(_prf(int(tp), int(pred), n))
+        out.append(_cross_party_rates(int(tp), int(pred), n))
     return np.array(out)  # columns: P, R, F1, FPR
 
 
@@ -120,5 +113,5 @@ def exact_metrics(tok_a: list, tok_b: list) -> dict:
     ca, cb = Counter(tok_a), Counter(tok_b)
     pred = sum(c * cb.get(t, 0) for t, c in ca.items())
     tp = sum(1 for a, b in zip(tok_a, tok_b) if a == b)
-    p, r, f1, fpr = _prf(tp, pred, n)
+    p, r, f1, fpr = _cross_party_rates(tp, pred, n)
     return {"precision": p, "recall": r, "f1": f1, "fpr": fpr}

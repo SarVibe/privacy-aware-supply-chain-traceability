@@ -21,8 +21,8 @@ class BloomFilterEncoder:
         pad_char: str,
         post_transform: Callable[[NDArray[np.uint8]], NDArray[np.uint8]] | None = None,
     ) -> None:
-        if type(l) is not int or l < 1 or l & (l - 1):
-            raise ValueError("l must be a positive power of two")
+        if type(l) is not int or l < 1:
+            raise ValueError("l must be an integer >= 1")
         if type(k) is not int or k < 1:
             raise ValueError("k must be an integer >= 1")
         validate_qgram_parameters(q, pad_char)
@@ -49,12 +49,20 @@ class BloomFilterEncoder:
             self._indices[qgram] = positions
         return positions
 
+    def gram_positions(self, grams: Iterable[str]) -> NDArray[np.intp]:
+        """Return the occupied positions for each gram in input order."""
+        rows = [self._positions(gram) for gram in grams]
+        return np.stack(rows) if rows else np.empty((0, self._k), dtype=np.intp)
+
+    def grams(self, text: str) -> set[str]:
+        """Return the distinct grams used to encode this text."""
+        return extract_qgrams(text, self._q, self._pad_char) if text else set()
+
     def encode(self, text: str) -> NDArray[np.uint8]:
         """Encode one string, then apply the optional per-record transform."""
         bits = np.zeros(self._length, dtype=np.uint8)
-        if text:
-            for qgram in extract_qgrams(text, self._q, self._pad_char):
-                bits[self._positions(qgram)] = 1
+        for qgram in self.grams(text):
+            bits[self._positions(qgram)] = 1
         if self._post_transform is not None:
             bits = self._post_transform(bits)
             if not isinstance(bits, np.ndarray) or bits.shape != (self._length,) or bits.dtype != np.uint8:
@@ -68,3 +76,8 @@ class BloomFilterEncoder:
         for index, text in enumerate(texts):
             bits[index] = self.encode(text)
         return bits
+
+
+def fill_ratio(bits: NDArray[np.uint8]) -> np.float64 | NDArray[np.float64]:
+    """Return the fraction of set bits in each filter."""
+    return np.mean(bits, axis=-1, dtype=np.float64)

@@ -4,7 +4,7 @@ import hmac
 import numpy as np
 import pytest
 
-from src.common.encoding.bloom_filter import BloomFilterEncoder
+from src.common.encoding.bloom_filter import BloomFilterEncoder, fill_ratio
 from src.common.encoding.qgrams import extract_qgrams
 
 
@@ -40,9 +40,18 @@ def test_reuses_hmac_positions_for_shared_qgrams(monkeypatch):
     assert len(set(calls)) == len(calls)
 
 
-def test_rejects_non_power_of_two():
-    with pytest.raises(ValueError, match="power of two"):
-        BloomFilterEncoder(1000, 4, 2, b"test-key", "_")
+@pytest.mark.parametrize("length, hashes", [(1000, 4), (3, 7), (1, 1)])
+def test_free_length_and_repeated_positions(length, hashes):
+    encoder = BloomFilterEncoder(length, hashes, 2, b"test-key", "_")
+    grams = sorted(encoder.grams("a"))
+    assert grams == ["_a", "a_"]
+    positions = encoder.gram_positions(grams)
+    assert positions.shape == (2, hashes)
+    assert ((0 <= positions) & (positions < length)).all()
+    assert encoder.gram_positions([]).shape == (0, hashes)
+    bits = encoder.encode("a")
+    assert set(np.flatnonzero(bits)) == set(positions.ravel())
+    assert fill_ratio(bits) == np.count_nonzero(bits) / length
 
 
 @pytest.mark.parametrize("k", [4, 30])

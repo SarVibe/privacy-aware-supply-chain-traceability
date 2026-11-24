@@ -42,12 +42,16 @@ class BloomLinker:
         bloom = cfg.bloom
         self._encoder = BloomFilterEncoder(bloom.l, bloom.k, bloom.q, bytes.fromhex(bloom.hmac_key), bloom.pad_char)
 
+    def encode_records(self, df: pd.DataFrame) -> tuple[pd.Index, NDArray[np.uint8]]:
+        """Encode records in the order of their stable record IDs in the input."""
+        strings = build_field_strings(df, self._field_set, self._cfg, normalize=True)
+        return strings.index, self._encoder.encode_many(strings)
+
     def prepare(self, df: pd.DataFrame, tau_min: float) -> PreparedBloom:
         """Encode record fields and compute reusable unordered similarity pairs."""
-        strings = build_field_strings(df, self._field_set, self._cfg, normalize=True)
-        bits = self._encoder.encode_many(strings)
+        record_ids, bits = self.encode_records(df)
         i, j, sim = compute_similar_pairs(bits, tau_min)
-        return PreparedBloom(strings.index, i, j, sim, tau_min)
+        return PreparedBloom(record_ids, i, j, sim, tau_min)
 
     def link(self, df: pd.DataFrame) -> pd.Series:
         """Return integer cluster labels for the configured threshold."""

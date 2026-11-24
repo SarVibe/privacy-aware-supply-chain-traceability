@@ -9,11 +9,12 @@ import numpy as np
 import pandas as pd
 
 from src.application_config import Config
+from src.common.config import load_config
+from src.common.encoding.qgrams import extract_qgrams
 from src.common.experiment_metadata import add_common_args, write_run_csv
 from src.rq2.experiment_config import DEFAULT_KS, DEFAULT_LS, DEFAULT_PAD, DEFAULT_Q
 from src.rq2.rq2_dataset import load_dataset
 from src.rq2.privacy_metrics import collision_load, expected_fill
-from src.rq2.qgram_utils import qgram_set
 
 
 def main():
@@ -31,7 +32,8 @@ def main():
         else ["dosage", "dosage_form", "pack_size"] if a.composite else None
     )
     ds = load_dataset(a.data, a.column, a.n_entities, composite_columns=composite_columns)
-    nq = np.array([len(qgram_set(s, a.q, DEFAULT_PAD)) for s in ds.norm])
+    pad_char = load_config("rq1").bloom.pad_char
+    nq = np.array([len(extract_qgrams(s, a.q, pad_char)) if s else 0 for s in ds.norm])
     print(f"dataset: {ds.source}  entities={ds.n}")
     print(f"n_q: mean={nq.mean():.1f}  p5={np.percentile(nq, 5):.0f}  p50={np.percentile(nq, 50):.0f}  "
           f"p95={np.percentile(nq, 95):.0f}  max={nq.max()}")
