@@ -1,7 +1,7 @@
 import pytest
 from bitarray import bitarray
 
-from src.common.differential_privacy import LocalDifferentialPrivacy
+from src.rq2.bitarray_differential_privacy import LocalDifferentialPrivacy
 
 
 def test_flip_probability_matches_configured_epsilon():

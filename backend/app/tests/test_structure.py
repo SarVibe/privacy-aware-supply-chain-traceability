@@ -76,3 +76,17 @@ def test_research_modules_do_not_redefine_shared_implementations():
             if name in common_names | RETIRED_SHARED_NAMES:
                 violations.append(f"{path.relative_to(APPLICATION)}:{line}: {name}")
     assert not violations, "\n".join(violations)
+
+
+def test_serving_uses_no_local_preprocessing_or_legacy_encoder_imports():
+    active = [
+        APPLICATION / "main.py",
+        APPLICATION / "src/rq1/entity_resolver.py",
+        *(APPLICATION / "src/rq2" / name for name in SERVING_FILES),
+    ]
+    historical = {"KeyedBloomFilter", "QGramExtractor", "TextPreprocessor"}
+    shared = {"BloomFilterEncoder", "CompositeBloomEncoder", "encode_record", "extract_qgrams", "normalize"}
+    for path in active:
+        tree = parsed(path)
+        assert not ({module.split(".")[-1] for module in local_imports(path, tree)} & historical), path
+        assert not ({name for name, _ in shared_definitions(tree)} & (shared | historical)), path

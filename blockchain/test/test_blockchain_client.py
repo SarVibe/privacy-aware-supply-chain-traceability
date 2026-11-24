@@ -1,8 +1,11 @@
 import pytest
-from bitarray import bitarray
+import numpy as np
+from src.common.encoding.versioned_bloom import BloomNamespace, VersionedBloom
 
-from src.common.blockchain_client import BlockchainClient
+from src.rq2.blockchain_client import BlockchainClient
 
+
+NAMESPACE = BloomNamespace("fixture-encoder", "fixture-key")
 
 def test_hash_conversion_requires_exact_hex_bytes():
     client = BlockchainClient.__new__(BlockchainClient)
@@ -19,7 +22,7 @@ def test_mock_commit_requires_explicit_opt_in(monkeypatch):
     monkeypatch.setattr(BlockchainClient, "_initialize_connection", lambda self: None)
     client = BlockchainClient(
         contract_address="0x0000000000000000000000000000000000000001",
-        bf_length=8,
+        bf_length=8, namespace=NAMESPACE,
         allow_mock_ledger=False,
     )
     client.is_live = False
@@ -27,7 +30,7 @@ def test_mock_commit_requires_explicit_opt_in(monkeypatch):
     result = client.commit_harmonized_record(
         "R1",
         "C1",
-        bitarray("10101010"),
+        VersionedBloom(np.array([1, 0] * 4, dtype=np.uint8), NAMESPACE),
         "11" * 32,
     )
 
@@ -38,11 +41,11 @@ def test_mock_commit_tracks_new_cluster_gas(monkeypatch):
     monkeypatch.setattr(BlockchainClient, "_initialize_connection", lambda self: None)
     client = BlockchainClient(
         contract_address="0x0000000000000000000000000000000000000001",
-        bf_length=8,
+        bf_length=8, namespace=NAMESPACE,
         allow_mock_ledger=True,
     )
     client.is_live = False
-    filter_value = bitarray("10101010")
+    filter_value = VersionedBloom(np.array([1, 0] * 4, dtype=np.uint8), NAMESPACE)
 
     first = client.commit_harmonized_record("R1", "C1", filter_value, "11" * 32)
     second = client.commit_harmonized_record("R2", "C1", filter_value, "22" * 32)

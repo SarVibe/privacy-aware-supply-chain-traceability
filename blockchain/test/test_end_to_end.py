@@ -1,7 +1,8 @@
 from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 
-def test_off_chain_pipeline_harmonizes_matching_records():
+def test_off_chain_pipeline_harmonizes_matching_records(monkeypatch):
+    monkeypatch.setenv("SHARED_SECRET_KEY", "public serving test key")
     pipeline = HarmonizationPipeline(
         length=128,
         num_hashes=3,
@@ -26,7 +27,8 @@ def test_off_chain_pipeline_harmonizes_matching_records():
     assert second["onchain_status"] == "NOT_COMMITTED"
 
 
-def test_pipeline_rejects_empty_input():
+def test_pipeline_rejects_empty_input(monkeypatch):
+    monkeypatch.setenv("SHARED_SECRET_KEY", "public serving test key")
     pipeline = HarmonizationPipeline(enable_blockchain_commit=False)
 
     try:

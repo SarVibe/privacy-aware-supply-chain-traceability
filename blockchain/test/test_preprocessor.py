@@ -1,22 +1,15 @@
-from src.common.preprocessor import TextPreprocessor
+from src.common.preprocessing.field_builder import composite_field_string
+from src.common.encoding.qgrams import extract_qgrams
 
 
-def test_normalize_removes_inventory_markers_and_punctuation():
-    normalized = TextPreprocessor.normalize(
-        "#102198**Didanosine 200mg [Videx], tablets"
+def test_normalize_preserves_digits_and_removes_punctuation():
+    assert composite_field_string("#102198**Didanosine 200mg [Videx], tablets", None, None, None) == (
+        "102198didanosine200mgvidextablets|||"
     )
 
-    assert normalized == "didanosine 200mg videx tablets"
 
-
-def test_composite_qgrams_keep_dosage_and_form_signatures():
-    qgrams = TextPreprocessor.extract_composite_qgrams(
-        "Didanosine 200mg tablets",
-        dosage="200mg",
-        dosage_form="Tablets",
-        pack_size="30",
-    )
-
-    assert "EXACT_DOSE_W0_200mg" in qgrams
-    assert "EXACT_FORM_tablets" in qgrams
-    assert "PACK_30" in qgrams
+def test_whole_composite_has_dosage_and_form_boundaries():
+    text = composite_field_string("Product A", "20mg", "Tablet", "10")
+    assert text == "producta|20mg|tablet|10"
+    grams = extract_qgrams(text, 2, "_")
+    assert {"a|", "|2", "g|", "|t", "_p", "0_"} <= grams
