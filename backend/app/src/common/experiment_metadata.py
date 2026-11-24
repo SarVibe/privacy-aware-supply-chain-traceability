@@ -124,7 +124,7 @@ def write_metadata(
     from datetime import datetime, timezone
 
     snapshot = asdict(cfg)
-    for section in ("sweep", "response_sweep"):
+    for section in ("sweep", "response_sweep", "diagnostics"):
         if snapshot.get(section) is None:
             snapshot.pop(section, None)
     key = snapshot["bloom"].pop("hmac_key")

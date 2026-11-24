@@ -109,6 +109,12 @@ class ResponseSweepConfig:
 
 
 @dataclass(frozen=True)
+class DiagnosticsConfig:
+    fixed_taus: tuple[float, ...]
+    variants: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Config:
     paths: PathsConfig
     columns: ColumnsConfig
@@ -127,6 +133,7 @@ class Config:
     sample_entities_seed: int = 0
     sweep: SweepConfig | None = None
     response_sweep: ResponseSweepConfig | None = None
+    diagnostics: DiagnosticsConfig | None = None
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -257,6 +264,14 @@ def _validate(cfg: Config) -> None:
         raise ValueError("sample_entities_seed must be a non-negative integer")
     if cfg.sweep is not None:
         _validate_sweep(cfg.sweep)
+    if cfg.diagnostics is not None:
+        taus, variants = cfg.diagnostics.fixed_taus, cfg.diagnostics.variants
+        if not taus or len(set(taus)) != len(taus):
+            raise ValueError("diagnostics.fixed_taus must contain unique values")
+        for tau in taus:
+            unit_interval(tau, "diagnostic tau")
+        if not variants or len(set(variants)) != len(variants) or not set(variants) <= {"V0", "V1", "V2", "V3"}:
+            raise ValueError("diagnostics.variants must contain unique variants from V0 to V3")
     if cfg.response_sweep is not None:
         response = cfg.response_sweep
         if not response.bloom_pairs or len(set(response.bloom_pairs)) != len(response.bloom_pairs):
@@ -287,6 +302,11 @@ def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
     try:
         for name, constructor in constructors.items():
             settings[name] = constructor(**settings[name])
+        if "diagnostics" in settings:
+            options = settings["diagnostics"]
+            if not isinstance(options.get("fixed_taus"), list) or not isinstance(options.get("variants"), list):
+                raise TypeError("diagnostic thresholds and variants must be YAML lists")
+            settings["diagnostics"] = DiagnosticsConfig(tuple(options["fixed_taus"]), tuple(options["variants"]))
         if "sweep" in settings:
             sweep = settings["sweep"]
             for name in ("lengths", "hashes", "reid_topk"):

@@ -1,0 +1,4 @@
+extends: rq1
+diagnostics:
+  fixed_taus: [0.80, 0.86, 0.90, 0.94, 0.97]
+  variants: [V0, V1, V2, V3]
