@@ -1,0 +1,7 @@
+{
+  "source_commit": "eed1ccd",
+  "seed": 0,
+  "n_records": 200,
+  "selection": "First whole entity groups in sorted ID order fitting 60 validation and 140 test records, using the original split and prepared record order.",
+  "noise": "Subsets of the already-generated final RQ1 files, aligned on record_id."
+}

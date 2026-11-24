@@ -1,0 +1,201 @@
+record_id,entity_id,raw_item_description,dosage,dosage_form,pack_size
+R000063,E0003,"Abacavir 300mg [Ziagen], tablets, Blistr 6 x 10Tabs",300mg,Tablet - blister,60
+R000065,E0010,"Artemether/Lumefantrine 20/120mg[Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R000073,E0012,"Artesunate+Amodiaquine 50+153mg, tablets, co-blister 6+6 Tabs",50+153mg,Tablet - FDC + co-blister,12
+R000351,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R000353,E0012,"Artesunate+Amodiaquine 50+153gm, tablets, co-blister 6+6 Tabs",50+153mg,Tablet - FDC + co-blister,12
+R000402,E0009,"Abacavir/Lamivudine/Zidovubdine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R000472,E0050,"HIV 1/2, Bundi Rapid HIV Kit, 25 Tests",,Test kit,1
+R000515,E0010,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R000520,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R000585,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R000607,E0019,"Chloroquine 150mg base (as phosphate), [DON] tablets, 1000 Tabs",150mg,Tablet,1000
+R000651,E0010,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R000736,E0013,"Artesunaet+Amodiaquine 50+153mg, tablets, co-blister 12+12 Tabs",50+153mg,Tablet - FDC + co-blister,24
+R000749,E0024,"Didanosine 200mg, chewawble/dispersibl etablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R000805,E0050,"HIV 1/2, Bundi Rapid HIV Kit, 25 Tests",,Test kit,1
+R000957,E0010,"Artemether/Lrmefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R000958,E0010,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabn",20/120mg,Tablet - FDC + blister,540
+R000963,E0010,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R000969,E0013,"Artesunate+Amodiaquine 50+153mg, tablets, co-blister 12+12 Tabs",50+153mg,Tablet - FDC + co-blister,24
+R001092,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001120,E0002,"Abacavir 300mg,tablets, 60 Tabs",300mg,Tablet,60
+R001127,E0001,"Abaxavir 20mg/ml, orl solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R001236,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R001274,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001295,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R001296,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001430,E0103,"Lamivudiae/Zidovudine+Abacavir 150/300+300mg, tablets, co-blisteru 60+60 Tabs",150/300+300mg,Tablet - FDC + co-blister,120
+R001454,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R001492,E0009,"Abacavir/Lamivudyine/Zidovudine 300/150/300mg [Trizivir] ,tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001651,E0009,"Abacavir/Lamivudine/Zidovdine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001671,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001677,E0009,"Abacavir/xLamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R001713,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R001836,E0001,"Abaaveir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R001852,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R002004,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R002026,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R002027,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R002086,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R002123,E0002,"Abacavir 300mg, tablest, 60 Tabs",300mg,Tablet,60
+R002152,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R002306,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R002334,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R002525,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R002553,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R002646,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R002695,E0002,"Abacavir 300mg,utablets, 60 Tabs",300mg,Tablet,60
+R002771,E0047,"HIV 1/2, Bilin 3.0 Kit, 100 Tests",,Test kit,100
+R002778,E0011,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 24 Tabs",20/120mg,Tablet - FDC + blister,720
+R002805,E0015,"Atazanavir 200mg [Reyataz], capzules, 60 Caps",200mg,Capsule,60
+R002845,E0011,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, lister 30 x 24 Tabs",20/120mg,Tablet - FDC + blister,720
+R003019,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R003065,E0023,"Didanosine 125mg, delayed-release capsules, 30 Caps",125mg,Delayed-release capsules,30
+R003076,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R003084,E0015,"Atazanavir 200mg, capsules, 60 Caps",200mg,Capsule,60
+R003230,E0023,"Didanosine 125mg, delayed-release capsules, 30 Caps",125mg,Delayed-release capsules,30
+R003389,E0004,"Abacavir 60mg, dispersible tablets, 60 Tabs",60mg,Chewable/dispersible tablet,60
+R003409,E0011,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 24 Tabs",20/120mg,Tablet - FDC + blister,720
+R003420,E0002,"Abaavir 300mg, tablets, 60xTabs",300mg,Tablet,60
+R003494,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R003506,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R003582,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R003588,E0062,"HIV 1/2, ImunoComb II BiSpft EIA Kit, 36 Tests",,Test kit,36
+R003592,E0016,"Atazanavir 300mg, capsules, 30 Caps",300mg,Capsule,30
+R003698,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R003813,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R003945,E0015,"Atxazanavir 200mg [Reyataz], capsules, 60 Casp",200mg,Capsule,60
+R004008,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R004030,E0019,"Chloroquine 150mg base (as phosphate), tablets, 1000 Tabs",150mg,Tablet,1000
+R004037,E0001,"Abacavir 20mg/ml, oral solution w/syringe, Bottle, 240 ml",20mg/ml,Oral solution,240
+R004041,E0004,"Abacavir 60mg, dispersible tablets, 60 Tabs",60mg,Chewable/dispersible tablet,60
+R004122,E0001,"Abacavir 20mg/l Z[iagen], oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R004196,E0001,"Abacavir 20mg/ml, oral solution, hlBottle, 240 ml",20mg/ml,Oral solution,240
+R004252,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R004310,E0053,"HIV 1/2, SKB Colloidal Gold, Diagnostic Kit Set, (includes lancet,transefr pipette & alcohol prep pad), 50 Tests",,Test kit,1
+R004357,E0011,"Artemether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 24 Tabs",20/120mg,Tablet - FDC + blister,720
+R004377,E0019,"Chloroquine 150mg base (as phosphate), tablets, 1000 Tabs",150mg,Tablet,1000
+R004440,E0016,"Atazanavir 300mg, capsules, 30 Caps",300mg,Capsule,30
+R004465,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R004755,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R004924,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R004962,E0001,"Abacavir 20mg/ml, oral solution w/syringe, Bottle, 240i ml",20mg/ml,Oral solution,240
+R005001,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R005074,E0002,"bacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R005093,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R005133,E0016,"Atazanavir 300mg, capsules 30 Cas",300mg,Capsule,30
+R005179,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg [Trizivir], tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R005186,E0016,"Atazanavir 300mg, capsules, 30 Caps",300mg,Capsule,30
+R005215,E0001,"Abacavir 20mg/ml [Ziagen], oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R005240,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R005242,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R005298,E0004,"Abacavir 60mg, dispersible tablets, 60 Tabs",60mg,Chewable/dispersible tablet,60
+R005350,E0005,"Abacavir/Lamivudine 60/30mg, diispersible tablets, 60 Tab",60/30mg,Chewable/dispersible tablet - FDC,60
+R005397,E0047,"HIV 1/2, Biolime 3.0 Kitb, 100 Tests",,Test kit,100
+R005498,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R005533,E0011,"Artkmether/Lumefantrine 20/120mg [Coartem], scored tabllts, Blister 30 x 24 Tabs",20/120mg,Tablet - FDC + blister,720
+R005559,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R005699,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R005744,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R005902,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R005949,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R005969,E0004,"Abacavir 60mg, dispersible tablets, 60 Tabs",60mg,Chewable/dispersible tablet,60
+R006001,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R006033,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R006049,E0060,"HIV 1/2, Genie III Kit, 50 Tests",,Test kit,50
+R006077,E0009,"Abacavir/Lmaivudine/Zidovudin 300/150/300mg, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R006127,E0035,"Efvireni 200mg, tablets, 30 Tabs",200mg,Tablet,30
+R006171,E0010,"Artmmether/Lumefantrine 20/120mg [Coartem], scored tablets, Blister 30 x 18 Tabs",20/120mg,Tablet - FDC + blister,540
+R006194,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R006513,E0003,"Abacavir 300mg [Ziagen], tablets, Blister 6 x 10 Tabs",300mg,Tablet - blister,60
+R006539,E0001,"Abacavir 20mg/ml, oral solution w/syringe, Bottle, 240 ml",20mg/ml,Oral solution,240
+R006577,E0004,"Abacavir 60mg, dispersible tablets, 60 Tabs",60mg,Chewable/dispersible tablet,60
+R006606,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R006607,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R006662,E0001,"Abacavir 20mg/ml, oral solution,Bottle, 240 ml",20mg/ml,Oral solution,240
+R006691,E0023,"Didanosine 125mg, delayed-release capsules, 30 Caps",125mg,Delayed-release capsules,30
+R006724,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R006752,E0001,"Abacavir 20mg/ml, oral solution w/syringe, Bottle, 240 ml",20mg/ml,Oral solution,240
+R006916,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R006946,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007021,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R007026,E0007,"Abacavir/Lamivudine 60/30mg, ablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007060,E0024,"Didanosine 200mg, chewable/disbeprsible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R007065,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R007324,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R007330,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007360,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R007374,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007433,E0007,"Abacavir/Lamivdunie 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007436,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007437,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R007440,E0005,"Abacair/Lamivudine e60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R007450,E0007,"tbacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007501,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R007565,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R007591,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R007696,E0009,"Abacavir/Lamivudine/Zdovudine 300/150/300mg, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R007808,E0006,"Abacavir/Lamivudine 60/30mg, tablets, 30 Tabs",60/30mg,Tablet - FDC,30
+R007847,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R007865,E0005,"Abacavir/Lamivudine 60/30mg, disersiblem tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R007888,E0007,"Abacavir/Lamivudine 60/30mg, tables, 60 Tabs",60/30mg,Tablet - FDC,60
+R007894,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R007904,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R007917,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R007932,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R007936,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R007944,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R007959,E0024,"Didanosine 200mg, chewable/dispeysible tablets, 60 abs",200mg,Chewable/dispersible tablet,60
+R008061,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R008072,E0023,"xDidanosine 125mg, delayed-releasey capsules, 30 Caps",125mg,Delayed-release capsules,30
+R008092,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R008148,E0001,"Abacavir 20mg/ml, oarl solution w/syringe, Bottll, 240 ml",20mg/ml,Oral solution,240
+R008208,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R008296,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R008322,E0008,"Abacavir/Lamivudine 600/300mg, scored tablejs, 30 Tabs",600/300mg,Tablet - FDC,30
+R008354,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008366,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008367,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R008388,E0008,"Abuacvair/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R008512,E0002,"Abacvir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R008577,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R008636,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R008766,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008793,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R008794,E0008,"Abacavir/Lamivudine 600/300mg, tpablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R008807,E0008,"Abacavir/Lamivudine 600/300mg, scored txablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R008821,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008837,E0001,"Abacavir 20mg/ml, oral solution w/syringe, Bottle, 240 ml",20mg/ml,Oral solution,240
+R008844,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008865,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R008876,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R008995,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R009070,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009074,E0008,"Abacavir/Lamivudine 600/300mg,scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009081,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300mg, tablts, 60 Tbas",300/150/300mg,Tablet - FDC,60
+R009087,E0009,"Abacavir/Lamivudine/Zidovudine 300/150/300m, tablets, 60 Tabs",300/150/300mg,Tablet - FDC,60
+R009188,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R009244,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R009263,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009337,E0005,"Abacavir/Lamivudine 60/30mg, dispersible tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R009362,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009389,E0001,"Abacavir 20mg/ml, oral solution, Bottle, 240 ml",20mg/ml,Oral solution,240
+R009390,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R009659,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R009689,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009715,E0007,"Abacavir/Lamrvudine 60/30emg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R009717,E0007,"Abacfvir/Lamivudine 60/30mg, tbalets, 60 Tabs",60/30mg,Tablet - FDC,60
+R009805,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R009819,E0005,"Abacavir/Lamivudine 60/30mg, dispersible ablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R009838,E0005,"Abacavir/Lamivudine 60/30mg, dispersibel tablets, 60 Tabs",60/30mg,Chewable/dispersible tablet - FDC,60
+R009868,E0024,"Didanosine 200mg, hcewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R009937,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R009951,E0024,"Didanosine 200mg, chewable/dispersible tablets, 60 Tabs",200mg,Chewable/dispersible tablet,60
+R010060,E0002,"Abacavir 300mg, tablets, 60 Tabs",300mg,Tablet,60
+R010100,E0002,"Abacaivr 300mg, tableps, 60 Tabs",300mg,Tablet,60
+R010197,E0006,"Abacavir/Lamivudine 60/30vmg, tablets, 30 Tabs",60/30mg,Tablet - FDC,30
+R010224,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R010232,E0008,"Abacavir/Lamivudine 600/300mg, scored tablets, 30 Tabs",600/300mg,Tablet - FDC,30
+R010255,E0007,"Abacavir/Lamivudine 60/30mg, tablets, 60 Tabs",60/30mg,Tablet - FDC,60
+R010270,E0008,"Abacavir/Lamivudine 600/300mg, tablets, 30 Tabs",600/300mg,Tablet - FDC,30

@@ -1,0 +1,10 @@
+{
+  "source_commit": "eed1ccd",
+  "seed": 42,
+  "n_records": 200,
+  "victim_draws": 200,
+  "l": 1024,
+  "k": 4,
+  "selection": "First 200 clean legacy rows and matching legacy noisy record IDs.",
+  "role": "Historical baseline only."
+}
