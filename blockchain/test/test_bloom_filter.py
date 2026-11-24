@@ -6,6 +6,7 @@ from src.common.encoding.versioned_bloom import BloomNamespace, VersionedBloom
 def test_encode_and_byte_round_trip_preserves_bits():
     encoder = BloomFilterEncoder(64, 3, 2, b"test-key", "_")
     bits = encoder.encode("some product")
+    assert bits.shape == (64,) and bits.any()
     namespace = BloomNamespace("fixture", "fixture-key")
     encoded = VersionedBloom(bits, namespace)
     restored = VersionedBloom.unpack(encoded.packed_bytes(), 64, namespace)
@@ -15,4 +16,4 @@ def test_encode_and_byte_round_trip_preserves_bits():
 
 def test_empty_text_creates_an_empty_filter():
     encoder = BloomFilterEncoder(32, 2, 2, b"test-key", "_")
-    assert not encoder.encode("").any()
+    np.testing.assert_array_equal(encoder.encode(""), np.zeros(32, dtype=np.uint8))

@@ -11,5 +11,11 @@
   "dp": false,
   "ledger": false,
   "vector_hash": "SHA-256 of 128 packed bytes in legacy bit order",
-  "purpose": "Historical serving baseline"
+  "purpose": "Historical serving baseline",
+  "previous_default_replay": {
+    "tau": 0.92,
+    "method": "Offline isolated source archive of the same 108c8b4 commit",
+    "records": "records_previous_defaults.csv",
+    "matches": "matched_pairs_previous_defaults.json"
+  }
 }

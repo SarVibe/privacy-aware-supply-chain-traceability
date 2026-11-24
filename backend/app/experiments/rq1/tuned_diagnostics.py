@@ -1,13 +1,14 @@
 """Tune on the saved validation groups and evaluate the held-out groups."""
 
 from itertools import groupby
+from math import sqrt
 
 import pandas as pd
+from scipy.stats import t
 
 from experiments.rq1.diagnostic_inputs import diagnostic_cases
 from experiments.rq1.overmerge_diagnostics import DEFAULT_OUTPUT, component_profile
 from src.common.config import load_config
-from src.common.evaluation.aggregation import mean_ci95_half_width
 from src.common.evaluation.metrics import evaluate_clusters
 from src.common.experiment.io import write_csv
 from src.common.linking.bloom import BloomLinker
@@ -26,8 +27,10 @@ def summarize_tuned_rows(test_rows):
         row = dict(zip(keys, dimension, strict=True))
         row["n_seeds"] = group.seed.nunique()
         for measure in MEASURES:
-            values = group[measure]
-            mean, margin = float(values.mean()), mean_ci95_half_width(values)
+            values = group[measure].to_numpy(dtype=float)
+            count = len(values)
+            mean = float(values.mean())
+            margin = float(t.ppf(0.975, count - 1) * values.std(ddof=1) / sqrt(count)) if count > 1 else float("nan")
             row.update({
                 f"{measure}_mean": mean, f"{measure}_ci95_low": mean - margin,
                 f"{measure}_ci95_high": mean + margin,

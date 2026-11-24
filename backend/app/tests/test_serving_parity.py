@@ -72,6 +72,33 @@ def test_contract_round_trip_rejects_untagged_candidates_even_with_mock_fallback
     restored = client.retrieve_stored_candidates()["C1"]
     np.testing.assert_array_equal(restored.bits, vector.bits)
     assert restored.namespace == namespace
-    leaders[0] = "C1"
-    with pytest.raises(IncompatibleBloomError, match="Unversioned"):
-        client.retrieve_stored_candidates()
+    for incompatible_id in ("C1", replace(namespace, encoder_version="other").qualify("C1")):
+        leaders[0] = incompatible_id
+        with pytest.raises(IncompatibleBloomError, match="Unversioned or incompatible"):
+            client.retrieve_stored_candidates()
+
+
+def test_commit_uses_the_existing_contract_arguments_and_records_the_namespace(monkeypatch):
+    monkeypatch.setenv("SHARED_SECRET_KEY", FIXTURE_KEY)
+    pipeline = HarmonizationPipeline(enable_blockchain_commit=False)
+    vector = pipeline.bf_engine.encode_record("aaa", "20mg", "tablet", "10")
+    client = pipeline.blockchain
+    client.is_live = True
+    client.account = SimpleNamespace(address="fixture")
+    sent = []
+
+    def store(*args):
+        sent.append(args)
+        return SimpleNamespace(estimate_gas=lambda _: 100, build_transaction=lambda values: values)
+
+    client.contract = SimpleNamespace(functions=SimpleNamespace(storeHarmonizedRecord=store))
+    client.w3 = SimpleNamespace(eth=SimpleNamespace(
+        get_transaction_count=lambda *_: 1,
+        account=SimpleNamespace(sign_transaction=lambda *_args, **_kw: SimpleNamespace(raw_transaction=b"signed")),
+        send_raw_transaction=lambda _: b"hash",
+        wait_for_transaction_receipt=lambda *_args, **_kw: SimpleNamespace(status=1, gasUsed=100, blockNumber=2),
+    ))
+    monkeypatch.setattr(client, "_get_fee_fields", lambda: {"gasPrice": 1})
+    receipt = client.commit_harmonized_record("record", "C1", vector, "22" * 32)
+    assert receipt["status"] == "SUCCESS"
+    assert sent == [("record", vector.namespace.qualify("C1"), vector.packed_bytes(), bytes.fromhex("22" * 32))]
