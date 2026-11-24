@@ -109,8 +109,11 @@ def paired_difference(
 
 def mean_ci95_half_width(x):
     x = np.asarray(x, float)
-    x = x[~np.isnan(x)]
-    return float(stats.t.ppf(0.975, len(x) - 1) * x.std(ddof=1) / sqrt(len(x))) if len(x) > 1 else float("nan")
+    if len(x) < 2 or np.isnan(x).any():
+        return float("nan")
+    if np.all(x == x[0]):
+        return 0.0
+    return float(t.ppf(0.975, len(x) - 1) * x.std(ddof=1) / sqrt(len(x)))
 
 
 def paired_effect(differences, *, rng_seed: int, bootstrap_draws: int):
