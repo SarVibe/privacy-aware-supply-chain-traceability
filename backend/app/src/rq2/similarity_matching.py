@@ -9,7 +9,6 @@ from scipy.stats import rankdata
 
 from src.common.config import unit_interval
 from src.common.evaluation.metrics import pairwise_prf
-from src.common.similarity.dice import dice_matrix
 
 from .experiment_config import TAU_GRID
 
@@ -33,7 +32,7 @@ def sweep(D: np.ndarray, taus=TAU_GRID):
     return np.array(out)  # columns: P, R, F1, FPR
 
 
-def tune_tau_full(D_val: np.ndarray, taus=TAU_GRID) -> dict:
+def tune_cross_party_thresholds(D_val: np.ndarray, taus=TAU_GRID) -> dict:
     """Return unconstrained and FPR-constrained best-F1 thresholds.
 
     Returns a dict with keys:
@@ -84,12 +83,12 @@ def tune_tau_full(D_val: np.ndarray, taus=TAU_GRID) -> dict:
     }
 
 
-def tune_tau(D_val: np.ndarray, taus=TAU_GRID) -> float:
+def select_cross_party_threshold(D_val: np.ndarray, taus=TAU_GRID) -> float:
     """Backward-compatible wrapper: returns unconstrained best-F1 tau (never raises)."""
-    return tune_tau_full(D_val, taus)["tau_unc"]
+    return tune_cross_party_thresholds(D_val, taus)["tau_unc"]
 
 
-def metrics_at(D: np.ndarray, tau: float) -> dict:
+def cross_party_metrics_at(D: np.ndarray, tau: float) -> dict:
     p, r, f1, fpr = sweep(D, [tau])[0]
     return {"precision": p, "recall": r, "f1": f1, "fpr": fpr}
 
@@ -107,7 +106,7 @@ def auc_and_separation(D: np.ndarray):
     return float(auc), float(pos.mean() - neg.mean())
 
 
-def exact_metrics(tok_a: list, tok_b: list) -> dict:
+def cross_party_exact_metrics(tok_a: list, tok_b: list) -> dict:
     """Exact-match linkage: pair (i, j) is predicted iff tokens are equal."""
     n = len(tok_a)
     ca, cb = Counter(tok_a), Counter(tok_b)

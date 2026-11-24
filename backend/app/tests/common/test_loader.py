@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from src.common.config import load_config
 from src.common.data import loader
@@ -29,3 +30,17 @@ def test_prepared_and_noisy_readers_preserve_text_and_ids(tmp_path, monkeypatch)
     frame = loader.read_prepared_csv(cfg)
     assert frame.iloc[0].tolist() == ["001", "E0001", "  Product!  ", "10mg", "Tablet", "030"]
     pd.testing.assert_frame_equal(frame, loader.read_noisy_csv(path, cfg))
+
+
+def test_noise_alignment_uses_record_ids_and_preserves_truth(golden_config):
+    cfg = golden_config
+    clean = loader.load_noisy(cfg.seeds[0], 0, cfg).head(3)
+    noisy = clean.iloc[::-1].assign(raw_item_description=["noise c", "noise b", "noise a"])
+    aligned = loader.align_noisy_records(clean, noisy, cfg)
+    assert aligned.record_id.tolist() == clean.record_id.tolist()
+    assert aligned.raw_item_description.tolist() == ["noise a", "noise b", "noise c"]
+    with pytest.raises(ValueError, match="same record IDs"):
+        loader.align_noisy_records(clean, noisy.iloc[1:], cfg)
+    corrupted_truth = noisy.assign(entity_id="different")
+    with pytest.raises(ValueError, match="same entity IDs"):
+        loader.align_noisy_records(clean, corrupted_truth, cfg)

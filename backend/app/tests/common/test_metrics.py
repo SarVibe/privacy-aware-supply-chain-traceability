@@ -3,7 +3,14 @@ import math
 import pandas as pd
 import pytest
 
-from src.common.evaluation.metrics import evaluate_clusters
+from src.common.evaluation.metrics import evaluate_clusters, pairwise_prf
+
+
+def test_pairwise_empty_counts_follow_the_callers_convention():
+    assert pairwise_prf(0, 0, 0) == (1, 1, 1)
+    assert pairwise_prf(0, 0, 0, empty_score=0) == (0, 0, 0)
+    assert pairwise_prf(0, 3, 0) == (0, 1, 0)
+    assert pairwise_prf(0, 3, 0, empty_score=0) == (0, 0, 0)
 
 
 def _metrics(entities: str, labels: list[int]) -> dict[str, int | float]:

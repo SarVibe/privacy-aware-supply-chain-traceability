@@ -170,7 +170,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
     # ---- utility: tune tau on val split, report on test split ----
     D = dice_matrix(bf_a, bf_b)
     v, t = scen.val_idx, scen.test_idx
-    tuned = matching.tune_tau_full(D[np.ix_(v, v)], taus)
+    tuned = matching.tune_cross_party_thresholds(D[np.ix_(v, v)], taus)
     tau_unc = tuned["tau_unc"]
     tau_c01 = tuned["tau_c01"]
     tau_c05 = tuned["tau_c05"]
@@ -179,7 +179,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
 
     D_test = D[np.ix_(t, t)]
     # Unconstrained metrics (always present)
-    m_unc = matching.metrics_at(D_test, tau_unc)
+    m_unc = matching.cross_party_metrics_at(D_test, tau_unc)
     auc, sep = matching.auc_and_separation(D_test)
     row.update(
         tau_unc=tau_unc,
@@ -191,14 +191,14 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
     # Constrained at FPR<=0.01
     row["feasible_01"] = feasible_01
     if feasible_01 and tau_c01 is not None:
-        m_01 = matching.metrics_at(D_test, tau_c01)
+        m_01 = matching.cross_party_metrics_at(D_test, tau_c01)
         row.update(tau_01=tau_c01, f1_01=m_01["f1"], fpr_01=m_01["fpr"])
     else:
         row.update(tau_01=float("nan"), f1_01=0.0, fpr_01=float("nan"))
     # Constrained at FPR<=0.05
     row["feasible_05"] = feasible_05
     if feasible_05 and tau_c05 is not None:
-        m_05 = matching.metrics_at(D_test, tau_c05)
+        m_05 = matching.cross_party_metrics_at(D_test, tau_c05)
         row.update(tau_05=tau_c05, f1_05=m_05["f1"], fpr_05=m_05["fpr"])
     else:
         row.update(tau_05=float("nan"), f1_05=0.0, fpr_05=float("nan"))
@@ -243,7 +243,7 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     tok_v = [tok(s) for s in scen.victim_norm]
     t = scen.test_idx
     row = _base_row("exact_hash", 0, 0, q, scen)
-    m = matching.exact_metrics([tok_a[i] for i in t], [tok_b[i] for i in t])
+    m = matching.cross_party_exact_metrics([tok_a[i] for i in t], [tok_b[i] for i in t])
     row.update(tau=float("nan"), precision=m["precision"], recall=m["recall"], f1=m["f1"], fpr=m["fpr"],
                auc=float("nan"), sep=float("nan"), cross_party_tau=float("nan"),
                **{f"cross_party_{metric}": value for metric, value in m.items()})

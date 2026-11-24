@@ -5,6 +5,7 @@ from src.rq2 import privacy_attacks as attacks
 from src.rq2 import similarity_matching as matching
 from src.rq2 import privacy_metrics as metrics
 from src.common.encoding.bloom_filter import BloomFilterEncoder
+from src.common.similarity.dice import dice_matrix
 from src.rq2.rq2_dataset import load_dataset, synthetic_dataset
 from src.rq2.numpy_randomized_response import flip_probability, randomized_response
 from src.application_config import Config
@@ -45,32 +46,32 @@ def test_fill_matches_theory():
 
 def test_dice_properties():
     x = np.array([[1, 1, 0, 0], [1, 0, 1, 0]], dtype=np.uint8)
-    D = matching.dice_matrix(x, x)
+    D = dice_matrix(x, x)
     assert D[0, 0] == 1.0 and abs(D[0, 1] - 0.5) < 1e-12
-    assert matching.dice_matrix(np.zeros((1, 4), np.uint8), x).sum() == 0
+    assert dice_matrix(np.zeros((1, 4), np.uint8), x).sum() == 0
 
 
 def test_threshold_tuning_and_metrics():
     D = np.array([[0.95, 0.2, 0.3], [0.1, 0.9, 0.4], [0.3, 0.2, 0.85]])  # perfectly separable
-    tau = matching.tune_tau(D)
-    m = matching.metrics_at(D, tau)
+    tau = matching.select_cross_party_threshold(D)
+    m = matching.cross_party_metrics_at(D, tau)
     assert m["f1"] == 1.0 and 0.30 <= tau <= 0.99
     auc, sep = matching.auc_and_separation(D)
     assert auc == 1.0 and sep > 0.5
-    assert matching.metrics_at(D, 0.99)["recall"] == 0.0
+    assert matching.cross_party_metrics_at(D, 0.99)["recall"] == 0.0
 
 
 def test_tune_tau_full_basic():
     """tune_tau_full returns the expected structure and tau_unc is always present."""
     D = np.array([[0.95, 0.2, 0.3], [0.1, 0.9, 0.4], [0.3, 0.2, 0.85]])
-    result = matching.tune_tau_full(D)
+    result = matching.tune_cross_party_thresholds(D)
     assert "tau_unc" in result
     assert "tau_c01" in result
     assert "tau_c05" in result
     assert "feasible_01" in result
     assert "feasible_05" in result
     # For a separable matrix, unconstrained F1 should be 1.0
-    m = matching.metrics_at(D, result["tau_unc"])
+    m = matching.cross_party_metrics_at(D, result["tau_unc"])
     assert m["f1"] == 1.0
 
 
@@ -79,7 +80,7 @@ def test_tune_tau_full_saturated_infeasible():
     # All-ones matrix: every pair looks like a match (FPR = 1.0 for any tau < max)
     n = 10
     D_sat = np.ones((n, n), dtype=float)
-    result = matching.tune_tau_full(D_sat)
+    result = matching.tune_cross_party_thresholds(D_sat)
     # tau_unc must still be a valid float (never raises)
     assert isinstance(result["tau_unc"], float)
     # For a fully saturated matrix, FPR can't be <= 0.01 at any threshold
@@ -91,14 +92,14 @@ def test_tune_tau_never_raises_on_saturated():
     """tune_tau (backward compat) must never raise even for saturated inputs."""
     n = 8
     D_sat = np.ones((n, n), dtype=float)
-    tau = matching.tune_tau(D_sat)
+    tau = matching.select_cross_party_threshold(D_sat)
     assert isinstance(tau, float) and 0.30 <= tau <= 0.99
 
 
-def test_exact_metrics():
+def test_cross_party_exact_metrics():
     a = [b"x", b"y", b"z"]
     b = [b"x", b"q", b"z"]
-    m = matching.exact_metrics(a, b)
+    m = matching.cross_party_exact_metrics(a, b)
     assert m["precision"] == 1.0 and abs(m["recall"] - 2 / 3) < 1e-12
 
 

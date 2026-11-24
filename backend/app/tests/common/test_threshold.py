@@ -1,9 +1,22 @@
 import pandas as pd
 
-from src.common.config import load_config
+from src.common.config import TauGridConfig, load_config
 from src.common.data.splitting import apply_split
 from src.common.linking.bloom import BloomLinker
-from src.common.linking.threshold import select_per_noise_tau, select_single_tau, tune_tau
+from src.common.linking.threshold import select_per_noise_tau, select_single_tau, threshold_values, tune_tau
+
+
+def test_grid_and_linking_include_tau_zero_and_one():
+    cfg = load_config("rq1")
+    grid = threshold_values(TauGridConfig(0, 1, 0.5))
+    assert grid == (0.0, 0.5, 1.0)
+    frame = pd.DataFrame({
+        "record_id": ["empty", "distinct", "copy"],
+        "raw_item_description": ["", "alpha", "alpha"],
+    })
+    prepared = BloomLinker("bloom", "description", 0, cfg).prepare(frame, 0)
+    assert prepared.labels_at(0).tolist() == [0, 0, 0]
+    assert prepared.labels_at(1).tolist() == [0, 1, 1]
 
 
 def test_single_and_per_noise_choose_different_thresholds():
