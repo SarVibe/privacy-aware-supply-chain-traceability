@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.application_config import Config
+from src.common.encoding.versioned_bloom import IncompatibleBloomError
 from src.rq2.harmonization_pipeline import HarmonizationPipeline
 
 
@@ -22,6 +23,7 @@ class HarmonizeRequest(BaseModel):
 
 
 class HarmonizeResponse(BaseModel):
+    encoder_version: str
     record_id: str
     predicted_cluster_id: str
     similarity_score: float
@@ -39,6 +41,7 @@ def get_pipeline() -> HarmonizationPipeline:
     return HarmonizationPipeline(
         epsilon=Config.DEFAULT_EPSILON,
         enable_blockchain_commit=Config.API_ENABLE_BLOCKCHAIN_COMMIT,
+        connect_ledger=True,
     )
 
 
@@ -77,6 +80,8 @@ def harmonize(request: HarmonizeRequest) -> HarmonizeResponse:
             dosage_form=request.dosage_form,
             pack_size=request.pack_size,
         )
+    except IncompatibleBloomError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except RuntimeError as exc:

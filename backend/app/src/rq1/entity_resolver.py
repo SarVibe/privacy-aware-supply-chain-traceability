@@ -11,23 +11,29 @@ Role:
 
 from typing import Dict, List, Tuple, Optional
 from bitarray import bitarray
+import numpy as np
 import pandas as pd
 
 from src.application_config import Config
+from src.common.config import unit_interval
+from src.common.encoding.versioned_bloom import BloomNamespace, IncompatibleBloomError, VersionedBloom
+from src.common.similarity.dice import dice_matrix
 from src.rq1.dice_similarity import DiceSimilarityEngine
+
+FilterValue = bitarray | VersionedBloom
 
 
 class ClusterEntity:
     """Represents a canonical entity cluster with an immutable leader Bloom filter."""
 
-    def __init__(self, cluster_id: str, representative_bf: bitarray, initial_record_id: str):
+    def __init__(self, cluster_id: str, representative_bf: FilterValue, initial_record_id: str):
         self.cluster_id: str = cluster_id
         # Canonical Leader Filter (Fixed: Never inflated via bitwise OR)
-        self.representative_bf: bitarray = representative_bf.copy()
+        self.representative_bf = representative_bf.copy()
         self.member_record_ids: List[str] = [initial_record_id]
         self.record_count: int = 1
 
-    def add_member(self, record_id: str, member_bf: bitarray):
+    def add_member(self, record_id: str, member_bf: FilterValue):
         """Appends member record without altering the leader filter."""
         del member_bf
         self.member_record_ids.append(record_id)
@@ -41,17 +47,20 @@ class EntityResolver:
 
     def __init__(
         self,
-        threshold: float = Config.DEFAULT_SIMILARITY_THRESHOLD
+        threshold: float = Config.DEFAULT_SIMILARITY_THRESHOLD,
+        *,
+        namespace: BloomNamespace | None = None,
     ):
         """
         Parameters:
         - threshold (tau): Minimum Dice similarity required to merge records (default: 0.85).
         """
-        self.threshold = threshold
+        self.threshold = threshold if namespace is None else unit_interval(threshold, "tau")
+        self.namespace = namespace
         self.clusters: Dict[str, ClusterEntity] = {}
         self.cluster_counter: int = 0
 
-    def get_candidate_filters(self) -> Dict[str, bitarray]:
+    def get_candidate_filters(self) -> Dict[str, FilterValue]:
         """
         Retrieves candidate filters from currently resolved clusters.
         Corresponds to Algorithm 1 Line 4: C <- retrieve_stored_records(Bp)
@@ -61,7 +70,7 @@ class EntityResolver:
     def resolve_record(
         self,
         record_id: str,
-        bf: bitarray,
+        bf: FilterValue,
         metadata: Optional[dict] = None
     ) -> Tuple[str, float, bool]:
         """
@@ -75,6 +84,12 @@ class EntityResolver:
         - (assigned_cluster_id, best_score, is_new_cluster)
         """
         del metadata
+        if self.namespace is not None:
+            if not isinstance(bf, VersionedBloom):
+                raise IncompatibleBloomError("Serving requires a versioned Bloom filter")
+            bf.require_namespace(self.namespace)
+        elif isinstance(bf, VersionedBloom):
+            raise IncompatibleBloomError("Configure a namespace before resolving versioned filters")
         candidates = self.get_candidate_filters()
 
         # Empty candidate set: First record creates first cluster
@@ -85,11 +100,20 @@ class EntityResolver:
             return cluster_id, 0.0, True
 
         # Find best matching candidate
-        best_cluster_id, best_score = DiceSimilarityEngine.find_best_candidate(
-            incoming_bf=bf,
-            stored_candidates=candidates,
-            threshold=self.threshold
-        )
+        if isinstance(bf, VersionedBloom):
+            leaders = []
+            for candidate in candidates.values():
+                if not isinstance(candidate, VersionedBloom):
+                    raise IncompatibleBloomError("Unversioned cluster representative")
+                candidate.require_namespace(bf.namespace)
+                leaders.append(candidate.bits)
+            scores = dice_matrix(bf.bits[None, :], np.stack(leaders))[0]
+            best_index = int(scores.argmax())
+            best_cluster_id, best_score = list(candidates)[best_index], float(scores[best_index])
+        else:
+            best_cluster_id, best_score = DiceSimilarityEngine.find_best_candidate(
+                incoming_bf=bf, stored_candidates=candidates, threshold=self.threshold
+            )
 
         # Threshold check
         if best_cluster_id is not None and best_score >= self.threshold:
@@ -135,33 +159,3 @@ class EntityResolver:
         """Resets clustering state between experiment trials."""
         self.clusters.clear()
         self.cluster_counter = 0
-
-
-if __name__ == "__main__":
-    from src.common.preprocessor import TextPreprocessor
-    from src.common.keyed_bloom_filter import KeyedBloomFilter
-
-    bf_engine = KeyedBloomFilter(length=Config.DEFAULT_BF_LENGTH, num_hashes=Config.DEFAULT_NUM_HASHES)
-    resolver = EntityResolver(threshold=Config.DEFAULT_SIMILARITY_THRESHOLD)
-
-    def make_bf(text: str) -> bitarray:
-        norm = TextPreprocessor.normalize(text)
-        qg = TextPreprocessor.extract_token_qgrams(norm, q=Config.DEFAULT_Q)
-        return bf_engine.encode(qg)
-
-    # 1. First record (Initializes Cluster 0001 as Leader)
-    bf1 = make_bf("Didanosine 200mg [Videx], tablets")
-    c1, s1, n1 = resolver.resolve_record("REC_01", bf1)
-
-    # 2. Second record from another stakeholder with typo (Should match Cluster 0001)
-    bf2 = make_bf("didanosine 200mg videx tabblets")
-    c2, s2, n2 = resolver.resolve_record("REC_02", bf2)
-
-    # 3. Third record with hard negative dosage 600mg (Should NOT match Cluster 0001)
-    bf3 = make_bf("Abacavir/Lamivudine 600/300mg, tablets")
-    c3, s3, n3 = resolver.resolve_record("REC_03", bf3)
-
-    print("--- Entity Resolver Validation (Leader Clustering) ---")
-    print(f"REC_01 -> Cluster: {c1} (Score: {s1:.4f}, New: {n1})")
-    print(f"REC_02 -> Cluster: {c2} (Score: {s2:.4f}, New: {n2}) [MATCHED CORRECTLY]")
-    print(f"REC_03 -> Cluster: {c3} (Score: {s3:.4f}, New: {n3}) [NEW CLUSTER AS EXPECTED]")

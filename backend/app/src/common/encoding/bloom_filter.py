@@ -6,7 +6,7 @@ from collections.abc import Callable, Iterable
 import numpy as np
 from numpy.typing import NDArray
 
-from src.common.config import positive_integer
+from src.common.config import HMAC_DIGEST_BYTES, HMAC_POSITION_FORMAT, positive_integer
 from src.common.encoding.qgrams import extract_qgrams, validate_qgram_parameters
 
 PostTransform = Callable[[NDArray[np.uint8]], NDArray[np.uint8]]
@@ -40,7 +40,11 @@ class BloomFilterEncoder:
         if positions is None:
             positions = np.fromiter(
                 (
-                    int.from_bytes(hmac.digest(self._key, f"{i}:{qgram}".encode("utf-8"), "sha256")[:4], "big")
+                    int.from_bytes(
+                        hmac.digest(
+                            self._key, HMAC_POSITION_FORMAT.format(index=i, gram=qgram).encode("utf-8"), "sha256"
+                        )[:HMAC_DIGEST_BYTES], "big"
+                    )
                     % self._length
                     for i in range(self._k)
                 ),

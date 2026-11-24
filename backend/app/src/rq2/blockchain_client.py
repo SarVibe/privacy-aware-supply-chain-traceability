@@ -24,12 +24,11 @@ if "SSLKEYLOGFILE" in os.environ:
         del os.environ["SSLKEYLOGFILE"]
 
 from typing import Dict, List, Optional, Any
-from bitarray import bitarray
 # pyrefly: ignore[missing-import]
 from web3 import Web3
 
 from src.application_config import Config
-from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.common.encoding.versioned_bloom import BloomNamespace, IncompatibleBloomError, VersionedBloom
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,13 +46,17 @@ class BlockchainClient:
         private_key: str = Config.BLOCKCHAIN_PRIVATE_KEY,
         chain_id: int = Config.CHAIN_ID,
         bf_length: int = Config.DEFAULT_BF_LENGTH,
-        allow_mock_ledger: bool = Config.ALLOW_MOCK_LEDGER
+        allow_mock_ledger: bool = Config.ALLOW_MOCK_LEDGER,
+        *,
+        namespace: BloomNamespace,
+        connect: bool = True,
     ):
         self.rpc_url = rpc_url
         self.contract_address = Web3.to_checksum_address(contract_address) if contract_address.startswith("0x") else contract_address
         self.private_key = private_key
         self.chain_id = chain_id
         self.bf_length = bf_length
+        self.namespace = namespace
         if self.bf_length <= 0 or self.bf_length % 8 != 0:
             raise ValueError("bf_length must be a positive multiple of 8.")
         self.expected_bloom_filter_bytes = self.bf_length // 8
@@ -67,10 +70,11 @@ class BlockchainClient:
 
         # In-memory mock ledger fallback if local RPC node is offline
         self._mock_records: List[Dict[str, Any]] = []
-        self._mock_cluster_leaders: Dict[str, bitarray] = {}
+        self._mock_cluster_leaders: Dict[str, VersionedBloom] = {}
         self._mock_existing_hashes: set = set()
 
-        self._initialize_connection()
+        if connect:
+            self._initialize_connection()
 
     def _initialize_connection(self):
         """Attempts connection to the EVM RPC node and checks contract deployment."""
@@ -149,28 +153,36 @@ class BlockchainClient:
         except ValueError as exc:
             raise ValueError("record_hash_hex must be hexadecimal.") from exc
 
-    def retrieve_stored_candidates(self, use_leader_only: bool = True) -> Dict[str, bitarray]:
+    def _read_vector(self, persisted_id: str, raw_bytes: bytes) -> tuple[str, VersionedBloom]:
+        local_id = self.namespace.local_id(persisted_id)
+        return local_id, VersionedBloom.unpack(raw_bytes, self.bf_length, self.namespace)
+
+    def retrieve_stored_candidates(self, use_leader_only: bool = True) -> Dict[str, VersionedBloom]:
         """
         Algorithm 1 Line 4: C <- retrieve_stored_records(Bp)
         Fetches existing Bloom filters from the ledger via a zero-gas view call.
 
         Returns:
-        - Dict mapping {cluster_id: bitarray}
+        - Dict mapping cluster IDs or record IDs to versioned filters.
         """
-        candidate_map: Dict[str, bitarray] = {}
+        candidate_map: Dict[str, VersionedBloom] = {}
 
         if self.is_live:
             try:
                 if use_leader_only:
                     c_ids, filters = self.contract.functions.getClusterLeaders().call()
-                    for c_id, raw_bytes in zip(c_ids, filters):
-                        candidate_map[c_id] = KeyedBloomFilter.from_bytes(raw_bytes, length=self.bf_length)
+                    for c_id, raw_bytes in zip(c_ids, filters, strict=True):
+                        local_id, vector = self._read_vector(c_id, raw_bytes)
+                        candidate_map[local_id] = vector
                 else:
                     candidates = self.contract.functions.getCandidateRecords().call()
                     for cand in candidates:
                         rec_id, c_id, raw_bytes = cand[0], cand[1], cand[2]
-                        candidate_map[rec_id] = KeyedBloomFilter.from_bytes(raw_bytes, length=self.bf_length)
+                        _, vector = self._read_vector(c_id, raw_bytes)
+                        candidate_map[rec_id] = vector
                 return candidate_map
+            except IncompatibleBloomError:
+                raise
             except Exception as e:
                 logger.error(f"Failed to query on-chain candidates: {e}")
                 if not self.allow_mock_ledger:
@@ -200,7 +212,7 @@ class BlockchainClient:
         self,
         record_id: str,
         cluster_id: str,
-        bf: bitarray,
+        bf: VersionedBloom,
         record_hash_hex: str
     ) -> Dict[str, Any]:
         """
@@ -215,12 +227,16 @@ class BlockchainClient:
             raise ValueError("record_id cannot be empty.")
         if not cluster_id:
             raise ValueError("cluster_id cannot be empty.")
-        if len(bf) != self.bf_length:
+        if not isinstance(bf, VersionedBloom):
+            raise IncompatibleBloomError("Cannot commit an unversioned Bloom filter")
+        bf.require_namespace(self.namespace)
+        if bf.bits.size != self.bf_length:
             raise ValueError(
-                f"Bloom filter length {len(bf)} does not match configured "
+                f"Bloom filter length {bf.bits.size} does not match configured "
                 f"length {self.bf_length}."
             )
-        bf_bytes = KeyedBloomFilter.to_bytes(bf)
+        persisted_cluster_id = self.namespace.qualify(cluster_id)
+        bf_bytes = bf.packed_bytes()
         if len(bf_bytes) != self.expected_bloom_filter_bytes:
             raise ValueError("Serialized Bloom filter length is invalid.")
         record_hash_bytes32 = self._to_bytes32(record_hash_hex)
@@ -231,7 +247,7 @@ class BlockchainClient:
                     nonce = self.w3.eth.get_transaction_count(self.account.address, "pending")
                     transaction_call = self.contract.functions.storeHarmonizedRecord(
                         record_id,
-                        cluster_id,
+                        persisted_cluster_id,
                         bf_bytes,
                         record_hash_bytes32
                     )
@@ -254,6 +270,7 @@ class BlockchainClient:
                 if receipt.status == 1:
                     return {
                         "status": "SUCCESS",
+                        "encoder_version": self.namespace.encoder_version,
                         "tx_hash": tx_hash.hex(),
                         "gas_used": receipt.gasUsed,
                         "latency_ms": round(latency_ms, 2),
@@ -308,6 +325,7 @@ class BlockchainClient:
         self._mock_records.append({
             "record_id": record_id,
             "cluster_id": cluster_id,
+            "encoder_version": self.namespace.encoder_version,
             "bloom_filter": bf.copy(),
             "record_hash": record_hash_hex,
             "timestamp": int(time.time())
@@ -320,6 +338,7 @@ class BlockchainClient:
 
         return {
             "status": "SUCCESS_MOCK",
+            "encoder_version": self.namespace.encoder_version,
             "tx_hash": f"0xmock_{int(time.time()*1000):x}",
             "gas_used": simulated_gas,
             "latency_ms": round(latency_ms, 2),
@@ -352,14 +371,18 @@ class BlockchainClient:
         if self.is_live:
             try:
                 rec = self.contract.functions.getRecord(index).call()
+                cluster_id, vector = self._read_vector(rec[1], rec[2])
                 return {
                     "record_id": rec[0],
-                    "cluster_id": rec[1],
-                    "bloom_filter": KeyedBloomFilter.from_bytes(rec[2], length=self.bf_length),
+                    "cluster_id": cluster_id,
+                    "encoder_version": self.namespace.encoder_version,
+                    "bloom_filter": vector,
                     "record_hash": rec[3].hex(),
                     "timestamp": rec[4],
                     "submitted_by": rec[5]
                 }
+            except IncompatibleBloomError:
+                raise
             except Exception as e:
                 logger.error(f"Error fetching record index {index} on-chain: {e}")
                 if not self.allow_mock_ledger:
@@ -394,33 +417,3 @@ class BlockchainClient:
             "total_records": len(self._mock_records),
             "total_clusters": len(self._mock_cluster_leaders)
         }
-
-
-if __name__ == "__main__":
-    from src.common.preprocessor import TextPreprocessor
-
-    client = BlockchainClient()
-    bf_engine = KeyedBloomFilter(length=Config.DEFAULT_BF_LENGTH, num_hashes=Config.DEFAULT_NUM_HASHES)
-
-    sample_desc = "Didanosine 200mg [Videx], tablets"
-    norm = TextPreprocessor.normalize(sample_desc)
-    qg = TextPreprocessor.extract_token_qgrams(norm, q=Config.DEFAULT_Q)
-    test_bf = bf_engine.encode(qg)
-    test_hash = Web3.keccak(text=sample_desc).hex()
-
-    print("--- Blockchain Client Test ---")
-    print(f"Network Status: {'LIVE RPC' if client.is_live else 'MOCK FALLBACK'}")
-    
-    # 1. Commit record
-    res = client.commit_harmonized_record("REC_TEST_01", "CANONICAL_CLUSTER_0001", test_bf, test_hash)
-    print(f"Commit Status:   {res['status']} | Gas Used: {res['gas_used']} | Latency: {res['latency_ms']} ms")
-
-    # 2. Test duplicate replay prevention
-    res_dup = client.commit_harmonized_record("REC_TEST_02", "CANONICAL_CLUSTER_0001", test_bf, test_hash)
-    print(f"Duplicate Check: {res_dup['status']} (Expected: REVERTED / REVERTED_MOCK)")
-
-    # 3. Retrieve candidates
-    candidates = client.retrieve_stored_candidates(use_leader_only=True)
-    print(f"Retrieved Clusters: {len(candidates)} clusters found on ledger.")
-    print(f"Verify Record Exists ({test_hash[:10]}...): {client.verify_record_exists(test_hash)}")
-    print(f"Ledger Summary:  {client.get_ledger_summary()}")

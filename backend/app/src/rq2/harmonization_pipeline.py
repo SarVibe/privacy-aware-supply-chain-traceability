@@ -5,22 +5,24 @@ Component 1: Pre-Ledger Cross-Organizational Data Harmonization
 Role:
 - Master orchestration engine implementing Algorithm 1 end-to-end.
 - Ingests raw multi-stakeholder pharmaceutical records.
-- Normalizes and tokenizes text into q-grams (q=3).
+- Encodes the canonical research composite with the consortium key.
 - Generates Keyed Bloom Filters (with optional epsilon-LDP noise injection).
 - Retrieves stored cluster candidates from Blockchain (Algorithm 1 Line 4).
-- Resolves canonical clusters via Dice Similarity (tau >= 0.85).
+- Resolves canonical clusters against fixed streaming representatives.
 - Commits final 4-tuple to Blockchain ledger (Algorithm 1 Lines 21-22).
 """
 
 import time
 import hashlib
 import logging
+from dataclasses import replace
 from typing import Dict, Optional, Any
 import pandas as pd
 
-from src.application_config import Config
-from src.common.preprocessor import TextPreprocessor
-from src.common.keyed_bloom_filter import KeyedBloomFilter
+from src.common.config import SERVING_TAU, load_config
+from src.common.encoding.versioned_bloom import CompositeBloomEncoder, VersionedBloom, environment_bloom_key
+from bitarray import bitarray
+import numpy as np
 from src.rq2.bitarray_differential_privacy import LocalDifferentialPrivacy
 from src.rq1.entity_resolver import EntityResolver
 from src.rq2.blockchain_client import BlockchainClient
@@ -36,24 +38,37 @@ class HarmonizationPipeline:
 
     def __init__(
         self,
-        length: int = Config.DEFAULT_BF_LENGTH,
-        num_hashes: int = Config.DEFAULT_NUM_HASHES,
-        threshold: float = Config.DEFAULT_SIMILARITY_THRESHOLD,
-        q: int = Config.DEFAULT_Q,
+        length: int | None = None,
+        num_hashes: int | None = None,
+        threshold: float = SERVING_TAU,
+        q: int | None = None,
         epsilon: Optional[float] = None,  # None means Raw Keyed Bloom Filter (No DP)
-        enable_blockchain_commit: bool = True
+        enable_blockchain_commit: bool = True,
+        *,
+        connect_ledger: bool | None = None,
     ):
-        self.length = length
-        self.num_hashes = num_hashes
+        settings = load_config("rq1").bloom
+        settings = replace(
+            settings,
+            l=settings.l if length is None else length,
+            k=settings.k if num_hashes is None else num_hashes,
+            q=settings.q if q is None else q,
+        )
+        self.length = settings.l
+        self.num_hashes = settings.k
         self.threshold = threshold
-        self.q = q
+        self.q = settings.q
         self.epsilon = epsilon
         self.enable_blockchain_commit = enable_blockchain_commit
 
         # Initialize sub-modules
-        self.bf_engine = KeyedBloomFilter(length=self.length, num_hashes=self.num_hashes)
-        self.resolver = EntityResolver(threshold=self.threshold)
-        self.blockchain = BlockchainClient(bf_length=self.length)
+        self.bf_engine = CompositeBloomEncoder(settings, environment_bloom_key())
+        self.encoder_version = self.bf_engine.namespace.encoder_version
+        self.resolver = EntityResolver(threshold=self.threshold, namespace=self.bf_engine.namespace)
+        self.blockchain = BlockchainClient(
+            bf_length=self.length, namespace=self.bf_engine.namespace,
+            connect=enable_blockchain_commit if connect_ledger is None else connect_ledger,
+        )
         self._ledger_synchronized = False
         if self.enable_blockchain_commit:
             self.synchronize_with_ledger()
@@ -95,7 +110,7 @@ class HarmonizationPipeline:
     ) -> Dict[str, Any]:
         """
         Harmonizes a single incoming supply chain record through Algorithm 1.
-        Uses Composite Multi-Attribute Representation: Tag(Name) ∪ Tag(Dosage) ∪ Tag(Dosage Form) ∪ Tag(Pack Size).
+        Uses the same four-field composite encoding as the research linker.
         """
         if not record_id or not record_id.strip():
             raise ValueError("record_id cannot be empty.")
@@ -105,23 +120,14 @@ class HarmonizationPipeline:
             self.synchronize_with_ledger()
         start_time = time.time()
 
-        # Step 1: Composite Multi-Attribute Preprocessing
-        composite_qgrams = TextPreprocessor.extract_composite_qgrams(
-            text=raw_description,
-            dosage=dosage,
-            dosage_form=dosage_form,
-            pack_size=pack_size,
-            q=self.q
-        )
-
-        # Step 2: Keyed Bloom Filter Generation
-        raw_bf = self.bf_engine.encode(composite_qgrams)
+        raw_bf = self.bf_engine.encode_record(raw_description, dosage, dosage_form, pack_size)
 
         # Step 3: Optional Local Differential Privacy (Randomized Response)
         if self.epsilon is not None and self.epsilon > 0:
-            active_bf = LocalDifferentialPrivacy.apply_randomized_response(
-                raw_bf, epsilon=self.epsilon, seed=None
+            perturbed = LocalDifferentialPrivacy.apply_randomized_response(
+                bitarray(raw_bf.bits.tolist()), epsilon=self.epsilon, seed=None
             )
+            active_bf = VersionedBloom(np.fromiter(perturbed, dtype=np.uint8), raw_bf.namespace)
         else:
             active_bf = raw_bf
 
@@ -155,6 +161,7 @@ class HarmonizationPipeline:
         total_latency_ms = (time.time() - start_time) * 1000.0
 
         return {
+            "encoder_version": self.encoder_version,
             "record_id": record_id,
             "true_entity_id": true_entity_id,
             "predicted_cluster_id": assigned_cluster_id,

@@ -10,6 +10,21 @@ import yaml
 
 from src.common.paths import app_dir
 
+ENCODER_VERSION = "composite-hmac-sha256-v1"
+FIELD_SEPARATOR = "|"
+HMAC_POSITION_FORMAT = "{index}:{gram}"
+HMAC_DIGEST_BYTES = 4
+SERVING_TAU = 0.80
+
+
+def composite_encoder_version(l: int, k: int, q: int, pad_char: str) -> str:
+    """Identify the ordered fields, normalization, whole-string padding and position layout."""
+    return (
+        f"{ENCODER_VERSION}-nfkc-casefold-desc-dose-form-pack"
+        f"-sep{FIELD_SEPARATOR.encode().hex()}-q{q}-pad{pad_char.encode().hex()}"
+        f"-fmt{HMAC_POSITION_FORMAT.encode().hex()}-{HMAC_DIGEST_BYTES}be-l{l}-k{k}"
+    )
+
 
 @dataclass(frozen=True)
 class PathsConfig:
