@@ -19,13 +19,15 @@ from collections import Counter
 
 import numpy as np
 
-from .experiment_config import REID_DELTA, REID_TOPK
+from .experiment_config import RQ2_CONFIG
 from src.common.similarity.dice import dice_matrix
 
 TIE_EPS = 1e-9
 
 
-def reid_attack(victim_bf, victim_truth, dict_bf, dict_ids, topk=REID_TOPK, delta=REID_DELTA) -> dict:
+def reid_attack(
+    victim_bf, victim_truth, dict_bf, dict_ids, topk=RQ2_CONFIG.sweep.reid_topk, delta=RQ2_CONFIG.sweep.reid_delta
+) -> dict:
     n = victim_bf.shape[0]
     D = dice_matrix(victim_bf, dict_bf)                       # (n, m)
     pos_of = {int(e): j for j, e in enumerate(dict_ids)}
@@ -68,7 +70,7 @@ def reid_attack(victim_bf, victim_truth, dict_bf, dict_ids, topk=REID_TOPK, delt
     return out
 
 
-def exact_reid_attack(victim_tokens, victim_truth, dict_tokens, dict_ids, topk=REID_TOPK) -> dict:
+def exact_reid_attack(victim_tokens, victim_truth, dict_tokens, dict_ids, topk=RQ2_CONFIG.sweep.reid_topk) -> dict:
     """Same attack against exact hashes: a victim is re-identified iff its token equals a dictionary token."""
     by_tok = {}
     for t, e in zip(dict_tokens, dict_ids):

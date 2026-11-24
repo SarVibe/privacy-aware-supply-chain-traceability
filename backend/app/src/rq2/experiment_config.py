@@ -1,14 +1,9 @@
-"""RQ2 aliases for the shared experiment configuration."""
-from src.application_config import EXPERIMENT_CONFIG
+"""Defaults shared by the RQ2 measurement functions."""
 
-DEFAULT_LS = (2048, 1024, 512, 256, 128)
-DEFAULT_KS = (2, 4, 8, 15, 30, 50)
-DEFAULT_NOISES = (0.0, 0.05, 0.15, 0.30)
-DEFAULT_Q = EXPERIMENT_CONFIG.q
-DEFAULT_PAD = EXPERIMENT_CONFIG.pad
-STANDARD_CONFIG = EXPERIMENT_CONFIG.standard
-TAU_GRID = EXPERIMENT_CONFIG.tau_grid
-DEGENERATE_FILL = EXPERIMENT_CONFIG.degenerate_fill
-REID_TOPK = EXPERIMENT_CONFIG.reid_topk
-REID_DELTA = EXPERIMENT_CONFIG.reid_delta
-BIT_ATTACK_TOP_BITS = EXPERIMENT_CONFIG.bit_top
+from src.common.config import load_config
+from src.common.linking.threshold import threshold_values
+
+RQ2_CONFIG = load_config("rq2")
+DEFAULT_Q = RQ2_CONFIG.bloom.q
+DEFAULT_PAD = True
+TAU_GRID = threshold_values(RQ2_CONFIG.tau_grid)

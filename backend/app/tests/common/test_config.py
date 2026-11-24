@@ -30,13 +30,16 @@ def test_loads_immutable_rq1_configuration():
 @pytest.mark.parametrize(
     ("override", "message"),
     [
-        ("bloom: {l: 1000}", r"bloom\.l"),
+        ("bloom: {l: 0}", r"bloom\.l"),
+        ("bloom: {l: true}", r"bloom\.l"),
         ("bloom: {k: 0}", r"bloom\.k"),
         ("bloom: {q: 0}", r"bloom\.q"),
         ("val_fraction: 1.2", "val_fraction"),
         ("seeds: [0, 0]", "seeds"),
         ("seeds: []", "seeds"),
         ("noise_levels: [1.1]", "noise_levels"),
+        ("tau_grid: {start: 0, stop: 1.1, step: 0.1}", r"tau_grid\.stop"),
+        ("tau_grid: {start: 0, stop: 1, step: 0}", r"tau_grid"),
         ("columns: {description: null}", "column names"),
     ],
 )
@@ -51,3 +54,28 @@ def test_rq_override_merges_nested_base_fields(tmp_path):
     cfg = load_config("rq1", config_dir=tmp_path)
     assert cfg.seeds == (3, 4)
     assert (cfg.bloom.l, cfg.bloom.k, cfg.bloom.q) == (512, 4, 2)
+
+
+def test_free_length_and_threshold_endpoints(tmp_path):
+    _write_override(tmp_path, "bloom: {l: 3, k: 7}\ntau_grid: {start: 0, stop: 1, step: 1}")
+    cfg = load_config("rq1", config_dir=tmp_path)
+    assert (cfg.bloom.l, cfg.bloom.k) == (3, 7)
+    assert (cfg.tau_grid.start, cfg.tau_grid.stop) == (0, 1)
+
+
+def test_rq2_profiles_and_versioned_noise():
+    rq1 = load_config("rq1")
+    reduced = load_config("rq2")
+    extended = load_config("rq2_extended")
+    all_fields = load_config("rq1_all_fields")
+    assert rq1.bloom == reduced.bloom == extended.bloom
+    assert reduced.sweep.lengths == (1024, 512, 256)
+    assert reduced.sweep.hashes == (2, 4, 10, 30)
+    assert reduced.noise_levels == (0.15,)
+    assert extended.sweep.lengths == (2048, 1024, 512, 256, 128)
+    assert extended.sweep.hashes == (2, 4, 8, 15, 30, 50)
+    assert extended.noise_levels == rq1.noise_levels
+    assert (reduced.tau_grid.start, reduced.tau_grid.stop) == (0.30, 0.99)
+    assert rq1.paths.noisy != all_fields.paths.noisy
+    assert rq1.noise_fields == (rq1.columns.description,)
+    assert all_fields.noise_fields == rq1.columns.text

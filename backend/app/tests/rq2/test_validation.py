@@ -8,7 +8,7 @@ import pytest
 
 from src.rq2.parameter_validation import (
     validate_eps, validate_noise, validate_overlap, validate_n_records,
-    validate_bit_top, validate_dataset, validate_tau, validate_bloom_parameters,
+    validate_bit_top, validate_dataset,
 )
 from src.rq2.numpy_randomized_response import flip_probability
 from src.rq2.results_schema import validate_results, SchemaError
@@ -55,34 +55,6 @@ def test_small_dataset():
     ds = synthetic_dataset(3, seed=0)
     with pytest.raises(ValueError):
         validate_dataset(ds)
-
-
-@pytest.mark.parametrize("tau", [0.30, 0.70, 0.80, 0.95, 0.99])
-def test_rq2_tau_boundaries(tau):
-    assert validate_tau(tau) == tau
-
-
-@pytest.mark.parametrize("tau", [0.299, 0.991, float("nan")])
-def test_rq2_tau_outside_bounds(tau):
-    with pytest.raises(ValueError):
-        validate_tau(tau)
-
-
-@pytest.mark.parametrize(
-    ("l", "k"),
-    [(128, 2), (256, 4), (1024, 30), (2048, 50), (1024, 4)],
-)
-def test_rq2_bloom_parameter_boundaries(l, k):
-    assert validate_bloom_parameters(l, k) == (l, k)
-
-
-@pytest.mark.parametrize(
-    ("l", "k"),
-    [(127, 4), (2049, 4), (256, 1), (256, 51), (256, 257)],
-)
-def test_rq2_bloom_parameters_outside_bounds(l, k):
-    with pytest.raises(ValueError):
-        validate_bloom_parameters(l, k)
 
 
 def base_schema_df():

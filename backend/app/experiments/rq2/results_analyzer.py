@@ -8,7 +8,6 @@ data that selected it.
 """
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -19,7 +18,15 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from src.application_config import Config
+from src.common.config import load_config
+from src.common.evaluation.aggregation import (
+    holm_adjust as holm_bonferroni,
+    mean_ci95_half_width as ci95,
+    paired_effect,
+    paired_seed_differences as merge_paired,
+)
+from src.common.experiment.io import read_csv
+from src.common.paths import results_dir
 from src.common.experiment_metadata import (
     data_fingerprint,
     write_markdown,
@@ -27,22 +34,16 @@ from src.common.experiment_metadata import (
     parse_standard,
 )
 from src.rq2.results_schema import validate_results, SchemaError
-from src.rq2.experiment_config import EXPERIMENT_CONFIG
 
 BLUE, ORANGE, AQUA, INK, MUTED = "#2a78d6", "#eb6834", "#1baf7a", "#0b0b0b", "#52514e"
 METRICS = ["precision", "recall", "f1", "fpr", "auc", "reid_top1", "reid_top5", "reid_ties", "reid_cands_delta",
            "reid_top1_conditional", "freq_success", "bit_success", "bit_baseline", "fill", "entropy", "load", "tau",
+           "cross_party_f1", "cross_party_precision", "cross_party_recall", "cross_party_fpr",
            "f1_unc", "precision_unc", "recall_unc", "fpr_unc", "f1_01", "f1_05"]
 plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
                      "axes.edgecolor": MUTED, "axes.labelcolor": INK, "text.color": INK,
                      "xtick.color": MUTED, "ytick.color": MUTED, "axes.grid": True, "grid.color": "#e6e5e1",
                      "grid.linewidth": 0.6, "figure.dpi": 130})
-
-
-def ci95(x):
-    x = np.asarray(x, float)
-    x = x[~np.isnan(x)]
-    return float(stats.t.ppf(0.975, len(x) - 1) * x.std(ddof=1) / math.sqrt(len(x))) if len(x) > 1 else float("nan")
 
 
 def aggregate(df, keys):
@@ -85,59 +86,6 @@ def pareto_front(points):
     return sorted(front)
 
 
-def holm_bonferroni(p_values):
-    """Return adjusted p-values for a test family."""
-    p_values = np.asarray(p_values, dtype=float)
-    m = len(p_values)
-    order = np.argsort(p_values)
-    adjusted = np.empty(m, dtype=float)
-    running = 0.0
-    for rank, index in enumerate(order):
-        adjusted[index] = min(1.0, max(running, (m - rank) * p_values[index]))
-        running = adjusted[index]
-    return adjusted
-
-
-def paired_effect(differences, rng_seed=2026):
-    differences = np.asarray(differences, dtype=float)
-    differences = differences[~np.isnan(differences)]
-    if len(differences) == 0:
-        return {"n": 0, "hodges_lehmann": None, "hl_ci95": [None, None],
-                "rank_biserial": None, "cohens_dz": None}
-    pairwise = (differences[:, None] + differences[None, :]) / 2.0
-    hl = float(np.median(pairwise.ravel()))
-    rng = np.random.default_rng(rng_seed)
-    boot = []
-    for _ in range(2000):
-        sample = rng.choice(differences, size=len(differences), replace=True)
-        pairwise_boot = (sample[:, None] + sample[None, :]) / 2.0
-        boot.append(float(np.median(pairwise_boot.ravel())))
-    ci = np.quantile(boot, [0.025, 0.975]).tolist()
-    positive = np.sum(differences > 0)
-    negative = np.sum(differences < 0)
-    r = (positive - negative) / (positive + negative) if positive + negative else 0.0
-    dz = float(differences.mean() / differences.std(ddof=1)) if len(differences) > 1 and differences.std(ddof=1) > 0 else 0.0
-    return {"n": int(len(differences)), "hodges_lehmann": hl,
-            "hl_ci95": [float(ci[0]), float(ci[1])],
-            "rank_biserial": float(r), "cohens_dz": dz}
-
-
-def merge_paired(a: pd.DataFrame, b: pd.DataFrame, metric: str):
-    if "seed" not in a or "seed" not in b:
-        raise ValueError("paired comparison requires a seed column")
-    a_seeds = set(a["seed"].tolist())
-    b_seeds = set(b["seed"].tolist())
-    if a_seeds != b_seeds:
-        raise ValueError(f"paired seed sets do not match: {sorted(a_seeds)} != {sorted(b_seeds)}")
-    merged = a.merge(b, on="seed", validate="one_to_one",
-                     suffixes=("_standard", "_tuned"))
-    x = merged[f"{metric}_standard"].to_numpy(dtype=float)
-    y = merged[f"{metric}_tuned"].to_numpy(dtype=float)
-    differences = y - x  # tuned - standard: positive means tuned is better
-    differences = differences[differences != 0]
-    return differences, len(merged)
-
-
 def load_run_meta(csv_path: str) -> dict:
     csv_path = Path(csv_path)
     candidates = (
@@ -171,18 +119,21 @@ def validate_run_metas(meta_paths: list[tuple[str, dict]], degenerate_fill: floa
 
 
 def main():
+    cfg = load_config("rq2")
+    sweep = cfg.sweep
+    root = results_dir(cfg, "rq2")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--grid", default=str(Config.RQ2_RAW_DIR / "exp2_grid.csv"))
+    ap.add_argument("--grid", default=str(root / sweep.grid_csv))
     ap.add_argument("--dp", default=None)
     ap.add_argument("--overlap-csv", default=None, help="optional CSV from the E2.7 overlap run")
-    ap.add_argument("--noise", type=float, default=0.05, help="noise level used for the main analysis")
-    ap.add_argument("--f1-min", type=float, default=0.85, help="utility constraint for the operating point")
-    ap.add_argument("--min-privacy-gain", type=float, default=2.0,
+    ap.add_argument("--noise", type=float, default=sweep.analysis_noise, help="noise level used for the main analysis")
+    ap.add_argument("--f1-min", type=float, default=sweep.min_f1, help="utility constraint for the operating point")
+    ap.add_argument("--min-privacy-gain", type=float, default=sweep.min_privacy_gain,
                     help="minimum selected/standard median anonymity-set ratio")
-    ap.add_argument("--n-selection", type=int, default=10)
-    ap.add_argument("--outdir", default=str(Config.RQ2_TABLES_DIR))
+    ap.add_argument("--n-selection", type=int, default=sweep.selection_seeds)
+    ap.add_argument("--outdir", default=str(root / sweep.analysis_directory))
     ap.add_argument("--figures-dir", type=Path, help="output directory for figures (default: <outdir>/figures)")
-    ap.add_argument("--standard", default="1024:4", help="standard Bloom configuration as l:k")
+    ap.add_argument("--standard", default=f"{cfg.bloom.l}:{cfg.bloom.k}", help="standard Bloom configuration as l:k")
     a = ap.parse_args()
     try:
         sl, sk = parse_standard(a.standard)
@@ -200,7 +151,7 @@ def main():
     degenerate_fill = float(metas[0][1]["experiment_config"]["degenerate_fill"])
     validate_run_metas(metas, degenerate_fill)
 
-    df = pd.read_csv(a.grid)
+    df = read_csv(a.grid)
     source_runs = {
         "grid": {
             "path": str(Path(a.grid).resolve()),
@@ -214,9 +165,10 @@ def main():
         }
     analysis_scope = {
         "noise": float(a.noise),
-        "overlap": 1.0,
+        "overlap": sweep.overlap,
         "standard": [sl, sk],
         "tau_grid": list(metas[0][1]["experiment_config"]["tau_grid"]),
+        "primary_metric": metas[0][1].get("analysis_scope", {}).get("primary_metric", "cross_party_pairs"),
     }
     try:
         validate_results(df)
@@ -232,7 +184,7 @@ def main():
         raise SystemExit(f"standard configuration {sl}:{sk} is not present in the grid")
     if "eps" in df.columns:
         df["eps"] = df["eps"].replace([np.inf], np.inf)
-    main_df = df[df.overlap == 1.0]
+    main_df = df[df.overlap == sweep.overlap]
 
     # ---------- summary of everything ----------
     summary_keys = ["method", "l", "k", "noise"]
@@ -259,8 +211,7 @@ def main():
         print("WARNING: too few seeds to split selection/evaluation; using all seeds for both.")
 
     # ---------- operating-point selection (selection seeds only) ----------
-    sel_f1_col = "f1_unc" if "f1_unc" in bf.columns else "f1"
-    sel_feas_col = "feasible_01" if "feasible_01" in bf.columns else None
+    sel_f1_col = "f1"
     anon_col = "anonymity_set" if "anonymity_set" in bf.columns else None
     sel_grp_cols = [sel_f1_col, "fill"] + ([anon_col] if anon_col else [])
     sel = bf[bf.seed.isin(sel_seeds)].groupby(["l", "k"])[sel_grp_cols].mean().reset_index()
@@ -275,7 +226,6 @@ def main():
         selected_config = [tl, tk]
     else:
         tl, tk = sl, sk
-    sl, sk = sl, sk
     print(f"standard=({sl},{sk})  selected={selected_config}  {note}")
 
     # ---------- baseline comparison table (evaluation seeds) ----------
@@ -285,7 +235,8 @@ def main():
              f"tuned_bf_l{tl}_k{tk}": ev[(ev.method == "bloom") & (ev.l == tl) & (ev.k == tk)]}
     cols = ["precision", "recall", "f1", "auc", "reid_top1", "reid_top1_conditional",
             "reid_top5", "reid_cands_delta", "freq_success", "bit_success", "bit_baseline", "fill", "entropy"]
-    cols = [c for c in cols if c != "reid_top1_conditional" or c in ev.columns]
+    cols.extend(["cross_party_precision", "cross_party_recall", "cross_party_f1"])
+    cols = [c for c in cols if c in ev.columns]
     rows = []
     for name, part in parts.items():
         r = {"setup": name, "n_seeds": part.seed.nunique()}
@@ -334,7 +285,7 @@ def main():
            "underpowered": len(eval_seeds) < 12,
            "selection_note": note,
            "limitations": {
-               "entities": "All seeds use the same fixed entity set; the key, noise realization, split, and victim sample vary.",
+               "entities": "Seeds share the same prepared population and vary the noise realization, split and victim sample.",
                "generalizability": "P-values describe replicate variability on the current dataset and do not establish generalizability to other datasets.",
                "selection_leakage": "The tuned configuration is selected using the same entity set, with entity-level tuning/evaluation leakage caveat.",
            }}
@@ -357,7 +308,7 @@ def main():
             p = None
         # The exact minimum achievable two-sided p cannot be less than 1 / 2^n.
         minimum_p = float(2.0 / (2.0 ** effective_n)) if effective_n > 0 else None
-        effect = paired_effect(differences)
+        effect = paired_effect(differences, rng_seed=sweep.effect_seed, bootstrap_draws=sweep.bootstrap_draws)
         std_mean = float(standard_values.mean())
         tun_mean = float(tuned_values.mean())
         abs_diff_pp = (tun_mean - std_mean) * 100.0  # percentage points, positive = tuned better
@@ -512,10 +463,9 @@ def main():
         infeasible_piv = feas_grp.pivot(index="l", columns="k", values="infeasible_all").reindex(index=ls, columns=ks)
         infeasible_mask = infeasible_piv
 
-    # Use f1_unc if available, else fallback to f1
-    f1_col_mean = "f1_unc_mean" if "f1_unc_mean" in am.columns else "f1_mean"
+    f1_col_mean = "f1_mean"
     fig, axs = plt.subplots(1, 4, figsize=(17, 3.8))
-    for ax, (col, title, kw) in zip(axs, [(f1_col_mean, "Test F1 unconstrained (utility)", {}),
+    for ax, (col, title, kw) in zip(axs, [(f1_col_mean, "Test F1 (primary utility)", {}),
                                           ("reid_top1_mean", "Re-identification top-1 (A1 attack)", {"cmap": "Oranges"}),
                                           ("freq_success_mean", "Frequency-attack success (A2)", {"cmap": "Oranges"}),
                                           ("fill_mean", "Fill ratio", {"cmap": "Greens"})]):
@@ -529,7 +479,7 @@ def main():
         for c, gv in zip([BLUE, ORANGE, AQUA, MUTED], sorted(am[grp].unique())[::max(1, len(am[grp].unique()) // 4)]):
             s = am[am[grp] == gv].sort_values(xvar)
             ax.plot(s[xvar], s["reid_top1_mean"], "-o", color=c, label=f"{grp}={gv}  attack top-1", lw=2, ms=6)
-            ax.plot(s[xvar], s[f1_col_mean], "--s", color=c, label=f"{grp}={gv}  F1 unc", lw=1.2, ms=5, alpha=0.7)
+            ax.plot(s[xvar], s[f1_col_mean], "--s", color=c, label=f"{grp}={gv}  F1", lw=1.2, ms=5, alpha=0.7)
         ax.set_xscale("log", base=2); ax.set_xlabel(xvar); ax.set_ylabel("rate"); ax.set_ylim(-0.02, 1.02)
         ax.legend(fontsize=7, ncol=2, frameon=False)
     fig.tight_layout(); fig.savefig(figs / "sweeps_l_k.png", bbox_inches="tight"); plt.close(fig)
@@ -559,11 +509,11 @@ def main():
 
     # noise robustness
     fig, axs = plt.subplots(1, 2, figsize=(10, 3.6))
-    noise_f1_col = "f1_unc" if "f1_unc" in main_df.columns else "f1"
+    noise_f1_col = "f1"
     series = [("exact hash", main_df[main_df.method == "exact_hash"], AQUA),
               (f"standard BF {sl}/{sk}", main_df[(main_df.method == "bloom") & (main_df.l == sl) & (main_df.k == sk)], BLUE),
               (f"tuned BF {tl}/{tk}", main_df[(main_df.method == "bloom") & (main_df.l == tl) & (main_df.k == tk)], ORANGE)]
-    for ax, (m, ttl) in zip(axs, [(noise_f1_col, "Test F1 (unconstrained)"), ("reid_top1", "Re-identification top-1")]):
+    for ax, (m, ttl) in zip(axs, [(noise_f1_col, "Test F1 (primary utility)"), ("reid_top1", "Re-identification top-1")]):
         for name, part, c in series:
             if m in part.columns:
                 g = part.groupby("noise")[m].mean()
@@ -574,7 +524,7 @@ def main():
 
     # optional: overlap + DP
     if a.overlap_csv:
-        ov = pd.read_csv(a.overlap_csv)
+        ov = read_csv(a.overlap_csv)
         ov = ov[(ov.noise == a.noise) & (ov.method == "bloom")]
         ovs = ov.groupby(["l", "k", "overlap"])[["f1", "reid_top1", "freq_success"]].mean().reset_index()
         write_run_csv(ovs, out / "table_overlap.csv",
@@ -585,7 +535,7 @@ def main():
                       analysis_scope=analysis_scope)
         print("\nDictionary-overlap sensitivity (E2.7)\n", ovs.to_string(index=False))
     if a.dp:
-        dp = pd.read_csv(a.dp)
+        dp = read_csv(a.dp)
         dp["eps"] = dp["eps"].astype(float)
         agg = dp.groupby(["l", "k", "eps"])[["f1", "reid_top1", "freq_success", "bit_success", "flip_p"]].mean().reset_index()
         write_run_csv(agg, out / "table_dp.csv",

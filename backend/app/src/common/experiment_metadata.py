@@ -4,26 +4,30 @@ import importlib.metadata
 import json
 import sys
 from pathlib import Path
+from collections.abc import Sequence
 
 import pandas as pd
 
-from src.application_config import EXPERIMENT_CONFIG
+from src.common.config import Config, load_config, positive_integer
+from src.common.experiment.io import write_csv
+from src.common.linking.threshold import threshold_values
 
 
 def add_common_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    cfg = load_config("rq2")
     ap.add_argument("--data", default=None,
                     help="CSV dataset (default: the configured real shipment dataset)")
     ap.add_argument("--column", default="raw_item_description")
     ap.add_argument("--composite", action="store_true")
     ap.add_argument("--composite-columns", nargs="+", default=None)
-    ap.add_argument("--n-entities", type=int, default=EXPERIMENT_CONFIG.n_entities)
-    ap.add_argument("--n-records", type=int, default=EXPERIMENT_CONFIG.n_records)
-    ap.add_argument("--seeds", type=int, default=len(EXPERIMENT_CONFIG.seeds))
-    ap.add_argument("--n-selection", type=int, default=10,
+    ap.add_argument("--n-entities", type=int, default=None)
+    ap.add_argument("--n-records", type=int, default=cfg.sweep.victim_draws)
+    ap.add_argument("--seeds", type=int, default=len(cfg.seeds))
+    ap.add_argument("--n-selection", type=int, default=cfg.sweep.selection_seeds,
                     help="number of initial seeds reserved for operating-point selection")
-    ap.add_argument("--q", type=int, default=EXPERIMENT_CONFIG.q)
-    ap.add_argument("--pad", action="store_true", default=EXPERIMENT_CONFIG.pad)
-    ap.add_argument("--standard", default="1024:4",
+    ap.add_argument("--q", type=int, default=cfg.bloom.q)
+    ap.add_argument("--pad", action="store_true", default=True)
+    ap.add_argument("--standard", default=f"{cfg.bloom.l}:{cfg.bloom.k}",
                     help="standard Bloom configuration as l:k")
     return ap
 
@@ -33,9 +37,7 @@ def parse_standard(value: str) -> tuple[int, int]:
         l, k = (int(part.strip()) for part in value.split(":"))
     except (AttributeError, ValueError):
         raise ValueError("--standard must be in l:k format") from None
-    if l < 2 or k < 1 or k > l:
-        raise ValueError("--standard must satisfy l >= 2 and 1 <= k <= l")
-    return l, k
+    return positive_integer(l, "l"), positive_integer(k, "k")
 
 
 def data_fingerprint(path: str | None) -> dict:
@@ -60,34 +62,33 @@ def package_versions() -> dict:
 
 
 def config_metadata(q: int | None = None, pad: bool | None = None,
-                    data_mode: str | None = None) -> dict:
+                    data_mode: str | None = None, *, cfg: Config | None = None,
+                    tau_grid: Sequence[float] | None = None) -> dict:
+    cfg = cfg or load_config("rq2")
+    sweep = cfg.sweep
+    bloom = cfg.bloom
     return {
-        "q": EXPERIMENT_CONFIG.q if q is None else q,
-        "pad": EXPERIMENT_CONFIG.pad if pad is None else pad,
+        "q": bloom.q if q is None else q,
+        "pad": True if pad is None else pad,
+        "pad_char": bloom.pad_char,
+        "hmac_key_fingerprint": hashlib.sha256(bytes.fromhex(bloom.hmac_key)).hexdigest()[:12],
         "data_mode": "composite" if data_mode == "composite" else "description",
-        "tau_grid": [float(v) for v in EXPERIMENT_CONFIG.tau_grid],
-        "degenerate_fill": EXPERIMENT_CONFIG.degenerate_fill,
-        "standard": list(EXPERIMENT_CONFIG.standard),
-        "reid_topk": list(EXPERIMENT_CONFIG.reid_topk),
-        "reid_delta": EXPERIMENT_CONFIG.reid_delta,
-        "bit_top": EXPERIMENT_CONFIG.bit_top,
-        "n_entities": EXPERIMENT_CONFIG.n_entities,
-        "n_records": EXPERIMENT_CONFIG.n_records,
-        "seeds": list(EXPERIMENT_CONFIG.seeds),
-        "extra_columns": list(EXPERIMENT_CONFIG.extra_columns),
-        "tau_primary": EXPERIMENT_CONFIG.tau_primary,
-        "tau_secondary": EXPERIMENT_CONFIG.tau_secondary,
-        "bloom_length": EXPERIMENT_CONFIG.bloom_length,
-        "k_primary": EXPERIMENT_CONFIG.k_primary,
-        "k_secondary": EXPERIMENT_CONFIG.k_secondary,
-        "noise_spec": {
-            "min_len": EXPERIMENT_CONFIG.rq1_noise_min_len,
-            "min_edits": EXPERIMENT_CONFIG.rq1_noise_min_edits,
-        },
+        "tau_grid": list(threshold_values(cfg.tau_grid) if tau_grid is None else tau_grid),
+        "degenerate_fill": sweep.degenerate_fill,
+        "standard": [bloom.l, bloom.k],
+        "reid_topk": list(sweep.reid_topk),
+        "reid_delta": sweep.reid_delta,
+        "bit_top": sweep.bit_top,
+        "n_records": sweep.victim_draws,
+        "seeds": list(cfg.seeds),
+        "extra_columns": list(cfg.columns.text[1:]),
+        "noise_fields": list(cfg.noise_fields),
+        "typos_per_selected_record": list(cfg.typos_per_selected_record),
     }
 
 
 def write_run_csv(df: pd.DataFrame, csv_path: str | Path, *,
+                  cfg: Config | None = None, tau_grid: Sequence[float] | None = None,
                   q: int | None = None, pad: bool | None = None,
                   data_mode: str | None = None, dataset_path: str | None = None,
                   argv: list[str] | None = None, nominal_noise: float | None = None,
@@ -97,10 +98,9 @@ def write_run_csv(df: pd.DataFrame, csv_path: str | Path, *,
                   source_runs: dict | None = None,
                   analysis_scope: dict | None = None) -> None:
     csv_path = Path(csv_path)
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(csv_path, index=False)
+    write_csv(df, csv_path)
     meta = {
-        "experiment_config": config_metadata(q=q, pad=pad, data_mode=data_mode),
+        "experiment_config": config_metadata(q=q, pad=pad, data_mode=data_mode, cfg=cfg, tau_grid=tau_grid),
         "package_versions": package_versions(),
         "argv": sys.argv if argv is None else argv,
         "dataset_fingerprint": data_fingerprint(dataset_path),
@@ -144,6 +144,8 @@ def write_metadata(
     from datetime import datetime, timezone
 
     snapshot = asdict(cfg)
+    if snapshot.get("sweep") is None:
+        snapshot.pop("sweep", None)
     key = snapshot["bloom"].pop("hmac_key")
     snapshot["bloom"]["hmac_key_fingerprint"] = hashlib.sha256(bytes.fromhex(key)).hexdigest()[:12]
     try:

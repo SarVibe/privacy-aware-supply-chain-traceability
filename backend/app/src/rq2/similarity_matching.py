@@ -7,13 +7,11 @@ import numpy as np
 from collections import Counter
 from scipy.stats import rankdata
 
+from src.common.config import unit_interval
 from src.common.evaluation.metrics import pairwise_prf
 from src.common.similarity.dice import dice_matrix
 
 from .experiment_config import TAU_GRID
-from .parameter_validation import validate_tau
-
-MAX_FPR = 0.01
 
 
 def _cross_party_rates(tp, pred, n):
@@ -45,7 +43,9 @@ def tune_tau_full(D_val: np.ndarray, taus=TAU_GRID) -> dict:
       feasible_01 - bool: True if any threshold satisfies FPR<=0.01
       feasible_05 - bool: True if any threshold satisfies FPR<=0.05
     """
-    taus = tuple(validate_tau(value) for value in taus)
+    taus = tuple(unit_interval(value, "tau") for value in taus)
+    if not taus or len(set(taus)) != len(taus):
+        raise ValueError("Thresholds must be non-empty and unique")
     res = sweep(D_val, taus)  # columns: P, R, F1, FPR
 
     # Unconstrained: argmax F1 over the full grid

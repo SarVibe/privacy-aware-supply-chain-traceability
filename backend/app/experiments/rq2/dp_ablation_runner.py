@@ -84,10 +84,10 @@ def main():
             )
         if a.frequency_data:
             ds = apply_real_frequency_counts(ds, a.frequency_data, seed)
-        scen = build_scenario(ds, seed, a.noise, 1.0, a.n_records, DEFAULT_Q, DEFAULT_PAD)
+        scen = build_scenario(ds, seed, a.noise, 1.0, a.n_records, DEFAULT_Q)
         for (l, k) in cfgs:
             for eps in a.eps:
-                rows.append(run_bloom(ds, scen, l, k, DEFAULT_Q, DEFAULT_PAD, eps=eps))
+                rows.append(run_bloom(ds, scen, l, k, DEFAULT_Q, eps=eps))
         print(f"seed {seed + 1}/{a.seeds} {time.time() - t0:.0f}s", flush=True)
     data_mode = "composite" if a.composite or a.composite_columns else "description"
     write_run_csv(pd.DataFrame(rows), a.out, q=DEFAULT_Q, pad=DEFAULT_PAD,

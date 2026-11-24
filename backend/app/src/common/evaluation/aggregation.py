@@ -105,3 +105,49 @@ def paired_difference(
             adjusted = pd.Series(holm_adjust(family.to_numpy()), index=family.index)
             result.loc[group.index, "p_holm"] = group[_NOISE].map(adjusted)
     return result
+
+
+def mean_ci95_half_width(x):
+    x = np.asarray(x, float)
+    x = x[~np.isnan(x)]
+    return float(stats.t.ppf(0.975, len(x) - 1) * x.std(ddof=1) / sqrt(len(x))) if len(x) > 1 else float("nan")
+
+
+def paired_effect(differences, *, rng_seed: int, bootstrap_draws: int):
+    differences = np.asarray(differences, dtype=float)
+    differences = differences[~np.isnan(differences)]
+    if len(differences) == 0:
+        return {"n": 0, "hodges_lehmann": None, "hl_ci95": [None, None],
+                "rank_biserial": None, "cohens_dz": None}
+    pairwise = (differences[:, None] + differences[None, :]) / 2.0
+    hl = float(np.median(pairwise.ravel()))
+    rng = np.random.default_rng(rng_seed)
+    boot = []
+    for _ in range(bootstrap_draws):
+        sample = rng.choice(differences, size=len(differences), replace=True)
+        pairwise_boot = (sample[:, None] + sample[None, :]) / 2.0
+        boot.append(float(np.median(pairwise_boot.ravel())))
+    ci = np.quantile(boot, [0.025, 0.975]).tolist()
+    positive = np.sum(differences > 0)
+    negative = np.sum(differences < 0)
+    r = (positive - negative) / (positive + negative) if positive + negative else 0.0
+    dz = float(differences.mean() / differences.std(ddof=1)) if len(differences) > 1 and differences.std(ddof=1) > 0 else 0.0
+    return {"n": int(len(differences)), "hodges_lehmann": hl,
+            "hl_ci95": [float(ci[0]), float(ci[1])],
+            "rank_biserial": float(r), "cohens_dz": dz}
+
+
+def paired_seed_differences(a: pd.DataFrame, b: pd.DataFrame, metric: str):
+    if "seed" not in a or "seed" not in b:
+        raise ValueError("paired comparison requires a seed column")
+    a_seeds = set(a["seed"].tolist())
+    b_seeds = set(b["seed"].tolist())
+    if a_seeds != b_seeds:
+        raise ValueError(f"paired seed sets do not match: {sorted(a_seeds)} != {sorted(b_seeds)}")
+    merged = a.merge(b, on="seed", validate="one_to_one",
+                     suffixes=("_standard", "_tuned"))
+    x = merged[f"{metric}_standard"].to_numpy(dtype=float)
+    y = merged[f"{metric}_tuned"].to_numpy(dtype=float)
+    differences = y - x  # tuned - standard: positive means tuned is better
+    differences = differences[differences != 0]
+    return differences, len(merged)

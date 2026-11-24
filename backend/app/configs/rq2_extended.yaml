@@ -1,0 +1,6 @@
+extends: rq2
+noise_levels: [0.0, 0.05, 0.15, 0.30]
+sweep:
+  lengths: [2048, 1024, 512, 256, 128]
+  hashes: [2, 4, 8, 15, 30, 50]
+  grid_csv: raw/exp2_grid_extended.csv

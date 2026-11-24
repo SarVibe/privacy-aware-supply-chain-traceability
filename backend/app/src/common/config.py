@@ -1,6 +1,8 @@
 """Load immutable, layered configuration for the research experiments."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from math import isfinite
+from numbers import Real
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +63,29 @@ class TauGridConfig:
 
 
 @dataclass(frozen=True)
+class SweepConfig:
+    lengths: tuple[int, ...]
+    hashes: tuple[int, ...]
+    victim_draws: int
+    max_quick_records: int
+    overlap: float
+    dict_extra_ratio: float
+    reid_topk: tuple[int, ...]
+    reid_delta: float
+    bit_top: int
+    degenerate_fill: float
+    grid_csv: str
+    profile_csv: str
+    analysis_directory: str
+    analysis_noise: float
+    selection_seeds: int
+    min_f1: float
+    min_privacy_gain: float
+    effect_seed: int
+    bootstrap_draws: int
+
+
+@dataclass(frozen=True)
 class Config:
     paths: PathsConfig
     columns: ColumnsConfig
@@ -77,6 +102,7 @@ class Config:
     field_sets: tuple[str, ...]
     methods: tuple[str, ...]
     sample_entities_seed: int = 0
+    sweep: SweepConfig | None = None
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -118,19 +144,67 @@ def _validate_names(section: str, names: tuple[str, ...]) -> None:
         raise ValueError(f"{section} column names must be unique")
 
 
+def positive_integer(value: int, name: str) -> int:
+    if type(value) is not int or value < 1:
+        raise ValueError(f"{name} must be an integer >= 1")
+    return value
+
+
+def unit_interval(value: float, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real) or not 0 <= value <= 1:
+        raise ValueError(f"{name} must be a number in [0, 1]")
+    return float(value)
+
+
+def _validate_sweep(sweep: SweepConfig) -> None:
+    for name in ("lengths", "hashes", "reid_topk"):
+        values = getattr(sweep, name)
+        if not values:
+            raise ValueError(f"sweep.{name} must be non-empty")
+        for value in values:
+            positive_integer(value, f"sweep.{name}")
+        if len(set(values)) != len(values):
+            raise ValueError(f"sweep.{name} must contain unique values")
+    for name in ("victim_draws", "max_quick_records", "bit_top", "selection_seeds", "bootstrap_draws"):
+        positive_integer(getattr(sweep, name), f"sweep.{name}")
+    for name in ("overlap", "reid_delta", "degenerate_fill", "analysis_noise", "min_f1"):
+        unit_interval(getattr(sweep, name), f"sweep.{name}")
+    if sweep.overlap == 0:
+        raise ValueError("sweep.overlap must be positive")
+    for name in ("dict_extra_ratio", "min_privacy_gain"):
+        value = getattr(sweep, name)
+        if type(value) not in (float, int) or not isfinite(value) or value < 0:
+            raise ValueError(f"sweep.{name} must be finite and non-negative")
+    if type(sweep.effect_seed) is not int or sweep.effect_seed < 0:
+        raise ValueError("sweep.effect_seed must be a non-negative integer")
+    for name in ("grid_csv", "profile_csv", "analysis_directory"):
+        value = getattr(sweep, name)
+        if not isinstance(value, str) or not value or Path(value).is_absolute() or ".." in Path(value).parts:
+            raise ValueError(f"sweep.{name} must be relative to the results directory")
+
+
 def _validate(cfg: Config) -> None:
-    if type(cfg.bloom.l) is not int or cfg.bloom.l < 1 or cfg.bloom.l & (cfg.bloom.l - 1):
-        raise ValueError("bloom.l must be a positive power of two")
-    for name, value in (("bloom.k", cfg.bloom.k), ("bloom.q", cfg.bloom.q),
+    for name, value in (("bloom.l", cfg.bloom.l), ("bloom.k", cfg.bloom.k), ("bloom.q", cfg.bloom.q),
                         ("max_records_per_entity", cfg.max_records_per_entity)):
-        if type(value) is not int or value < 1:
-            raise ValueError(f"{name} must be an integer >= 1")
+        positive_integer(value, name)
+    if not isinstance(cfg.bloom.pad_char, str) or len(cfg.bloom.pad_char) != 1 or cfg.bloom.pad_char.isalnum():
+        raise ValueError("bloom.pad_char must be one non-alphanumeric character")
+    try:
+        if not bytes.fromhex(cfg.bloom.hmac_key):
+            raise ValueError
+    except (TypeError, ValueError):
+        raise ValueError("bloom.hmac_key must be a non-empty hexadecimal string") from None
+    grid = cfg.tau_grid
+    unit_interval(grid.start, "tau_grid.start")
+    unit_interval(grid.stop, "tau_grid.stop")
+    if grid.start > grid.stop or type(grid.step) not in (float, int) or not isfinite(grid.step) or grid.step <= 0:
+        raise ValueError("tau_grid requires start <= stop and a finite positive step")
     if type(cfg.val_fraction) not in (float, int) or not 0 < cfg.val_fraction < 1:
         raise ValueError("val_fraction must be between 0 and 1 (exclusive)")
-    if not cfg.noise_levels or any(
-        type(level) not in (float, int) or not 0 <= level <= 1 for level in cfg.noise_levels
-    ):
-        raise ValueError("noise_levels must be non-empty and contain only values in [0, 1]")
+    for level in cfg.noise_levels:
+        unit_interval(level, "noise_levels")
+    if not cfg.noise_levels or len(set(cfg.noise_levels)) != len(cfg.noise_levels):
+        raise ValueError("noise_levels must be non-empty and unique")
     if not cfg.seeds or len(cfg.seeds) > 10 or any(
         type(seed) is not int or seed < 0 for seed in cfg.seeds
     ) or len(set(cfg.seeds)) != len(cfg.seeds):
@@ -150,6 +224,8 @@ def _validate(cfg: Config) -> None:
         raise ValueError("sample_entities must be null or an integer >= 1")
     if type(cfg.sample_entities_seed) is not int or cfg.sample_entities_seed < 0:
         raise ValueError("sample_entities_seed must be a non-negative integer")
+    if cfg.sweep is not None:
+        _validate_sweep(cfg.sweep)
 
 
 def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
@@ -166,6 +242,13 @@ def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
     try:
         for name, constructor in constructors.items():
             settings[name] = constructor(**settings[name])
+        if "sweep" in settings:
+            sweep = settings["sweep"]
+            for name in ("lengths", "hashes", "reid_topk"):
+                if not isinstance(sweep[name], list):
+                    raise TypeError(f"sweep.{name} must be a YAML list")
+                sweep[name] = tuple(sweep[name])
+            settings["sweep"] = SweepConfig(**sweep)
         settings.setdefault("sample_entities", None)
         for name in (
             "seeds", "noise_levels", "typos_per_selected_record", "noise_fields", "field_sets", "methods"
@@ -178,3 +261,9 @@ def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
         raise ValueError(f"Invalid {rq_name} configuration: {exc}") from exc
     _validate(cfg)
     return cfg
+
+
+def all_fields_noise(cfg: Config) -> Config:
+    """Apply the separately versioned noise artifacts to an experiment configuration."""
+    variant = load_config("rq1_all_fields")
+    return replace(cfg, paths=replace(cfg.paths, noisy=variant.paths.noisy), noise_fields=variant.noise_fields)

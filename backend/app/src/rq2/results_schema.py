@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
+from src.common.experiment.io import require_columns
 
 
 @dataclass
@@ -24,6 +24,7 @@ BOUNDED_COLUMNS = (
     "precision", "recall", "f1", "fpr", "auc", "reid_top1",
     "reid_top5", "reid_top1_conditional", "freq_success",
     "bit_success", "fill",
+    "cross_party_precision", "cross_party_recall", "cross_party_f1", "cross_party_fpr",
 )
 
 
@@ -32,15 +33,17 @@ def validate_results(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or not isinstance(df, pd.DataFrame):
         raise SchemaError(["results must be a pandas DataFrame"])
 
-    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
-    if missing:
-        errors.append("missing required columns: " + ", ".join(missing))
+    try:
+        require_columns(df, REQUIRED_COLUMNS, table="Results CSV")
+    except ValueError as exc:
+        errors.append(str(exc))
 
     if not errors:
         numeric = ("l", "k", "q", "noise", "seed", "overlap",
                    "precision", "recall", "f1", "fpr", "auc",
                    "reid_top1", "reid_top5", "reid_cands_delta",
                    "freq_success", "bit_success", "fill", "entropy")
+        numeric += tuple(column for column in BOUNDED_COLUMNS if column.startswith("cross_party_"))
         for c in numeric:
             if c in df.columns and not pd.api.types.is_numeric_dtype(df[c]):
                 errors.append(f"{c} must be numeric")

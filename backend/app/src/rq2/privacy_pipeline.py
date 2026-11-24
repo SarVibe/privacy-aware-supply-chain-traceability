@@ -16,8 +16,7 @@ import numpy as np
 from . import privacy_attacks as attacks
 from . import similarity_matching as matching
 from . import privacy_metrics as metrics
-from .experiment_config import (BIT_ATTACK_TOP_BITS, DEFAULT_PAD, DEFAULT_Q)
-from src.common.config import load_config
+from .experiment_config import DEFAULT_Q, RQ2_CONFIG
 from src.common.encoding.bloom_filter import BloomFilterEncoder
 from src.common.evaluation.metrics import evaluate_clusters
 from src.common.linking.bloom import BloomLinker
@@ -50,9 +49,11 @@ class Scenario:
     aux_df: np.ndarray
 
 
-def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records: int = 3000,
-                   q: int = DEFAULT_Q, pad: bool = DEFAULT_PAD,
-                   dict_extra_ratio: float = 5.0) -> Scenario:
+def build_scenario(
+    ds, seed: int, noise: float, overlap: float = RQ2_CONFIG.sweep.overlap,
+    n_records: int = RQ2_CONFIG.sweep.victim_draws, q: int = DEFAULT_Q,
+    *, dict_extra_ratio: float = RQ2_CONFIG.sweep.dict_extra_ratio,
+) -> Scenario:
     validate_dataset(ds)
     noise = validate_noise(noise)
     overlap = validate_overlap(overlap)
@@ -95,7 +96,7 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
         for e in aux_sample:
             if int(e) in aux_counts:
                 aux_counts[int(e)] += 1
-    bloom = (ds.linkage.config if ds.linkage is not None else load_config("rq1")).bloom
+    bloom = (ds.linkage.config if ds.linkage is not None else RQ2_CONFIG).bloom
     pad_char = bloom.pad_char
     key = bytes.fromhex(bloom.hmac_key)
     encoder = BloomFilterEncoder(bloom.l, bloom.k, q, key, pad_char)
@@ -144,8 +145,8 @@ def evaluate_bloom_linkage(ds, noise, l, k, q, taus, tau=None):
     return {"tau": tau, **_cluster_metrics(linkage, linker)}
 
 
-def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool = DEFAULT_PAD,
-              eps: float = math.inf, bit_top: int = BIT_ATTACK_TOP_BITS,
+def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
+              eps: float = math.inf, bit_top: int = RQ2_CONFIG.sweep.bit_top,
               taus=matching.TAU_GRID, *, primary_tau: float | None = None) -> dict:
     validate_dataset(ds)
     eps = validate_eps(eps)
@@ -227,7 +228,7 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
     fm, fs = metrics.fill_stats(bf_a)
     row.update(fill=fm, fill_std=fs, fill_expected=metrics.expected_fill(load), entropy=metrics.bit_entropy(bf_a),
                load=load, nq_mean=nq)
-    row["degenerate"] = 1 if fm > 0.95 else 0
+    row["degenerate"] = int(fm > RQ2_CONFIG.sweep.degenerate_fill)
     return row
 
 

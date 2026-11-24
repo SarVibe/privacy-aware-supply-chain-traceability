@@ -1,0 +1,23 @@
+extends: rq1
+noise_levels: [0.15]
+tau_grid: {start: 0.30, stop: 0.99, step: 0.005}
+sweep:
+  lengths: [1024, 512, 256]
+  hashes: [2, 4, 10, 30]
+  victim_draws: 3000
+  max_quick_records: 200
+  overlap: 1.0
+  dict_extra_ratio: 5.0
+  reid_topk: [1, 5, 10]
+  reid_delta: 0.02
+  bit_top: 100
+  degenerate_fill: 0.95
+  grid_csv: raw/exp2_grid.csv
+  profile_csv: raw/profile_fill.csv
+  analysis_directory: tables
+  analysis_noise: 0.15
+  selection_seeds: 5
+  min_f1: 0.85
+  min_privacy_gain: 2.0
+  effect_seed: 2026
+  bootstrap_draws: 2000

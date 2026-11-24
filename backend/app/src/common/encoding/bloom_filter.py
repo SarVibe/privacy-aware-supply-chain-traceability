@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable
 import numpy as np
 from numpy.typing import NDArray
 
+from src.common.config import positive_integer
 from src.common.encoding.qgrams import extract_qgrams, validate_qgram_parameters
 
 
@@ -21,10 +22,8 @@ class BloomFilterEncoder:
         pad_char: str,
         post_transform: Callable[[NDArray[np.uint8]], NDArray[np.uint8]] | None = None,
     ) -> None:
-        if type(l) is not int or l < 1:
-            raise ValueError("l must be an integer >= 1")
-        if type(k) is not int or k < 1:
-            raise ValueError("k must be an integer >= 1")
+        positive_integer(l, "l")
+        positive_integer(k, "k")
         validate_qgram_parameters(q, pad_char)
         self._length = l
         self._k = k

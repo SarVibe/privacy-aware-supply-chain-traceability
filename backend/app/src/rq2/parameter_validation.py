@@ -3,30 +3,7 @@ from collections.abc import Mapping
 
 import numpy as np
 
-
-def validate_tau(tau):
-    try:
-        value = float(tau)
-    except (TypeError, ValueError):
-        raise ValueError("tau must be within [0.30, 0.99]") from None
-    if math.isnan(value) or value < 0.30 or value > 0.99:
-        raise ValueError("tau must be within [0.30, 0.99]")
-    return value
-
-
-def validate_bloom_parameters(l, k):
-    if isinstance(l, bool) or not isinstance(l, (int, np.integer)):
-        raise ValueError("l must be an integer")
-    if isinstance(k, bool) or not isinstance(k, (int, np.integer)):
-        raise ValueError("k must be an integer")
-    l, k = int(l), int(k)
-    if l < 128 or l > 2048:
-        raise ValueError("l must be within [128, 2048]")
-    if k < 2 or k > 50:
-        raise ValueError("k must be within [2, 50]")
-    if k > l:
-        raise ValueError("k must not exceed l")
-    return l, k
+from src.common.config import unit_interval
 
 
 def validate_eps(eps):
@@ -46,13 +23,7 @@ def validate_eps(eps):
 
 
 def validate_noise(rate):
-    try:
-        value = float(rate)
-    except (TypeError, ValueError):
-        raise ValueError("noise rate must be within [0, 1]") from None
-    if math.isnan(value) or value < 0 or value > 1:
-        raise ValueError("noise rate must be within [0, 1]")
-    return value
+    return unit_interval(rate, "noise rate")
 
 
 def validate_overlap(overlap):
