@@ -76,22 +76,16 @@ production with:
 npm --prefix frontend run build
 ```
 
-Run the research experiments from `backend\app`:
+Run the RQ2 collision experiment from the repository root with `RQ2_HMAC_ROOT_KEY` set in the environment.
 
 ```powershell
 $env:PYTHONPATH = "backend\app"
-backend\venv313\Scripts\python.exe -m experiments.rq2.analyze
-backend\venv313\Scripts\python.exe -m experiments.rq2.run_dp_ablation
-backend\venv313\Scripts\python.exe -m experiments.rq2.profile_data
+backend\venv313\Scripts\python.exe -m experiments.rq2.collision_runner
 ```
 
-Each experiment writes its CSV result to `data\tables`.
+The collision runner writes its tables, figures, summary and RQ3 recommendation to `backend/app/results/rq2`. The default benchmark evaluates 12 configurations on five paired seeds. See [RQ2 commands and protocol](docs/RQ2_COLLISION.md) for the key format, regression gate, and optional robustness inputs.
 
-RQ2 uses 40 seeds by default (10 selection, 30 evaluation). The grid runner
-supports `--n-selection`, `--dict-extra-ratio` (default `5`), and `--workers`.
-The default tau grid is 0.30--0.99 in 0.005 increments.
-
-### Metric dictionary
+### Legacy RQ2 metric dictionary
 
 | Metric | Unit | Range | Definition |
 |---|---|---:|---|

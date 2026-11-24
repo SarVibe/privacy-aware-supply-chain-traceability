@@ -1,4 +1,4 @@
-"""Sweep Bloom parameters on the prepared RQ1 records."""
+"""Deprecated legacy grid. Use experiments.rq2.collision_runner for new RQ2 studies."""
 
 import argparse
 import time

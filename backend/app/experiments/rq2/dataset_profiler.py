@@ -1,4 +1,4 @@
-"""Profile distinct q-grams, entity frequencies, and expected Bloom fill."""
+"""Deprecated legacy dataset profiler. The collision runner profiles its own cohorts."""
 
 import argparse
 from pathlib import Path

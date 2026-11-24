@@ -1,4 +1,6 @@
-"""One experimental run = Scenario (data-side randomness) x configuration (l, k, eps).
+"""Deprecated legacy RQ2 implementation retained for existing experiment callers.
+
+One experimental run = Scenario (data-side randomness) x configuration (l, k, eps).
 
 Scenario (depends on seed, noise, overlap only -> identical across (l, k), so
 configurations are compared on *paired* data):

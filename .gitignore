@@ -28,6 +28,7 @@ artifacts/
 cache/
 typechain-types/
 results/
+/backend/app/data/generated/noisy_all_fields_v1/
 *.zkeys
 *.r1cs
 *.wasm

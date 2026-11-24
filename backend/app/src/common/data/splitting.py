@@ -31,6 +31,34 @@ def split_entities(
     return {"validation": shuffled[:n_validation], "test": shuffled[n_validation:]}
 
 
+def partition_reference_entities(
+    entity_ids: Iterable[str], validation_fraction: float, test_fraction: float, rng: Generator
+) -> dict[str, list[str]]:
+    """Allocate a third partition from the IDs held out of validation."""
+    if not 0 < test_fraction < 1 - validation_fraction:
+        raise ValueError("A positive entity share must remain for the reference partition")
+    split = split_entities(entity_ids, validation_fraction, rng)
+    held_out = split["test"]
+    if len(held_out) < 2 or not split["validation"]:
+        raise ValueError("Need at least one entity in validation, test and reference")
+    n_test = round((len(held_out) + len(split["validation"])) * test_fraction)
+    n_test = min(len(held_out) - 1, max(1, n_test))
+    return {"validation": split["validation"], "test": held_out[:n_test], "reference": held_out[n_test:]}
+
+
+def apply_reference_partition(df: pd.DataFrame, split: dict[str, list[str]], cfg: Config) -> dict[str, pd.DataFrame]:
+    """Validate full entity coverage and preserve source row order in three partitions."""
+    if set(split) != {"validation", "test", "reference"}:
+        raise ValueError("Expected validation, test and reference partitions")
+    analysis, reference = apply_split(
+        df, {"validation": split["validation"] + split["test"], "test": split["reference"]}, cfg
+    )
+    validation, test = apply_split(analysis, {name: split[name] for name in _SPLIT_NAMES}, cfg)
+    if validation.empty or test.empty or reference.empty:
+        raise ValueError("All three partitions must contain records")
+    return {"validation": validation, "test": test, "reference": reference}
+
+
 def _check_split(split: dict[str, list[str]]) -> tuple[set[str], set[str]]:
     if not isinstance(split, dict) or set(split) != set(_SPLIT_NAMES):
         raise ValueError("A split must contain exactly 'validation' and 'test'")

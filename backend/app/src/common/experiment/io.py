@@ -22,10 +22,11 @@ def require_columns(df: pd.DataFrame, required: Iterable[str], *, table: str) ->
 
 
 def read_csv(
-    path: str | Path, *, encoding: str = "utf-8", as_text: bool = False
+    path: str | Path, *, encoding: str = "utf-8", as_text: bool = False, round_trip: bool = False
 ) -> pd.DataFrame:
     """Read CSVs while preserving literal labels and optionally every text value."""
     return pd.read_csv(
         path, encoding=encoding, keep_default_na=False, na_values=[""],
         dtype=str if as_text else None, skip_blank_lines=not as_text,
+        float_precision="round_trip" if round_trip else None,
     )

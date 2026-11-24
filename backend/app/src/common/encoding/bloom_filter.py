@@ -65,13 +65,25 @@ class BloomFilterEncoder:
 
     def encode(self, text: str) -> NDArray[np.uint8]:
         """Encode one string, then apply the optional per-record transform."""
+        return self.encode_grams(self.grams(text))
+
+    def encode_grams(self, grams: Iterable[str]) -> NDArray[np.uint8]:
+        """Encode pre-extracted insertion grams using the same encoder."""
         bits = np.zeros(self._length, dtype=np.uint8)
-        for qgram in self.grams(text):
+        for qgram in grams:
             bits[self._positions(qgram)] = 1
         if self._post_transform is not None:
             bits = self._post_transform(bits)
             if not isinstance(bits, np.ndarray) or bits.shape != (self._length,) or bits.dtype != np.uint8:
                 raise ValueError("post_transform must return a uint8 array of shape (l,)")
+        return bits
+
+    def encode_gram_sets(self, records: Iterable[Iterable[str]]) -> NDArray[np.uint8]:
+        """Encode pre-extracted records in their original order."""
+        records = list(records)
+        bits = np.empty((len(records), self._length), dtype=np.uint8)
+        for index, grams in enumerate(records):
+            bits[index] = self.encode_grams(grams)
         return bits
 
     def encode_many(self, texts: Iterable[str]) -> NDArray[np.uint8]:

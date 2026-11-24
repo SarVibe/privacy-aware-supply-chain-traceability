@@ -1,4 +1,4 @@
-"""Aggregate results -> tables, hypothesis tests (H1-H3), operating-point selection and figures.
+"""Deprecated legacy RQ2 analyzer. The collision runner generates its own report.
 
   python -m experiments.rq2.results_analyzer --grid backend/app/results/rq2/raw/exp2_grid.csv [--dp backend/app/results/rq2/raw/exp2_dp.csv] [--noise 0.15]
 

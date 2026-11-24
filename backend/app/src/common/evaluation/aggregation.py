@@ -5,7 +5,7 @@ from math import sqrt
 
 import numpy as np
 import pandas as pd
-from scipy.stats import PermutationMethod, t, wilcoxon
+from scipy.stats import PermutationMethod, rankdata, t, wilcoxon
 
 HYPOTHESIS_NOISE_LEVELS = (0.05, 0.15, 0.30)
 _SEED = "seed"
@@ -154,3 +154,50 @@ def paired_seed_differences(a: pd.DataFrame, b: pd.DataFrame, metric: str):
     differences = y - x  # tuned - standard: positive means tuned is better
     differences = differences[differences != 0]
     return differences, len(merged)
+
+
+def complete_seed_differences(baseline: pd.DataFrame, comparison: pd.DataFrame, metric: str) -> np.ndarray:
+    """Return comparison minus baseline, including zero differences for matched seeds."""
+    if baseline["seed"].duplicated().any() or comparison["seed"].duplicated().any():
+        raise ValueError("Paired effects require one observation per seed")
+    left = baseline.set_index("seed")[metric].sort_index()
+    right = comparison.set_index("seed")[metric].sort_index()
+    if left.empty or not left.index.equals(right.index):
+        raise ValueError("Paired effects require nonempty matching seed sets")
+    differences = (right - left).to_numpy(dtype=float)
+    if not np.isfinite(differences).all():
+        raise ValueError("Paired effects require finite complete observations")
+    return differences
+
+
+def matched_rank_biserial(differences: np.ndarray) -> float:
+    """Contrast positive and negative rank sums, dropping zeros and averaging ties."""
+    differences = np.asarray(differences, dtype=float)
+    nonzero = differences[differences != 0]
+    if not len(nonzero):
+        return 0.0
+    ranks = rankdata(np.abs(nonzero))
+    return float(np.dot(ranks, np.sign(nonzero)) / ranks.sum())
+
+
+def paired_bootstrap_summary(differences: np.ndarray, *, rng_seed: int, bootstrap_draws: int) -> dict:
+    """Estimate paired mean and Walsh-median differences with percentile intervals."""
+    values = np.asarray(differences, dtype=float)
+    if values.ndim != 1 or not len(values) or not np.isfinite(values).all():
+        raise ValueError("Paired bootstrap requires a nonempty vector of finite differences")
+    if type(bootstrap_draws) is not int or bootstrap_draws < 1:
+        raise ValueError("bootstrap_draws must be a positive integer")
+
+    i, j = np.triu_indices(len(values))
+    boot = np.random.default_rng(rng_seed).choice(values, size=(bootstrap_draws, len(values)), replace=True)
+    means = boot.mean(axis=1)
+    hl = np.median((boot[:, i] + boot[:, j]) / 2, axis=1)
+    low, high = np.quantile(means, [0.025, 0.975])
+    hl_low, hl_high = np.quantile(hl, [0.025, 0.975])
+    mean = float(values.mean())
+    std = values.std(ddof=1) if len(values) > 1 else 0.0
+    return {"n_seeds": len(values), "mean_difference": mean, "ci_low": float(low), "ci_high": float(high),
+            "hodges_lehmann": float(np.median((values[i] + values[j]) / 2)),
+            "hl_ci_low": float(hl_low), "hl_ci_high": float(hl_high),
+            "rank_biserial": matched_rank_biserial(values),
+            "cohens_dz": mean / float(std) if std else (0.0 if mean == 0 else None)}
