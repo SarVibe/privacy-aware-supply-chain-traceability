@@ -36,7 +36,6 @@ os.environ["MPLCONFIGDIR"] = os.path.join(tempfile.gettempdir(), "matplotlib_c1_
 import argparse
 import logging
 import random
-import string
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -81,7 +80,7 @@ P_NOISE_AWARE = "noise-aware (tuned per noise)"
 P_ORACLE = "oracle (upper bound)"
 
 BASE_SEED = 42  # matches the default seed in Config / noise_generator
-NOISE_MODELS = ("all_records", "record_level")
+NOISE_MODELS = ("all_records",)
 
 
 class Experiment1AccuracyBenchmark:
@@ -95,19 +94,18 @@ class Experiment1AccuracyBenchmark:
         thresholds: Optional[List[float]] = None,
         main_threshold: Optional[float] = None,
         n_seeds: int = 10,
-        noise_source: str = "inline",
+        noise_source: str = "files",
         include_raw_ablation: bool = True,
         seeds: Optional[List[int]] = None,
         data_dir: Optional[str] = None,
         output_suffix: str = "",
         noise_model: str = "all_records",
-        record_char_pct: int = 5,
     ):
         Config.ensure_directories()
         if noise_model not in NOISE_MODELS:
             raise ValueError(f"noise_model must be one of {NOISE_MODELS}")
-        if noise_model == "record_level" and record_char_pct <= 0:
-            raise ValueError("record_char_pct must be > 0 for the record_level noise model")
+        if noise_source != "files":
+            raise ValueError("The legacy RQ1 benchmark requires pre-generated files")
 
         self.noise_levels = list(Config.RQ1_NOISE_LEVELS)  # [0, 5, 15, 30]
         self.thresholds = thresholds or [
@@ -124,10 +122,6 @@ class Experiment1AccuracyBenchmark:
         self.noise_source = noise_source
         self.data_dir = data_dir or str(Config.DATA_GENERATED_DIR)
         self.noise_model = noise_model
-        self.record_char_pct = int(record_char_pct)
-        # never overwrite the all_records results when running the record_level variant
-        if noise_model == "record_level" and not output_suffix:
-            output_suffix = "_record_level"
         self.output_suffix = output_suffix
 
         # per-noise tau selected on tuning seeds: {method: {noise: tau}}
@@ -145,108 +139,23 @@ class Experiment1AccuracyBenchmark:
             length=Config.DEFAULT_BF_LENGTH,
             num_hashes=Config.DEFAULT_NUM_HASHES,
         )
-        self._base_df: Optional[pd.DataFrame] = None
 
     def _result_name(self, stem: str, extension: str = "") -> str:
         return f"{stem}{self.output_suffix}{extension}"
 
     def _noise_axis_label(self) -> str:
-        if self.noise_model == "record_level":
-            return f"% of records corrupted (each with {self.record_char_pct}% char mutation)"
         return "Typographical noise level (% char mutation, every record)"
 
-    # ------------------------------------------------------------------ data
-    def _load_base_dataset(self) -> pd.DataFrame:
-        """The 0%-noise dataset is the clean master from which noisy variants are derived."""
-        if self._base_df is None:
-            path = os.path.join(self.data_dir, f"noisy_products_0_seed{BASE_SEED}.csv")
-            if not os.path.exists(path):
-                path = os.path.join(self.data_dir, "noisy_products_0.csv")
-            if not os.path.exists(path):
-                raise FileNotFoundError(
-                    f"Missing dataset {path}. Run 'python -m experiments.rq1.noise_dataset_generator' first."
-                )
-            self._base_df = pd.read_csv(path)
-        return self._base_df.copy()
-
-    def _load_clean(self, seed: int) -> pd.DataFrame:
-        """Clean (0% noise) records for a seed."""
-        if self.noise_source == "files":
-            seeded = os.path.join(self.data_dir, f"noisy_products_0_seed{seed}.csv")
-            if os.path.exists(seeded):
-                return pd.read_csv(seeded)
-        return self._load_base_dataset()
-
-    @staticmethod
-    def _inject_noise(text: str, rate: float, rng: random.Random) -> str:
-        """
-        Character-level mutation (substitution / deletion / insertion / transposition).
-        Number of operations = max(1, round(rate * len(text))), mirroring the dataset generator.
-        Applied to the description field ONLY.
-        """
-        if not isinstance(text, str) or not text or rate <= 0:
-            return text
-        chars = list(text)
-        alphabet = string.ascii_lowercase + string.digits
-        n_ops = max(1, int(round(rate * len(chars))))
-        for _ in range(n_ops):
-            if not chars:
-                break
-            op = rng.choice(("sub", "del", "ins", "swap"))
-            pos = rng.randrange(len(chars))
-            if op == "sub":
-                chars[pos] = rng.choice(alphabet)
-            elif op == "del":
-                del chars[pos]
-            elif op == "ins":
-                chars.insert(pos, rng.choice(alphabet))
-            elif pos < len(chars) - 1:  # swap
-                chars[pos], chars[pos + 1] = chars[pos + 1], chars[pos]
-        return "".join(chars)
-
-    def _load_noisy_all_records(self, noise_pct: int, seed: int) -> pd.DataFrame:
-        """Dataset where EVERY description has been mutated at the given char-level rate."""
-        if self.noise_source == "files":
-            seeded = os.path.join(self.data_dir, f"noisy_products_{noise_pct}_seed{seed}.csv")
-            legacy = os.path.join(self.data_dir, f"noisy_products_{noise_pct}.csv")
-            if os.path.exists(seeded):
-                return pd.read_csv(seeded)
-            if seed == BASE_SEED and os.path.exists(legacy):
-                return pd.read_csv(legacy)
-            raise FileNotFoundError(
-                f"No dataset for noise={noise_pct}, seed={seed}. Generate it with your noise_generator "
-                f"(seed={seed}) as '{os.path.basename(seeded)}', or use --noise-source inline."
-            )
-        # inline: derive from clean master with a deterministic per-(seed, noise) RNG
-        df = self._load_base_dataset()
-        if noise_pct > 0:
-            rng = random.Random(seed * 1000 + noise_pct)
-            rate = noise_pct / 100.0
-            df["raw_item_description"] = [
-                self._inject_noise(t, rate, rng) for t in df["raw_item_description"]
-            ]
-        return df
-
     def _get_dataset(self, noise_pct: int, seed: int) -> pd.DataFrame:
-        """
-        Returns the dataset for (noise level, seed) with a 'composite_text' column added.
-        all_records : every description mutated at noise_pct% char rate.
-        record_level: each record corrupted with probability noise_pct% (char rate = record_char_pct%).
-        """
-        if self.noise_model == "all_records" or noise_pct == 0:
-            df = self._load_noisy_all_records(noise_pct, seed)
+        """Read a historical artifact and add its exact comparator's composite input."""
+        seeded = os.path.join(self.data_dir, f"noisy_products_{noise_pct}_seed{seed}.csv")
+        legacy = os.path.join(self.data_dir, f"noisy_products_{noise_pct}.csv")
+        if os.path.exists(seeded):
+            df = pd.read_csv(seeded)
+        elif seed == BASE_SEED and os.path.exists(legacy):
+            df = pd.read_csv(legacy)
         else:
-            df = self._load_clean(seed)
-            noisy = self._load_noisy_all_records(self.record_char_pct, seed)
-            noisy_map = dict(zip(noisy["record_id"].astype(str), noisy["raw_item_description"]))
-            rng = random.Random(seed * 1000 + noise_pct + 17)
-            p = noise_pct / 100.0
-            corrupt = [rng.random() < p for _ in range(len(df))]
-            ids = df["record_id"].astype(str)
-            df["raw_item_description"] = [
-                noisy_map.get(rid, desc) if flag else desc
-                for rid, desc, flag in zip(ids, df["raw_item_description"], corrupt)
-            ]
+            raise FileNotFoundError(f"Missing historical dataset {seeded}")
 
         # Composite text for the exact baseline: description + the SAME structured fields the BF sees.
         for col in ("dosage", "dosage_form", "pack_size"):
@@ -734,16 +643,11 @@ def main():
     parser.add_argument("--reporting-seeds", nargs="+", type=int, default=[47, 48, 49, 50, 51])
     parser.add_argument("--tau", type=float, default=None,
                         help="fixed headline threshold; omit to tune only on tuning seeds")
-    parser.add_argument("--noise-source", choices=["inline", "files"], default="files",
-                        help="files: read generator output; inline is retained for compatibility")
-    parser.add_argument("--noise-model", choices=list(NOISE_MODELS), default="all_records",
-                        help="all_records: every record mutated at x%% char rate; "
-                             "record_level: x%% of records corrupted (fixed char rate)")
-    parser.add_argument("--record-char-pct", type=int, default=5,
-                        help="char-level mutation intensity of corrupted records (record_level model)")
+    parser.add_argument("--noise-source", choices=["files"], default="files")
+    parser.add_argument("--noise-model", choices=NOISE_MODELS, default="all_records")
     parser.add_argument("--data-dir", default=None, help="directory containing seeded noisy CSV files")
     parser.add_argument("--output-suffix", default="",
-                        help="suffix for result files, e.g. _all_fields (record_level adds _record_level)")
+                        help="suffix for result files")
     parser.add_argument("--bootstrap", type=int, default=200, help="entity-level bootstrap resamples")
     parser.add_argument("--no-bootstrap", action="store_true", help="skip the entity bootstrap CIs")
     parser.add_argument("--no-raw-ablation", action="store_true", help="skip the raw SHA-256 ablation")
@@ -765,7 +669,6 @@ def main():
         data_dir=args.data_dir,
         output_suffix=args.output_suffix,
         noise_model=args.noise_model,
-        record_char_pct=args.record_char_pct,
     )
 
     # ---- 1) tuning seeds: choose the global tau and the per-noise taus ----

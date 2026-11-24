@@ -99,6 +99,18 @@ def _merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     return merged
 
 
+def _profile_settings(directory: Path, name: str, seen: frozenset[str] = frozenset()) -> dict[str, Any]:
+    if not isinstance(name, str) or not name.isidentifier() or name == "base":
+        raise ValueError("rq_name must be a configuration name such as rq1")
+    if name in seen:
+        raise ValueError(f"Circular configuration inheritance at {name}")
+    profile = _read_yaml(directory / f"{name}.yaml")
+    if "extends" in profile:
+        parent = _profile_settings(directory, profile.pop("extends"), seen | {name})
+        profile = _merge(parent, profile)
+    return profile
+
+
 def _validate_names(section: str, names: tuple[str, ...]) -> None:
     if any(not isinstance(name, str) or not name.strip() for name in names):
         raise ValueError(f"{section} must contain non-empty column names")
@@ -142,10 +154,8 @@ def _validate(cfg: Config) -> None:
 
 def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
     """Load base YAML and recursively apply overrides from the named RQ YAML."""
-    if not rq_name.isidentifier():
-        raise ValueError("rq_name must be a configuration name such as rq1")
     directory = config_dir if config_dir is not None else app_dir() / "configs"
-    settings = _merge(_read_yaml(directory / "base.yaml"), _read_yaml(directory / f"{rq_name}.yaml"))
+    settings = _merge(_read_yaml(directory / "base.yaml"), _profile_settings(directory, rq_name))
     constructors = {
         "paths": PathsConfig,
         "columns": ColumnsConfig,

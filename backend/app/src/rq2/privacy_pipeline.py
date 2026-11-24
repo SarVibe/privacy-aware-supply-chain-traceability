@@ -2,14 +2,14 @@
 
 Scenario (depends on seed, noise, overlap only -> identical across (l, k), so
 configurations are compared on *paired* data):
-  * B = typo-corrupted copy of the N entities (party B); A = the clean entities.
-  * a validation/test split of the N entity pairs (tau tuned on val, reported on test).
+  * B = representatives of pre-generated noisy records; A = clean representatives.
+  * the same validation/test entity split used for record linkage.
   * the attacker's public dictionary (a fraction `overlap` of the entities).
   * M stored victim records (Zipf-sampled entities, typos applied per record) and an
     independent public frequency sample used by the frequency attacks.
 """
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -19,14 +19,15 @@ from . import privacy_metrics as metrics
 from .experiment_config import (BIT_ATTACK_TOP_BITS, DEFAULT_PAD, DEFAULT_Q)
 from src.common.config import load_config
 from src.common.encoding.bloom_filter import BloomFilterEncoder
-from src.common.encoding.qgrams import extract_qgrams
-from src.common.linking.exact import keyed_sha256
-from src.common.noise_injection import add_noise
-from src.common.preprocessing.normalizer import normalize
+from src.common.evaluation.metrics import evaluate_clusters
+from src.common.linking.bloom import BloomLinker
+from src.common.linking.exact import ExactLinker, keyed_sha256
+from src.common.linking.threshold import select_single_tau, tune_tau
+from src.common.seeding import make_rng
 from src.common.similarity.dice import dice_matrix
 from src.rq2.numpy_randomized_response import flip_probability, randomized_response
 from .parameter_validation import (validate_noise, validate_overlap, validate_n_records, validate_eps,
-                       validate_dataset, validate_dictionary, validate_bit_top)
+                       validate_dataset, validate_bit_top)
 
 
 @dataclass
@@ -56,14 +57,21 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
     noise = validate_noise(noise)
     overlap = validate_overlap(overlap)
     n_records = validate_n_records(n_records)
-    rng = np.random.default_rng(np.random.SeedSequence([seed, int(round(noise * 10000)), int(round(overlap * 100))]))
+    rng = make_rng(seed, f"rq2:scenario:{noise}:{overlap}")
     n = ds.n
-    if getattr(ds, "noisy_norm", None) is not None:
-        b_norm = list(ds.noisy_norm)
+    if ds.noisy_norm is None:
+        raise ValueError("Load pre-generated noisy records before building an RQ2 scenario")
+    if ds.noise_level is not None and (ds.noise_level != noise or ds.seed != seed):
+        raise ValueError("Noisy records must match the scenario's seed and noise level")
+    b_norm = list(ds.noisy_norm)
+    if ds.linkage is not None:
+        eid = ds.linkage.config.columns.entity_id
+        test_entities = set(ds.linkage.test[eid])
+        test_mask = np.array([entity in test_entities for entity in ds.entity_ids])
+        val_idx, test_idx = np.flatnonzero(~test_mask), np.flatnonzero(test_mask)
     else:
-        b_norm = [normalize(s) for s in add_noise(ds.raw, noise, rng)]
-    perm = rng.permutation(n)
-    val_idx, test_idx = np.sort(perm[: n // 2]), np.sort(perm[n // 2:])
+        perm = rng.permutation(n)
+        val_idx, test_idx = np.sort(perm[: n // 2]), np.sort(perm[n // 2:])
     dict_ids = np.sort(rng.choice(n, size=max(1, int(round(overlap * n))), replace=False))
     if dict_extra_ratio < 0 or not math.isfinite(dict_extra_ratio):
         raise ValueError("dict_extra_ratio must be a finite non-negative number")
@@ -73,24 +81,10 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
     dict_ids = np.concatenate([dict_ids, -np.arange(1, extra_count + 1, dtype=int)])
     dict_norm.extend(distractors)
     victim_ids = rng.choice(n, size=n_records, p=ds.weights)
-    if getattr(ds, "noisy_norm", None) is not None:
-        noisy_records_by_entity = getattr(ds, "noisy_records_by_entity", None)
-        victim_norm = []
-        for entity_index in victim_ids:
-            entity_index = int(entity_index)
-            variants = (
-                noisy_records_by_entity.get(entity_index)
-                if noisy_records_by_entity is not None
-                else None
-            )
-            if variants:
-                victim_norm.append(str(variants[int(rng.integers(len(variants)))]))
-            else:
-                victim_norm.append(ds.noisy_norm[entity_index])
-    else:
-        victim_raw = add_noise([ds.raw[i] for i in victim_ids], noise, rng)
-        victim_norm = [normalize(s) for s in victim_raw]
-    aux_sample = rng.choice(n, size=n_records, p=ds.weights)          # public clean frequency sample
+    victim_norm = []
+    for entity_index in victim_ids:
+        variants = (ds.noisy_records_by_entity or {}).get(int(entity_index))
+        victim_norm.append(variants[int(rng.integers(len(variants)))] if variants else b_norm[entity_index])
     in_dict = set(int(e) for e in dict_ids if int(e) >= 0)
     if getattr(ds, "counts", None) is not None:
         aux_counts = {int(e): int(ds.counts[int(e)]) for e in in_dict}
@@ -101,8 +95,10 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
         for e in aux_sample:
             if int(e) in aux_counts:
                 aux_counts[int(e)] += 1
-    bloom = load_config("rq1").bloom
+    bloom = (ds.linkage.config if ds.linkage is not None else load_config("rq1")).bloom
     pad_char = bloom.pad_char
+    key = bytes.fromhex(bloom.hmac_key)
+    encoder = BloomFilterEncoder(bloom.l, bloom.k, q, key, pad_char)
     # public document frequency of every q-gram (weighted by public entity counts)
     tot = max(1, sum(aux_counts.values()))
     gram_w = {}
@@ -110,11 +106,10 @@ def build_scenario(ds, seed: int, noise: float, overlap: float = 1.0, n_records:
         if int(e) < 0:
             continue
         w = aux_counts[int(e)] / tot
-        for g in extract_qgrams(text, q, pad_char) if text else ():
+        for g in encoder.grams(text):
             gram_w[g] = gram_w.get(g, 0.0) + w
     aux_grams = sorted(gram_w)
     aux_df = np.array([gram_w[g] for g in aux_grams])
-    key = bytes.fromhex(bloom.hmac_key)
     return Scenario(seed, noise, overlap, key, pad_char, b_norm, val_idx, test_idx, dict_ids, dict_norm,
                     dict_extra_ratio,
                     victim_ids, victim_norm, aux_counts, aux_grams, aux_df)
@@ -130,17 +125,34 @@ def _base_row(method, l, k, q, scen):
             "dict_size": len(scen.dict_ids)}
 
 
+def _cluster_metrics(linkage, linker):
+    eid, rid = linkage.config.columns.entity_id, linkage.config.columns.record_id
+    truth = linkage.test.set_index(rid)[eid]
+    labels = linker.link(linkage.test.drop(columns=eid))
+    return evaluate_clusters(truth, labels)
+
+
+def evaluate_bloom_linkage(ds, noise, l, k, q, taus, tau=None):
+    """Score RQ2 record linkage using the same connected components as final RQ1."""
+    linkage = ds.linkage
+    cfg = linkage.config
+    cfg = replace(cfg, bloom=replace(cfg.bloom, l=l, k=k, q=q))
+    if tau is None:
+        table = tune_tau({noise: linkage.validation}, taus, {"cfg": cfg, "field_set": linkage.field_set})
+        tau = select_single_tau(table)
+    linker = BloomLinker("bloom", linkage.field_set, tau, cfg)
+    return {"tau": tau, **_cluster_metrics(linkage, linker)}
+
+
 def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool = DEFAULT_PAD,
               eps: float = math.inf, bit_top: int = BIT_ATTACK_TOP_BITS,
-              taus=matching.TAU_GRID) -> dict:
+              taus=matching.TAU_GRID, *, primary_tau: float | None = None) -> dict:
     validate_dataset(ds)
     eps = validate_eps(eps)
     bit_top = validate_bit_top(bit_top)
     enc = BloomFilterEncoder(l, k, q, scen.key, scen.pad_char)
-    atk_rng = np.random.default_rng(np.random.SeedSequence([scen.seed, 99, l, k]))
-    dp_rng = np.random.default_rng(
-        np.random.SeedSequence([scen.seed, 77, l, k, int(min(eps, 1e6) * 100)])
-    )
+    atk_rng = make_rng(scen.seed, f"rq2:attack:{l}:{k}")
+    dp_rng = make_rng(scen.seed, f"rq2:response:{l}:{k}:{eps}")
 
     bf_a = enc.encode_many(ds.norm)
     bf_b = enc.encode_many(scen.b_norm)
@@ -150,7 +162,6 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
         bf_a = randomized_response(bf_a, eps, k, dp_rng)
         bf_b = randomized_response(bf_b, eps, k, dp_rng)
         bf_v = randomized_response(bf_v, eps, k, dp_rng)
-        dict_bf = enc.encode_many(scen.dict_norm)
     row = _base_row("bloom", l, k, q, scen)
     if not math.isinf(eps):
         row.update(eps=eps, flip_p=flip_probability(eps, k))
@@ -190,7 +201,6 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
         row.update(tau_05=tau_c05, f1_05=m_05["f1"], fpr_05=m_05["fpr"])
     else:
         row.update(tau_05=float("nan"), f1_05=0.0, fpr_05=float("nan"))
-    # Backward-compat aliases: tau, precision, recall, f1, fpr = unconstrained versions
     row.update(
         tau=tau_unc,
         precision=m_unc["precision"],
@@ -199,7 +209,11 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q, pad: bool 
         fpr=m_unc["fpr"],
         auc=auc,
         sep=sep,
+        cross_party_tau=tau_unc,
+        **{f"cross_party_{metric}": value for metric, value in m_unc.items()},
     )
+    if ds.linkage is not None:
+        row.update(evaluate_bloom_linkage(ds, scen.noise, l, k, q, taus, primary_tau))
 
     # ---- privacy ----
     row.update(attacks.reid_attack(bf_b, np.arange(ds.n), dict_bf, scen.dict_ids))
@@ -230,7 +244,12 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     row = _base_row("exact_hash", 0, 0, q, scen)
     m = matching.exact_metrics([tok_a[i] for i in t], [tok_b[i] for i in t])
     row.update(tau=float("nan"), precision=m["precision"], recall=m["recall"], f1=m["f1"], fpr=m["fpr"],
-               auc=float("nan"), sep=float("nan"))
+               auc=float("nan"), sep=float("nan"), cross_party_tau=float("nan"),
+               **{f"cross_party_{metric}": value for metric, value in m.items()})
+    if ds.linkage is not None:
+        linkage = ds.linkage
+        linker = ExactLinker("normalized_exact", linkage.field_set, True, linkage.config)
+        row.update(_cluster_metrics(linkage, linker))
     row.update(
         tau_unc=float("nan"), precision_unc=m["precision"], recall_unc=m["recall"],
         f1_unc=m["f1"], fpr_unc=m["fpr"],
@@ -240,7 +259,7 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     )
     dict_tokens = [tok(s) for s in scen.dict_norm]
     row.update(attacks.exact_reid_attack(tok_b, np.arange(ds.n), dict_tokens, scen.dict_ids))
-    atk_rng = np.random.default_rng(np.random.SeedSequence([scen.seed, 98]))
+    atk_rng = make_rng(scen.seed, "rq2:exact-frequency")
     row["freq_success"] = attacks.frequency_attack(tok_v, scen.victim_ids, scen.aux_counts, atk_rng)
     row.update(bit_success=float("nan"), bit_baseline=float("nan"), bit_qgrams_per_bit=float("nan"),
                fill=float("nan"), fill_std=float("nan"), fill_expected=float("nan"), entropy=float("nan"),

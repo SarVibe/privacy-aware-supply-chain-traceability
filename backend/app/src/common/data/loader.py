@@ -57,3 +57,17 @@ def load_noisy(seed: int, level: float, cfg: Config | None = None) -> DataFrame:
     if level == 0:
         return read_prepared_csv(cfg)
     return read_noisy_csv(noisy_csv_path(seed, level, cfg), cfg)
+
+
+def align_noisy_records(clean: DataFrame, noisy: DataFrame, cfg: Config) -> DataFrame:
+    """Align observations by stable record ID and verify the ground truth."""
+    validate_frame(clean, cfg)
+    validate_frame(noisy, cfg)
+    rid, eid = cfg.columns.record_id, cfg.columns.entity_id
+    left, right = clean.set_index(rid), noisy.set_index(rid)
+    if len(left) != len(right) or not left.index.isin(right.index).all():
+        raise ValueError("Clean and noisy datasets must contain the same record IDs")
+    aligned = right.reindex(left.index)
+    if not aligned[eid].equals(left[eid]):
+        raise ValueError("Clean and noisy datasets must contain the same entity IDs per record")
+    return aligned.reset_index()[noisy.columns]

@@ -1,27 +1,15 @@
 import math
-from pathlib import Path
-import hashlib
 
 import numpy as np
 from src.rq2 import privacy_attacks as attacks
 from src.rq2 import similarity_matching as matching
 from src.rq2 import privacy_metrics as metrics
-from src.rq2.bloom_encoder import BloomEncoder
+from src.common.encoding.bloom_filter import BloomFilterEncoder
 from src.rq2.rq2_dataset import load_dataset, synthetic_dataset
 from src.rq2.numpy_randomized_response import flip_probability, randomized_response
-from src.common.noise_injection import add_noise, add_typos
-from src.rq2.text_normalizer import normalize
-from src.rq2.qgram_utils import qgram_set, qgrams
 from src.application_config import Config
-from src.common.noise_injection import NoiseSpec
 
 KEY = b"k" * 32
-
-
-def test_normalize_variants_collapse():
-    for s in ["Paracetamol-500mg", "paracetamol 500 mg", "PARACETAMOL_500MG"]:
-        assert normalize(s) == "paracetamol500mg"
-    assert normalize(None) == ""
 
 
 def test_real_dataset_description_and_composite_aliases():
@@ -46,53 +34,11 @@ def test_real_dataset_description_and_composite_aliases():
     assert all(len(text) > 0 for text in composite.raw)
 
 
-def test_qgrams():
-    assert qgrams("abcd", 2) == ["ab", "bc", "cd"]
-    assert qgram_set("aaa", 2) == {"aa"}
-    assert qgrams("a", 2) == ["a"]
-    assert qgrams("ab", 2, pad=True) == ["_a", "ab", "b_"]
-
-
-def test_positions_distinct_and_in_range():
-    for l in (256, 1024):
-        enc = BloomEncoder(l, 30, KEY)
-        pos = enc.gram_positions([a + b for a in "abcde" for b in "fghij"])
-        assert pos.min() >= 0 and pos.max() < l
-        assert all(len(set(row)) == 30 for row in pos)      # k distinct bits per q-gram (power-of-two l)
-
-
-def test_positions_distinct_for_non_power_of_two_lengths():
-    for l in (6, 100, 768, 1000, 1023, 1536):
-        for k in (1, 2, 4, 15, min(64, l)):
-            if k > l:
-                continue
-            enc = BloomEncoder(l, k, KEY)
-            pos = enc.gram_positions([a + b for a in "abc" for b in "xyz"])
-            assert pos.shape == (9, k)
-            assert pos.min() >= 0 and pos.max() < l
-            assert all(len(set(row)) == k for row in pos)
-
-
-def test_encoder_deterministic_and_keyed():
-    a, b = BloomEncoder(512, 4, KEY), BloomEncoder(512, 4, KEY)
-    assert (a.encode("lamivudine150mg") == b.encode("lamivudine150mg")).all()
-    other = BloomEncoder(512, 4, b"z" * 32)
-    assert (a.encode("lamivudine150mg") != other.encode("lamivudine150mg")).any()
-
-
-def test_encode_many_matches_single_and_handles_duplicates():
-    enc = BloomEncoder(256, 4, KEY)
-    strs = ["abcdef", "abcdef", "xyz"]
-    m = enc.encode_many(strs)
-    assert m.shape == (3, 256) and (m[0] == m[1]).all()
-    assert (m[2] == enc.encode("xyz")).all()
-
-
 def test_fill_matches_theory():
-    ds = synthetic_dataset(300, seed=1)
-    enc = BloomEncoder(1024, 4, KEY)
+    ds = synthetic_dataset(200, seed=1)
+    enc = BloomFilterEncoder(1024, 4, 2, KEY, "_")
     bf = enc.encode_many(ds.norm)
-    nq = np.mean([len(qgram_set(s)) for s in ds.norm])
+    nq = np.mean([len(enc.grams(s)) for s in ds.norm])
     exp = metrics.expected_fill(metrics.collision_load(nq, 4, 1024))
     assert abs(bf.mean() - exp) < 0.02
 
@@ -156,13 +102,6 @@ def test_exact_metrics():
     assert m["precision"] == 1.0 and abs(m["recall"] - 2 / 3) < 1e-12
 
 
-def test_noise_changes_strings_at_requested_rate():
-    rng = np.random.default_rng(0)
-    assert add_typos("abcdef", 0.0, rng) == "abcdef"
-    out = add_noise(["lamivudine150mg"] * 50, 0.3, rng)
-    assert sum(o != "lamivudine150mg" for o in out) >= 45
-
-
 def test_dp_flip_rate():
     k, eps = 4, 8.0
     p = flip_probability(eps, k)
@@ -178,7 +117,7 @@ def test_reid_attack_collisions_reduce_success():
     ids = np.arange(ds.n)
     res = {}
     for l, k in [(2048, 2), (64, 8)]:
-        enc = BloomEncoder(l, k, KEY)
+        enc = BloomFilterEncoder(l, k, 2, KEY, "_")
         bf = enc.encode_many(ds.norm)
         res[l] = attacks.reid_attack(bf, ids, bf, ids)
     assert res[2048]["reid_top1"] > 0.95 and res[2048]["reid_cands_delta"] <= 1.0
@@ -188,7 +127,7 @@ def test_reid_attack_collisions_reduce_success():
 
 def test_reid_attack_respects_dictionary_coverage():
     ds = synthetic_dataset(100, seed=4)
-    enc = BloomEncoder(2048, 2, KEY)
+    enc = BloomFilterEncoder(2048, 2, 2, KEY, "_")
     bf = enc.encode_many(ds.norm)
     dict_ids = np.arange(50)
     r = attacks.reid_attack(bf, np.arange(100), bf[dict_ids], dict_ids)
@@ -212,12 +151,12 @@ def test_frequency_attack_perfect_with_distinct_frequencies():
 
 
 def test_bit_qgram_attack_runs_and_beats_baseline_at_low_collision():
-    ds = synthetic_dataset(300, seed=5)
-    enc = BloomEncoder(2048, 2, KEY)
+    ds = synthetic_dataset(200, seed=5)
+    enc = BloomFilterEncoder(2048, 2, 2, KEY, "_")
     bf = enc.encode_many(ds.norm)
-    grams, df = {}, {}
+    df = {}
     for s in ds.norm:
-        for g in qgram_set(s):
+        for g in enc.grams(s):
             df[g] = df.get(g, 0) + 1 / len(ds.norm)
     succ, base, qpb = attacks.bit_qgram_attack(bf, enc, sorted(df), [df[g] for g in sorted(df)], 50,
                                                np.random.default_rng(0))

@@ -1,6 +1,7 @@
 """Build the RQ1 control dataset, entity splits and noisy datasets."""
 
 import argparse
+from dataclasses import replace
 
 from tabulate import tabulate
 
@@ -88,12 +89,26 @@ def _prepare_noise(cfg: Config) -> None:
     )
 
 
-def main() -> None:
+def main(argv=None) -> None:
     """Run one RQ1 preparation stage."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", required=True, choices=("base", "split", "noise"))
-    args = parser.parse_args()
-    cfg = load_config("rq1")
+    parser.add_argument("--all-fields", action="store_true", help="write the separately versioned all-field artifacts")
+    parser.add_argument("--seeds", nargs="+", type=int, help="subset of configured seeds for the noise stage")
+    parser.add_argument("--noise-levels", nargs="+", type=int, metavar="PERCENT")
+    args = parser.parse_args(argv)
+    if (args.all_fields or args.seeds or args.noise_levels) and args.stage != "noise":
+        parser.error("--all-fields, --seeds and --noise-levels apply to the noise stage")
+    cfg = load_config("rq1_all_fields" if args.all_fields else "rq1")
+    if args.seeds is not None:
+        if not set(args.seeds) <= set(cfg.seeds) or len(set(args.seeds)) != len(args.seeds):
+            parser.error("Choose unique configured preparation seeds")
+        cfg = replace(cfg, seeds=tuple(args.seeds))
+    if args.noise_levels is not None:
+        levels = tuple(level / 100 for level in args.noise_levels)
+        if not set(levels) <= set(cfg.noise_levels) or len(set(levels)) != len(levels):
+            parser.error("Choose unique configured noise percentages")
+        cfg = replace(cfg, noise_levels=levels)
     if args.stage == "base":
         _prepare_base(cfg)
     elif args.stage == "split":

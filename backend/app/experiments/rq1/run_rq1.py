@@ -13,7 +13,7 @@ from experiments.rq1.posthoc import (
 )
 from experiments.rq1.rq1_methods import build_bloom_linker, build_exact_linkers
 from src.common.config import Config, load_config
-from src.common.data.loader import load_noisy
+from src.common.data.loader import align_noisy_records, load_noisy
 from src.common.data.splitting import apply_split, load_split, save_split, split_entities
 from src.common.evaluation.metrics import evaluate_clusters
 from src.common.experiment.io import write_csv
@@ -154,7 +154,7 @@ def run_experiment(
             new_splits[seed] = split
         validation, tests = {}, {}
         for level in levels:
-            frame = base if level == 0 else load_noisy(seed, level, cfg)
+            frame = base if level == 0 else align_noisy_records(base, load_noisy(seed, level, cfg), cfg)
             val, test = apply_split(frame, split, cfg)
             if sample is not None:
                 val, test = val.loc[val[eid].isin(sample)], test.loc[test[eid].isin(sample)]

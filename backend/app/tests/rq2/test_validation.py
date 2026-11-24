@@ -10,7 +10,6 @@ from src.rq2.parameter_validation import (
     validate_eps, validate_noise, validate_overlap, validate_n_records,
     validate_bit_top, validate_dataset, validate_tau, validate_bloom_parameters,
 )
-from src.common.noise_injection import add_typos, NoiseSpec
 from src.rq2.numpy_randomized_response import flip_probability
 from src.rq2.results_schema import validate_results, SchemaError
 from src.rq2.rq2_dataset import synthetic_dataset
@@ -56,21 +55,6 @@ def test_small_dataset():
     ds = synthetic_dataset(3, seed=0)
     with pytest.raises(ValueError):
         validate_dataset(ds)
-
-
-@pytest.mark.parametrize("min_len", [0, 3])
-def test_noise_short_strings(min_len):
-    rng = np.random.default_rng(0)
-    spec = NoiseSpec(rate=0.3, min_len=min_len)
-    if min_len == 3:
-        assert add_typos("abc", 0.3, rng, spec) == "abc"
-    else:
-        assert add_typos("a", 0.3, rng, spec) == "a" or len(add_typos("a", 0.3, rng, spec)) >= 1
-
-
-def test_shared_noise_vendor_present():
-    path = Path(__file__).resolve().parents[2] / "src" / "common" / "noise_injection.py"
-    assert "inject_typo" in path.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize("tau", [0.30, 0.70, 0.80, 0.95, 0.99])

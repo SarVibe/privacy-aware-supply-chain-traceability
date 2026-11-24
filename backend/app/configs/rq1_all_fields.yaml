@@ -1,0 +1,4 @@
+extends: rq1
+paths:
+  noisy: data/generated/noisy_all_fields_v1
+noise_fields: [raw_item_description, dosage, dosage_form, pack_size]

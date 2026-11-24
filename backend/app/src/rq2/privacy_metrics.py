@@ -4,7 +4,8 @@ import math
 import numpy as np
 
 from src.common.encoding.bloom_filter import fill_ratio
-from src.common.noise_injection import levenshtein
+from src.common.preprocessing.edit_distance import levenshtein
+
 
 def fill_stats(bf: np.ndarray):
     fill = fill_ratio(bf)

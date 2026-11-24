@@ -60,6 +60,29 @@ def apply_split(
     return df.loc[entity_ids.isin(validation)].copy(), df.loc[entity_ids.isin(test)].copy()
 
 
+def limit_split(
+    validation: pd.DataFrame, test: pd.DataFrame, max_records: int, entity_column: str
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Bound a split by whole groups, retaining row order in both partitions."""
+    if type(max_records) is not int or max_records < 2:
+        raise ValueError("max_records must be an integer >= 2")
+    total = len(validation) + len(test)
+    if total <= max_records:
+        return validation, test
+    validation_limit = min(max_records - 1, max(1, round(max_records * len(validation) / total)))
+    selected = []
+    for frame, remaining in ((validation, validation_limit), (test, max_records - validation_limit)):
+        entities = []
+        for entity, size in frame.groupby(entity_column, sort=True).size().items():
+            if size <= remaining:
+                entities.append(entity)
+                remaining -= size
+        if not entities:
+            raise ValueError("Record limit leaves an empty split. Increase max_records.")
+        selected.append(frame.loc[frame[entity_column].isin(entities)])
+    return selected[0], selected[1]
+
+
 def save_split(split: dict[str, list[str]], path: Path) -> None:
     """Validate and save a split as UTF-8 JSON."""
     _check_split(split)

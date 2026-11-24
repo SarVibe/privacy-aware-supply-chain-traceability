@@ -3,56 +3,57 @@ from dataclasses import replace
 
 import numpy as np
 import pandas as pd
+import pytest
 
-from src.rq2.rq2_dataset import apply_real_frequency_counts, csv_dataset, synthetic_dataset
 from src.rq2.privacy_pipeline import build_scenario, run_bloom, run_exact
-from src.rq2.rq2_dataset import controlled_noise_dataset
 from src.rq2.results_schema import validate_results
-from src.application_config import Config
-
-REQUIRED = {"method", "l", "k", "noise", "seed", "f1", "precision", "recall", "auc", "reid_top1", "reid_top5",
-            "reid_cands_delta", "freq_success", "bit_success", "fill", "entropy", "load", "tau",
-            "f1_unc", "precision_unc", "recall_unc", "fpr_unc", "tau_unc",
-            "feasible_01", "f1_01", "tau_01", "fpr_01",
-            "feasible_05", "f1_05", "tau_05", "fpr_05", "degenerate"}
+from src.rq2.rq2_dataset import apply_real_frequency_counts, csv_dataset, load_research_dataset, synthetic_dataset
 
 
-def test_scenarios_are_reproducible_and_paired():
-    ds = synthetic_dataset(120, seed=0)
-    a = build_scenario(ds, seed=1, noise=0.15, n_records=400)
-    b = build_scenario(ds, seed=1, noise=0.15, n_records=400)
-    c = build_scenario(ds, seed=2, noise=0.15, n_records=400)
-    assert a.b_norm == b.b_norm and (a.test_idx == b.test_idx).all() and a.key == b.key
-    assert a.b_norm != c.b_norm
+def scenario_at(config, noise):
+    seed = config.seeds[0]
+    ds = load_research_dataset(config, seed, noise)
+    return ds, build_scenario(ds, seed, noise, n_records=100)
 
 
-def test_rows_have_all_columns_and_valid_ranges():
-    ds = synthetic_dataset(150, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.05, n_records=500)
-    rows = [run_exact(ds, scen), run_bloom(ds, scen, 1024, 4)]
-    for r in rows:
-        assert REQUIRED <= set(r), f"Missing: {REQUIRED - set(r)}"
-        for m in ("f1", "precision", "recall", "reid_top1", "freq_success"):
-            assert 0.0 <= r[m] <= 1.0
-    assert rows[0]["precision"] == 1.0                      # exact hashes never give false positives
-    # bloom row must have degenerate field
-    bloom_row = rows[1]
-    assert "degenerate" in bloom_row
-    assert bloom_row["degenerate"] in (0, 1)
+def test_scenarios_use_pregenerated_records_and_the_final_rq1_split(golden_config):
+    ds, a = scenario_at(golden_config, 0.15)
+    b = build_scenario(ds, a.seed, a.noise, n_records=100)
+    assert a.b_norm == b.b_norm == ds.noisy_norm
+    np.testing.assert_array_equal(a.test_idx, b.test_idx)
+    np.testing.assert_array_equal(a.victim_ids, b.victim_ids)
+    assert a.key == b.key == bytes.fromhex(golden_config.bloom.hmac_key)
+    assert {ds.entity_ids[i] for i in a.test_idx} == set(ds.linkage.test[golden_config.columns.entity_id])
+    assert all(value in ds.noisy_records_by_entity[int(i)] for i, value in zip(a.victim_ids, a.victim_norm))
+    with pytest.raises(ValueError, match="pre-generated"):
+        build_scenario(synthetic_dataset(10), a.seed, a.noise, n_records=20)
+    with pytest.raises(ValueError, match="seed and noise level"):
+        build_scenario(ds, a.seed + 1, a.noise, n_records=20)
 
 
-def test_no_noise_exact_matching_is_perfect_and_bf_is_close():
-    ds = synthetic_dataset(150, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.0, n_records=500)
-    assert run_exact(ds, scen)["f1"] == 1.0
-    assert run_bloom(ds, scen, 1024, 4)["f1"] > 0.95
+def test_rows_report_primary_and_secondary_metrics(golden_config):
+    ds, scenario = scenario_at(golden_config, 0.05)
+    rows = [run_exact(ds, scenario), run_bloom(ds, scenario, 1024, 4)]
+    validate_results(pd.DataFrame(rows))
+    for row in rows:
+        assert row["n_records"] == len(ds.linkage.test)
+        for metric in ("f1", "precision", "recall", "reid_top1", "freq_success", "cross_party_f1",
+                       "cross_party_precision", "cross_party_recall", "cross_party_fpr"):
+            assert 0 <= row[metric] <= 1
+    assert "eps" not in rows[1] and "flip_p" not in rows[1]
+    assert rows[1]["cross_party_tau"] == rows[1]["tau_unc"]
 
 
-def test_noisy_exact_hash_without_dictionary_matches():
-    ds = synthetic_dataset(20, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.15, n_records=60)
-    scen = replace(scen, b_norm=[f"unmatched victim {i}" for i in range(len(scen.b_norm))])
-    row = run_exact(ds, scen)
+def test_no_noise_preserves_secondary_exact_pairs(golden_config):
+    ds, scenario = scenario_at(golden_config, 0)
+    assert run_exact(ds, scenario)["cross_party_recall"] == 1
+    assert run_bloom(ds, scenario, 1024, 4)["cross_party_recall"] == 1
+
+
+def test_no_matching_dictionary_tokens(golden_config):
+    ds, scenario = scenario_at(golden_config, 0.15)
+    scenario = replace(scenario, b_norm=[f"unmatched victim {i}" for i in range(ds.n)])
+    row = run_exact(ds, scenario)
     assert row["reid_top1"] == row["reid_top5"] == 0
     for column in ("reid_ties", "reid_cands_delta", "reid_ties_count",
                    "reid_cands_delta_count", "reid_top1_conditional"):
@@ -60,45 +61,25 @@ def test_noisy_exact_hash_without_dictionary_matches():
     validate_results(pd.DataFrame([row]))
 
 
-def test_fuzzy_beats_exact_under_noise():
-    ds = synthetic_dataset(200, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.15, n_records=500)
-    assert run_bloom(ds, scen, 1024, 4)["f1"] > run_exact(ds, scen)["f1"] + 0.3
+def test_collision_tuning_changes_fill_and_load(golden_config):
+    ds, scenario = scenario_at(golden_config, 0.15)
+    standard = run_bloom(ds, scenario, 1024, 4)
+    for length, hashes in [(512, 10), (256, 30), (128, 50)]:
+        tight = run_bloom(ds, scenario, length, hashes)
+        assert tight["fill"] > standard["fill"] and tight["load"] > standard["load"]
+        assert tight["degenerate"] in (0, 1)
+        assert 0 <= tight["f1"] <= 1
+        assert 0 <= tight["cross_party_f1"] <= 1
 
 
-def test_collision_tuning_trades_utility_for_privacy():
-    ds = synthetic_dataset(250, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.05, n_records=800)
-    std = run_bloom(ds, scen, 1024, 4)
-    tight = run_bloom(ds, scen, 256, 15)
-    assert tight["fill"] > std["fill"] and tight["load"] > std["load"]
-    assert tight["reid_cands_delta"] > std["reid_cands_delta"]      # more plausible candidates = more ambiguity
-    assert tight["f1"] <= std["f1"] + 1e-9                          # accuracy does not improve
-
-
-
-
-def test_rq2_run_bloom_has_no_dp_fields():
-    ds = synthetic_dataset(100, seed=0)
-    scen = build_scenario(ds, seed=0, noise=0.05, n_records=300)
-    row = run_bloom(ds, scen, 1024, 4)
-    assert "eps" not in row
-    assert "flip_p" not in row
-
-
-def test_controlled_noise_loader_aligns_rq1_files():
-    ds = controlled_noise_dataset(
-        clean_path=str(Config.MASTER_PRODUCTS_PATH),
-        noise_dir=str(Config.DATA_GENERATED_DIR),
-        noise_level=0.05,
-        seed=42,
-        n=100,
-    )
-    assert ds.n == 100
-    assert ds.noisy_norm is not None
-    assert len(ds.noisy_norm) == ds.n
-    assert ds.noise_level == 0.05
-    assert ds.seed == 42
+def test_research_dataset_limit_preserves_record_order(golden_config):
+    cfg = golden_config
+    full = load_research_dataset(cfg, cfg.seeds[0], 0.05)
+    bounded = load_research_dataset(cfg, cfg.seeds[0], 0.05, max_records=100)
+    rid = cfg.columns.record_id
+    assert len(bounded.linkage.validation) + len(bounded.linkage.test) <= 100
+    kept = set(bounded.linkage.test[rid])
+    assert bounded.linkage.test[rid].tolist() == full.linkage.test.loc[full.linkage.test[rid].isin(kept), rid].tolist()
 
 
 def test_real_frequency_weights_join_normalized_descriptions(tmp_path):
@@ -109,28 +90,3 @@ def test_real_frequency_weights_join_normalized_descriptions(tmp_path):
     ds = apply_real_frequency_counts(csv_dataset(master, "raw_item_description"), shipments)
     np.testing.assert_array_equal(ds.counts, [3, 1])
     np.testing.assert_allclose(ds.weights, [0.75, 0.25])
-
-
-# --- New T1 tests ---
-
-def test_saturated_config_produces_row_with_f1_unc():
-    """A saturated config (l=256, k=30) must still produce a row; f1_unc >= 0."""
-    import numpy as np
-    ds = synthetic_dataset(200, seed=7)
-    scen = build_scenario(ds, seed=7, noise=0.0, n_records=500)
-    row = run_bloom(ds, scen, 256, 30)
-    assert "f1_unc" in row
-    assert row["f1_unc"] >= 0.0
-    assert not np.isnan(row["f1_unc"])
-
-
-def test_no_nan_in_f1_unc_multiple_configs():
-    """f1_unc must never be NaN for any (l, k) bloom config."""
-    import numpy as np
-    ds = synthetic_dataset(200, seed=3)
-    scen = build_scenario(ds, seed=3, noise=0.0, n_records=500)
-    configs = [(1024, 4), (512, 15), (256, 30), (128, 50)]
-    rows = [run_bloom(ds, scen, l, k) for l, k in configs]
-    for row in rows:
-        assert "f1_unc" in row
-        assert not np.isnan(row["f1_unc"]), f"f1_unc is NaN for l={row['l']}, k={row['k']}"

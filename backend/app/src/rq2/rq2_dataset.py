@@ -10,7 +10,20 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.common.config import Config
+from src.common.data.loader import align_noisy_records, load_noisy
+from src.common.data.splitting import apply_split, limit_split, load_split
+from src.common.paths import splits_dir
+from src.common.preprocessing.field_builder import build_field_strings
 from src.common.preprocessing.normalizer import normalize
+
+
+@dataclass(frozen=True)
+class LinkageData:
+    config: Config
+    field_set: str
+    validation: pd.DataFrame
+    test: pd.DataFrame
 
 
 @dataclass
@@ -27,10 +40,48 @@ class Dataset:
     frequency_weights: np.ndarray | None = None
     frequency_counts: np.ndarray | None = None
     noisy_records_by_entity: dict[int, list[str]] | None = None
+    linkage: LinkageData | None = None
 
     @property
     def n(self) -> int:
         return len(self.raw)
+
+
+def load_research_dataset(
+    cfg: Config, seed: int, noise: float, *, field_set: str = "composite", max_records: int | None = None
+) -> Dataset:
+    """Load RQ1's paired records and derive the RQ2 entity-level privacy population."""
+    rid, eid = cfg.columns.record_id, cfg.columns.entity_id
+    clean = load_noisy(seed, 0, cfg)
+    noisy = align_noisy_records(clean, load_noisy(seed, noise, cfg), cfg)
+    split = load_split(splits_dir(cfg) / f"split_seed{seed}.json")
+    validation, test = apply_split(noisy, split, cfg)
+    if max_records is not None:
+        validation, test = limit_split(validation, test, max_records, eid)
+        keep = set(validation[rid]) | set(test[rid])
+        clean, noisy = clean.loc[clean[rid].isin(keep)], noisy.loc[noisy[rid].isin(keep)]
+    if validation.empty or test.empty:
+        raise ValueError("RQ2 requires non-empty validation and test splits")
+    observations = clean[[rid, eid]].set_index(rid).assign(
+        clear=build_field_strings(clean, field_set, cfg, normalize=False),
+        normalized=build_field_strings(clean, field_set, cfg, normalize=True),
+        observed=build_field_strings(noisy, field_set, cfg, normalize=True),
+    )
+    groups = list(observations.groupby(eid, sort=False))
+    counts = np.array([len(group) for _, group in groups])
+    return Dataset(
+        raw=[group["clear"].iloc[0] for _, group in groups],
+        norm=[group["normalized"].iloc[0] for _, group in groups],
+        weights=counts / counts.sum(),
+        source=f"prepared:seed={seed}:noise={noise:g}",
+        counts=counts,
+        entity_ids=[entity for entity, _ in groups],
+        noisy_norm=[group["observed"].iloc[0] for _, group in groups],
+        noisy_records_by_entity={index: group["observed"].tolist() for index, (_, group) in enumerate(groups)},
+        noise_level=noise,
+        seed=seed,
+        linkage=LinkageData(cfg, field_set, validation, test),
+    )
 
 
 _DRUGS = ["Lamivudine", "Zidovudine", "Nevirapine", "Efavirenz", "Tenofovir Disoproxil Fumarate",
