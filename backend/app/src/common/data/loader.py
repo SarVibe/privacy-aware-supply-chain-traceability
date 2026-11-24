@@ -1,5 +1,6 @@
 """Read shipment CSVs without modifying text values."""
 
+from dataclasses import dataclass
 from math import isclose
 from pathlib import Path
 
@@ -7,11 +8,22 @@ from pandas import DataFrame
 
 from src.common.config import Config, load_config
 from src.common.data.schema import validate_frame
+from src.common.data.splitting import apply_split, limit_split, load_split
 from src.common.experiment.io import read_csv
-from src.common.paths import noisy_dir, prepared_dir, raw_csv_path
+from src.common.paths import noisy_dir, prepared_dir, raw_csv_path, splits_dir
 
 BASE_DATASET_FILENAME = "base_dataset.csv"
 ENTITY_MAP_FILENAME = "entity_map.csv"
+
+
+@dataclass(frozen=True)
+class LinkageData:
+    config: Config
+    field_set: str
+    clean: DataFrame
+    noisy: DataFrame
+    validation: DataFrame
+    test: DataFrame
 
 
 def _read_csv(path: Path, encoding: str = "utf-8") -> DataFrame:
@@ -71,3 +83,21 @@ def align_noisy_records(clean: DataFrame, noisy: DataFrame, cfg: Config) -> Data
     if not aligned[eid].equals(left[eid]):
         raise ValueError("Clean and noisy datasets must contain the same entity IDs per record")
     return aligned.reset_index()[noisy.columns]
+
+
+def load_linkage_data(
+    cfg: Config, seed: int, noise: float, field_set: str, *, max_records: int | None = None
+) -> LinkageData:
+    """Load the paired record artifacts and their saved entity-disjoint split."""
+    rid, eid = cfg.columns.record_id, cfg.columns.entity_id
+    clean = load_noisy(seed, 0, cfg)
+    noisy = align_noisy_records(clean, load_noisy(seed, noise, cfg), cfg)
+    split = load_split(splits_dir(cfg) / f"split_seed{seed}.json")
+    validation, test = apply_split(noisy, split, cfg)
+    if max_records is not None:
+        validation, test = limit_split(validation, test, max_records, eid)
+        keep = set(validation[rid]) | set(test[rid])
+        clean, noisy = clean.loc[clean[rid].isin(keep)], noisy.loc[noisy[rid].isin(keep)]
+    if validation.empty or test.empty:
+        raise ValueError("Record linkage requires non-empty validation and test splits")
+    return LinkageData(cfg, field_set, clean, noisy, validation, test)

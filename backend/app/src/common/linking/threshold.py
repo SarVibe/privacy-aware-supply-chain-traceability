@@ -7,6 +7,7 @@ from typing import NotRequired, TypedDict
 import pandas as pd
 
 from src.common.config import Config, TauGridConfig
+from src.common.encoding.bloom_filter import PostTransform
 from src.common.evaluation.metrics import evaluate_clusters
 from src.common.linking.bloom import BloomLinker
 
@@ -17,6 +18,7 @@ class BloomLinkerArgs(TypedDict):
     cfg: Config
     field_set: str
     name: NotRequired[str]
+    post_transform: NotRequired[PostTransform | None]
 
 
 def threshold_values(grid: TauGridConfig) -> tuple[float, ...]:
@@ -42,7 +44,8 @@ def tune_tau(
     rid, eid = cfg.columns.record_id, cfg.columns.entity_id
     tau_min = min(grid)
     linker = BloomLinker(
-        linker_factory_args.get("name", "bloom_fuzzy"), linker_factory_args["field_set"], tau_min, cfg
+        linker_factory_args.get("name", "bloom_fuzzy"), linker_factory_args["field_set"], tau_min, cfg,
+        post_transform=linker_factory_args.get("post_transform"),
     )
     rows = []
     for level, frame in val_frames_by_noise.items():

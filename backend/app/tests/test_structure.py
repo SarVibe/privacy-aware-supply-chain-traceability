@@ -10,7 +10,6 @@ SCOPE = {"rq1", "rq2", "rq3"}
 SERVING_FILES = {"harmonization_pipeline.py", "blockchain_client.py", "bitarray_differential_privacy.py"}
 HISTORICAL_APPLICATION_CONFIG = {
     ("experiments", "rq1", "grid_runner.py"),
-    ("experiments", "rq2", "dp_ablation_runner.py"),
 }
 RETIRED_SHARED_NAMES = {
     "BloomEncoder", "qgrams", "qgram_set", "add_noise", "add_typos", "inject_typo", "_inject_noise",

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.common.experiment_metadata import add_common_args, write_markdown
+from src.common.experiment_metadata import write_markdown
 
 
 def test_markdown_fallback(tmp_path, monkeypatch):

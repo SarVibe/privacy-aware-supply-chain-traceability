@@ -7,7 +7,7 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from src.common.config import Config
-from src.common.encoding.bloom_filter import BloomFilterEncoder
+from src.common.encoding.bloom_filter import BloomFilterEncoder, PostTransform
 from src.common.linking.clustering import labels_from_pairs
 from src.common.preprocessing.field_builder import build_field_strings
 from src.common.similarity.dice import compute_similar_pairs
@@ -34,13 +34,17 @@ class PreparedBloom:
 class BloomLinker:
     """Cluster records through thresholded, undirected Dice edges."""
 
-    def __init__(self, name: str, field_set: str, tau: float, cfg: Config) -> None:
+    def __init__(
+        self, name: str, field_set: str, tau: float, cfg: Config, *, post_transform: PostTransform | None = None
+    ) -> None:
         self.name = name
         self._field_set = field_set
         self.tau = tau
         self._cfg = cfg
         bloom = cfg.bloom
-        self._encoder = BloomFilterEncoder(bloom.l, bloom.k, bloom.q, bytes.fromhex(bloom.hmac_key), bloom.pad_char)
+        self._encoder = BloomFilterEncoder(
+            bloom.l, bloom.k, bloom.q, bytes.fromhex(bloom.hmac_key), bloom.pad_char, post_transform
+        )
 
     def encode_records(self, df: pd.DataFrame) -> tuple[pd.Index, NDArray[np.uint8]]:
         """Encode records in the order of their stable record IDs in the input."""

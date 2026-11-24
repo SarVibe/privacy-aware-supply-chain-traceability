@@ -86,6 +86,14 @@ class SweepConfig:
 
 
 @dataclass(frozen=True)
+class ResponseSweepConfig:
+    bloom_pairs: tuple[tuple[int, int], ...]
+    epsilons: tuple[float, ...]
+    output_csv: str
+    privacy_csv: str
+
+
+@dataclass(frozen=True)
 class Config:
     paths: PathsConfig
     columns: ColumnsConfig
@@ -103,6 +111,7 @@ class Config:
     methods: tuple[str, ...]
     sample_entities_seed: int = 0
     sweep: SweepConfig | None = None
+    response_sweep: ResponseSweepConfig | None = None
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -153,6 +162,13 @@ def positive_integer(value: int, name: str) -> int:
 def unit_interval(value: float, name: str) -> float:
     if isinstance(value, bool) or not isinstance(value, Real) or not 0 <= value <= 1:
         raise ValueError(f"{name} must be a number in [0, 1]")
+    return float(value)
+
+
+def validate_epsilon(value: float) -> float:
+    """Require a positive privacy budget, with positive infinity for the control."""
+    if isinstance(value, bool) or not isinstance(value, Real) or not value > 0:
+        raise ValueError("eps must be a positive number or positive infinity")
     return float(value)
 
 
@@ -226,6 +242,20 @@ def _validate(cfg: Config) -> None:
         raise ValueError("sample_entities_seed must be a non-negative integer")
     if cfg.sweep is not None:
         _validate_sweep(cfg.sweep)
+    if cfg.response_sweep is not None:
+        response = cfg.response_sweep
+        if not response.bloom_pairs or len(set(response.bloom_pairs)) != len(response.bloom_pairs):
+            raise ValueError("response_sweep.bloom_pairs must contain unique pairs")
+        for length, hashes in response.bloom_pairs:
+            positive_integer(length, "response_sweep.l")
+            positive_integer(hashes, "response_sweep.k")
+        if not response.epsilons or len(set(response.epsilons)) != len(response.epsilons):
+            raise ValueError("response_sweep.epsilons must be non-empty and unique")
+        for epsilon in response.epsilons:
+            validate_epsilon(epsilon)
+        for path in (response.output_csv, response.privacy_csv):
+            if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+                raise ValueError("response_sweep output paths must be relative to the results directory")
 
 
 def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
@@ -249,6 +279,16 @@ def load_config(rq_name: str, *, config_dir: Path | None = None) -> Config:
                     raise TypeError(f"sweep.{name} must be a YAML list")
                 sweep[name] = tuple(sweep[name])
             settings["sweep"] = SweepConfig(**sweep)
+        if "response_sweep" in settings:
+            response = settings["response_sweep"]
+            pairs, budgets = response["bloom_pairs"], response["epsilons"]
+            if not isinstance(pairs, list) or any(not isinstance(pair, list) or len(pair) != 2 for pair in pairs):
+                raise TypeError("response_sweep.bloom_pairs must be a YAML list of pairs")
+            if not isinstance(budgets, list):
+                raise TypeError("response_sweep.epsilons must be a YAML list")
+            settings["response_sweep"] = ResponseSweepConfig(
+                **{**response, "bloom_pairs": tuple(map(tuple, pairs)), "epsilons": tuple(budgets)}
+            )
         settings.setdefault("sample_entities", None)
         for name in (
             "seeds", "noise_levels", "typos_per_selected_record", "noise_fields", "field_sets", "methods"

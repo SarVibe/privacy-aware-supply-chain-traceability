@@ -1,0 +1,7 @@
+extends: rq2
+noise_levels: [0.05]
+response_sweep:
+  bloom_pairs: [[1024, 4], [512, 15], [256, 8], [256, 30]]
+  epsilons: [2, 4, 8, 16, 32, 64, .inf]
+  output_csv: raw/epsilon_sweep.csv
+  privacy_csv: raw/exp2_dp.csv

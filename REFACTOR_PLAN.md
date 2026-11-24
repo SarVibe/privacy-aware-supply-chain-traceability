@@ -149,4 +149,3 @@ The inventory follows local imports from RQ1 and RQ2 and includes both final exp
 | `src/rq2/rq2_dataset.py` | RQ2 | `Dataset`, `Dataset.n`, `_zipf_weights`, `synthetic_dataset`, `resolve_columns`, `csv_dataset`, `load_dataset`, `controlled_noise_dataset`, `apply_real_frequency_counts` |
 | `src/rq2/similarity_matching.py` | RQ2 | `dice_matrix`, `_prf`, `sweep`, `tune_tau_full`, `tune_tau`, `metrics_at`, `auc_and_separation`, `exact_metrics` |
 | `src/rq2/text_normalizer.py` | RQ2 | `normalize` |
-

@@ -1,4 +1,3 @@
-import argparse
 import hashlib
 import importlib.metadata
 import json
@@ -11,25 +10,6 @@ import pandas as pd
 from src.common.config import Config, load_config, positive_integer
 from src.common.experiment.io import write_csv
 from src.common.linking.threshold import threshold_values
-
-
-def add_common_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    cfg = load_config("rq2")
-    ap.add_argument("--data", default=None,
-                    help="CSV dataset (default: the configured real shipment dataset)")
-    ap.add_argument("--column", default="raw_item_description")
-    ap.add_argument("--composite", action="store_true")
-    ap.add_argument("--composite-columns", nargs="+", default=None)
-    ap.add_argument("--n-entities", type=int, default=None)
-    ap.add_argument("--n-records", type=int, default=cfg.sweep.victim_draws)
-    ap.add_argument("--seeds", type=int, default=len(cfg.seeds))
-    ap.add_argument("--n-selection", type=int, default=cfg.sweep.selection_seeds,
-                    help="number of initial seeds reserved for operating-point selection")
-    ap.add_argument("--q", type=int, default=cfg.bloom.q)
-    ap.add_argument("--pad", action="store_true", default=True)
-    ap.add_argument("--standard", default=f"{cfg.bloom.l}:{cfg.bloom.k}",
-                    help="standard Bloom configuration as l:k")
-    return ap
 
 
 def parse_standard(value: str) -> tuple[int, int]:
@@ -144,8 +124,9 @@ def write_metadata(
     from datetime import datetime, timezone
 
     snapshot = asdict(cfg)
-    if snapshot.get("sweep") is None:
-        snapshot.pop("sweep", None)
+    for section in ("sweep", "response_sweep"):
+        if snapshot.get(section) is None:
+            snapshot.pop(section, None)
     key = snapshot["bloom"].pop("hmac_key")
     snapshot["bloom"]["hmac_key_fingerprint"] = hashlib.sha256(bytes.fromhex(key)).hexdigest()[:12]
     try:

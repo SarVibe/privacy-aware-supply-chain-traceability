@@ -5,28 +5,27 @@ configurations are compared on *paired* data):
   * B = representatives of pre-generated noisy records; A = clean representatives.
   * the same validation/test entity split used for record linkage.
   * the attacker's public dictionary (a fraction `overlap` of the entities).
-  * M stored victim records (Zipf-sampled entities, typos applied per record) and an
-    independent public frequency sample used by the frequency attacks.
+  * M victim records sampled from observed entity variants, plus auxiliary
+    entity counts and public q-gram frequencies.
 """
 import math
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 import numpy as np
 
-from . import privacy_attacks as attacks
-from . import similarity_matching as matching
-from . import privacy_metrics as metrics
-from .experiment_config import DEFAULT_Q, RQ2_CONFIG
+from src.common.config import validate_epsilon
 from src.common.encoding.bloom_filter import BloomFilterEncoder
-from src.common.evaluation.metrics import evaluate_clusters
-from src.common.linking.bloom import BloomLinker
+from src.common.encoding.randomized_response import flip_probability, randomized_response, response_transform
+from src.common.experiment.linkage import evaluate_bloom_linkage, evaluate_test_clusters
 from src.common.linking.exact import ExactLinker, keyed_sha256
-from src.common.linking.threshold import select_single_tau, tune_tau
 from src.common.seeding import make_rng
 from src.common.similarity.dice import dice_matrix
-from src.rq2.numpy_randomized_response import flip_probability, randomized_response
-from .parameter_validation import (validate_noise, validate_overlap, validate_n_records, validate_eps,
-                       validate_dataset, validate_bit_top)
+
+from . import privacy_attacks as attacks
+from . import privacy_metrics as metrics
+from . import similarity_matching as matching
+from .experiment_config import DEFAULT_Q, RQ2_CONFIG
+from .parameter_validation import validate_bit_top, validate_dataset, validate_n_records, validate_noise, validate_overlap
 
 
 @dataclass
@@ -87,13 +86,11 @@ def build_scenario(
         variants = (ds.noisy_records_by_entity or {}).get(int(entity_index))
         victim_norm.append(variants[int(rng.integers(len(variants)))] if variants else b_norm[entity_index])
     in_dict = set(int(e) for e in dict_ids if int(e) >= 0)
-    if getattr(ds, "counts", None) is not None:
-        aux_counts = {int(e): int(ds.counts[int(e)]) for e in in_dict}
+    if ds.counts is not None:
+        aux_counts = {e: int(ds.counts[e]) for e in in_dict}
     else:
         aux_counts = {e: 0 for e in in_dict}
-    if getattr(ds, "counts", None) is None:
-        aux_sample = rng.choice(n, size=n_records, p=ds.weights)
-        for e in aux_sample:
+        for e in rng.choice(n, size=n_records, p=ds.weights):
             if int(e) in aux_counts:
                 aux_counts[int(e)] += 1
     bloom = (ds.linkage.config if ds.linkage is not None else RQ2_CONFIG).bloom
@@ -126,30 +123,11 @@ def _base_row(method, l, k, q, scen):
             "dict_size": len(scen.dict_ids)}
 
 
-def _cluster_metrics(linkage, linker):
-    eid, rid = linkage.config.columns.entity_id, linkage.config.columns.record_id
-    truth = linkage.test.set_index(rid)[eid]
-    labels = linker.link(linkage.test.drop(columns=eid))
-    return evaluate_clusters(truth, labels)
-
-
-def evaluate_bloom_linkage(ds, noise, l, k, q, taus, tau=None):
-    """Score RQ2 record linkage using the same connected components as final RQ1."""
-    linkage = ds.linkage
-    cfg = linkage.config
-    cfg = replace(cfg, bloom=replace(cfg.bloom, l=l, k=k, q=q))
-    if tau is None:
-        table = tune_tau({noise: linkage.validation}, taus, {"cfg": cfg, "field_set": linkage.field_set})
-        tau = select_single_tau(table)
-    linker = BloomLinker("bloom", linkage.field_set, tau, cfg)
-    return {"tau": tau, **_cluster_metrics(linkage, linker)}
-
-
 def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
               eps: float = math.inf, bit_top: int = RQ2_CONFIG.sweep.bit_top,
               taus=matching.TAU_GRID, *, primary_tau: float | None = None) -> dict:
     validate_dataset(ds)
-    eps = validate_eps(eps)
+    eps = validate_epsilon(eps)
     bit_top = validate_bit_top(bit_top)
     enc = BloomFilterEncoder(l, k, q, scen.key, scen.pad_char)
     atk_rng = make_rng(scen.seed, f"rq2:attack:{l}:{k}")
@@ -214,7 +192,10 @@ def run_bloom(ds, scen: Scenario, l: int, k: int, q: int = DEFAULT_Q,
         **{f"cross_party_{metric}": value for metric, value in m_unc.items()},
     )
     if ds.linkage is not None:
-        row.update(evaluate_bloom_linkage(ds, scen.noise, l, k, q, taus, primary_tau))
+        row.update(evaluate_bloom_linkage(
+            ds.linkage, scen.noise, l, k, q, taus, tau=primary_tau,
+            post_transform=response_transform(scen.seed, l, k, eps),
+        ))
 
     # ---- privacy ----
     row.update(attacks.reid_attack(bf_b, np.arange(ds.n), dict_bf, scen.dict_ids))
@@ -250,7 +231,7 @@ def run_exact(ds, scen: Scenario, q: int = DEFAULT_Q) -> dict:
     if ds.linkage is not None:
         linkage = ds.linkage
         linker = ExactLinker("normalized_exact", linkage.field_set, True, linkage.config)
-        row.update(_cluster_metrics(linkage, linker))
+        row.update(evaluate_test_clusters(linkage, linker))
     row.update(
         tau_unc=float("nan"), precision_unc=m["precision"], recall_unc=m["recall"],
         f1_unc=m["f1"], fpr_unc=m["fpr"],

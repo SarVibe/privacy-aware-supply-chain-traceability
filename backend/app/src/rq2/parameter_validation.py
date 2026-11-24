@@ -6,22 +6,6 @@ import numpy as np
 from src.common.config import unit_interval
 
 
-def validate_eps(eps):
-    if isinstance(eps, (bool, np.bool_)):
-        raise ValueError("eps must be a positive number or positive infinity")
-    try:
-        value = float(eps)
-    except (TypeError, ValueError):
-        raise ValueError("eps must be a positive number or positive infinity") from None
-    if math.isnan(value):
-        raise ValueError("eps must not be NaN")
-    if value < 0:
-        raise ValueError("eps must not be negative")
-    if value != math.inf and value <= 0:
-        raise ValueError("eps must be positive")
-    return value
-
-
 def validate_noise(rate):
     return unit_interval(rate, "noise rate")
 

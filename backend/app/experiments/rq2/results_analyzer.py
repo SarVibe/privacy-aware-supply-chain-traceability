@@ -537,20 +537,24 @@ def main():
     if a.dp:
         dp = read_csv(a.dp)
         dp["eps"] = dp["eps"].astype(float)
-        agg = dp.groupby(["l", "k", "eps"])[["f1", "reid_top1", "freq_success", "bit_success", "flip_p"]].mean().reset_index()
+        available = [metric for metric in ("f1", "reid_top1", "freq_success", "bit_success", "flip_p") if metric in dp]
+        agg = dp.groupby(["l", "k", "eps"])[available].mean().reset_index()
         write_run_csv(agg, out / "table_dp.csv",
                       q=metas[0][1]["experiment_config"]["q"],
                       pad=metas[0][1]["experiment_config"]["pad"],
                       data_mode=metas[0][1]["experiment_config"]["data_mode"])
         print("\nDP ablation (E2.8)\n", agg.to_string(index=False))
-        fig, axs = plt.subplots(1, 2, figsize=(10, 3.6))
+        panels = [("f1", "Test F1")]
+        if "reid_top1" in agg:
+            panels.append(("reid_top1", "Re-identification top-1"))
+        fig, axs = plt.subplots(1, len(panels), figsize=(5 * len(panels), 3.6), squeeze=False)
         for c, ((l, k), g) in zip([BLUE, ORANGE, AQUA, MUTED], agg.groupby(["l", "k"])):
             g = g[np.isfinite(g.eps)].sort_values("eps")
-            axs[0].plot(g.eps, g.f1, "-o", color=c, label=f"l={int(l)}, k={int(k)}", lw=2)
-            axs[1].plot(g.eps, g.reid_top1, "-o", color=c, label=f"l={int(l)}, k={int(k)}", lw=2)
-        for ax, t in zip(axs, ["Test F1", "Re-identification top-1"]):
+            for ax, (metric, _) in zip(axs[0], panels, strict=True):
+                ax.plot(g.eps, g[metric], "-o", color=c, label=f"l={int(l)}, k={int(k)}", lw=2)
+        for ax, (_, t) in zip(axs[0], panels, strict=True):
             ax.set_xscale("log", base=2); ax.set_xlabel("ε (smaller = more noise)"); ax.set_title(t); ax.set_ylim(-0.02, 1.02)
-        axs[0].legend(fontsize=7, frameon=False); fig.tight_layout()
+        axs[0, 0].legend(fontsize=7, frameon=False); fig.tight_layout()
         fig.savefig(figs / "dp_ablation.png", bbox_inches="tight"); plt.close(fig)
     manifest = {
         "source_runs": source_runs,

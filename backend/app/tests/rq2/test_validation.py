@@ -7,10 +7,11 @@ import pandas as pd
 import pytest
 
 from src.rq2.parameter_validation import (
-    validate_eps, validate_noise, validate_overlap, validate_n_records,
+    validate_noise, validate_overlap, validate_n_records,
     validate_bit_top, validate_dataset,
 )
-from src.rq2.numpy_randomized_response import flip_probability
+from src.common.config import validate_epsilon
+from src.common.encoding.randomized_response import flip_probability
 from src.rq2.results_schema import validate_results, SchemaError
 from src.rq2.rq2_dataset import synthetic_dataset
 from experiments.rq2.results_analyzer import holm_bonferroni, merge_paired
@@ -19,7 +20,7 @@ from experiments.rq2.results_analyzer import holm_bonferroni, merge_paired
 @pytest.mark.parametrize("eps", [float("nan"), -1.0, 0.0])
 def test_invalid_eps(eps):
     with pytest.raises(ValueError):
-        validate_eps(eps)
+        validate_epsilon(eps)
 
 
 def test_extreme_eps():

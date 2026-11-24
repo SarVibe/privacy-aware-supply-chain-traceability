@@ -9,6 +9,8 @@ from numpy.typing import NDArray
 from src.common.config import positive_integer
 from src.common.encoding.qgrams import extract_qgrams, validate_qgram_parameters
 
+PostTransform = Callable[[NDArray[np.uint8]], NDArray[np.uint8]]
+
 
 class BloomFilterEncoder:
     """Use indexed HMAC-SHA256 positions and cache them per encoder."""
@@ -20,7 +22,7 @@ class BloomFilterEncoder:
         q: int,
         key: bytes,
         pad_char: str,
-        post_transform: Callable[[NDArray[np.uint8]], NDArray[np.uint8]] | None = None,
+        post_transform: PostTransform | None = None,
     ) -> None:
         positive_integer(l, "l")
         positive_integer(k, "k")

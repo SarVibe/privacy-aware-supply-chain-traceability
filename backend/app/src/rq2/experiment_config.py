@@ -5,5 +5,4 @@ from src.common.linking.threshold import threshold_values
 
 RQ2_CONFIG = load_config("rq2")
 DEFAULT_Q = RQ2_CONFIG.bloom.q
-DEFAULT_PAD = True
 TAU_GRID = threshold_values(RQ2_CONFIG.tau_grid)

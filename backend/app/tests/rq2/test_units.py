@@ -7,7 +7,7 @@ from src.rq2 import privacy_metrics as metrics
 from src.common.encoding.bloom_filter import BloomFilterEncoder
 from src.common.similarity.dice import dice_matrix
 from src.rq2.rq2_dataset import load_dataset, synthetic_dataset
-from src.rq2.numpy_randomized_response import flip_probability, randomized_response
+from src.common.encoding.randomized_response import flip_probability, randomized_response
 from src.application_config import Config
 
 KEY = b"k" * 32

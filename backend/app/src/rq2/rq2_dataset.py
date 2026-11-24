@@ -11,19 +11,9 @@ import numpy as np
 import pandas as pd
 
 from src.common.config import Config
-from src.common.data.loader import align_noisy_records, load_noisy
-from src.common.data.splitting import apply_split, limit_split, load_split
-from src.common.paths import splits_dir
+from src.common.data.loader import LinkageData, load_linkage_data
 from src.common.preprocessing.field_builder import build_field_strings
 from src.common.preprocessing.normalizer import normalize
-
-
-@dataclass(frozen=True)
-class LinkageData:
-    config: Config
-    field_set: str
-    validation: pd.DataFrame
-    test: pd.DataFrame
 
 
 @dataclass
@@ -51,17 +41,14 @@ def load_research_dataset(
     cfg: Config, seed: int, noise: float, *, field_set: str = "composite", max_records: int | None = None
 ) -> Dataset:
     """Load RQ1's paired records and derive the RQ2 entity-level privacy population."""
+    linkage = load_linkage_data(cfg, seed, noise, field_set, max_records=max_records)
+    return privacy_dataset(linkage, seed, noise)
+
+
+def privacy_dataset(linkage: LinkageData, seed: int, noise: float) -> Dataset:
+    """Build entity representatives and variant frequencies from the paired records."""
+    cfg, clean, noisy, field_set = linkage.config, linkage.clean, linkage.noisy, linkage.field_set
     rid, eid = cfg.columns.record_id, cfg.columns.entity_id
-    clean = load_noisy(seed, 0, cfg)
-    noisy = align_noisy_records(clean, load_noisy(seed, noise, cfg), cfg)
-    split = load_split(splits_dir(cfg) / f"split_seed{seed}.json")
-    validation, test = apply_split(noisy, split, cfg)
-    if max_records is not None:
-        validation, test = limit_split(validation, test, max_records, eid)
-        keep = set(validation[rid]) | set(test[rid])
-        clean, noisy = clean.loc[clean[rid].isin(keep)], noisy.loc[noisy[rid].isin(keep)]
-    if validation.empty or test.empty:
-        raise ValueError("RQ2 requires non-empty validation and test splits")
     observations = clean[[rid, eid]].set_index(rid).assign(
         clear=build_field_strings(clean, field_set, cfg, normalize=False),
         normalized=build_field_strings(clean, field_set, cfg, normalize=True),
@@ -80,7 +67,7 @@ def load_research_dataset(
         noisy_records_by_entity={index: group["observed"].tolist() for index, (_, group) in enumerate(groups)},
         noise_level=noise,
         seed=seed,
-        linkage=LinkageData(cfg, field_set, validation, test),
+        linkage=linkage,
     )
 
 
@@ -181,122 +168,6 @@ def load_dataset(data: str | None, column: str | None, n: int, seed: int = 0,
     if data:
         return csv_dataset(data, column, n, seed, composite_columns)
     return synthetic_dataset(n, seed)
-
-
-def controlled_noise_dataset(
-    clean_path: str,
-    noise_dir: str,
-    noise_level: float,
-    seed: int,
-    n: int = 1000,
-    composite_columns: list[str] | None = None,
-) -> Dataset:
-    """Load RQ1-generated clean/noisy records and align them by record_id."""
-    clean = pd.read_csv(clean_path)
-    noise_pct = int(round(noise_level * 100))
-    noisy_path = Path(noise_dir) / f"noisy_products_{noise_pct}_seed{seed}.csv"
-    if not noisy_path.exists():
-        raise FileNotFoundError(
-            f"No controlled noise dataset for noise={noise_pct}% and seed={seed}: {noisy_path}"
-        )
-    noisy = pd.read_csv(noisy_path)
-
-    required_clean = {"record_id", "true_entity_id", "raw_item_description"}
-    required_noisy = {"record_id", "raw_item_description"}
-    missing_clean = sorted(required_clean - set(clean.columns))
-    missing_noisy = sorted(required_noisy - set(noisy.columns))
-    if missing_clean:
-        raise ValueError(f"Clean master missing required columns: {', '.join(missing_clean)}")
-    if missing_noisy:
-        raise ValueError(f"Noise dataset missing required columns: {', '.join(missing_noisy)}")
-    if len(noisy) != len(clean):
-        raise ValueError(
-            f"Clean/noisy record count mismatch: clean={len(clean)}, noisy={len(noisy)}"
-        )
-
-    merged = clean.merge(
-        noisy,
-        on="record_id",
-        how="inner",
-        suffixes=("_clean", "_noisy"),
-        validate="one_to_one",
-    )
-    if len(merged) != len(clean):
-        raise ValueError("Clean and noisy datasets do not align by record_id")
-
-    description_col = "raw_item_description_clean"
-    noisy_description_col = "raw_item_description_noisy"
-
-    def composed_text(row, noisy: bool = False) -> str:
-        if composite_columns:
-            parts = [str(row[description_col if not noisy else noisy_description_col] or "")]
-            for col in composite_columns:
-                clean_col = f"{col}_clean"
-                noisy_col = f"{col}_noisy"
-                value = row[noisy_col if noisy and noisy_col in row.index else clean_col]
-                if pd.notna(value):
-                    parts.append(str(value))
-            return " ".join(parts)
-        return str(row[noisy_description_col if noisy else description_col])
-
-    merged["_clean_text"] = merged.apply(composed_text, axis=1)
-    merged["_noisy_text"] = merged.apply(lambda row: composed_text(row, noisy=True), axis=1)
-    merged["_clean_norm"] = merged["_clean_text"].map(normalize)
-    merged["_noisy_norm"] = merged["_noisy_text"].map(normalize)
-    merged = merged[(merged["_clean_norm"] != "") & (merged["_noisy_norm"] != "")]
-
-    entity_col = "true_entity_id_clean"
-    groups = merged.groupby(entity_col, sort=False)
-    kept = list(groups)
-    if len(kept) > n:
-        group_rows = []
-        for entity_id, group in kept:
-            group_rows.append({
-                "entity_id": entity_id,
-                "raw": group["_clean_text"].astype(str).iloc[0],
-                "norm": group["_clean_norm"].astype(str).iloc[0],
-                "noisy_norm": group["_noisy_norm"].astype(str).iloc[0],
-                "count": len(group),
-            })
-        sampled = pd.DataFrame(group_rows).sample(
-            n=n,
-            random_state=seed,
-            weights="count",
-        ).reset_index(drop=True)
-    else:
-        group_rows = []
-        for entity_id, group in kept:
-            group_rows.append({
-                "entity_id": entity_id,
-                "raw": group["_clean_text"].astype(str).iloc[0],
-                "norm": group["_clean_norm"].astype(str).iloc[0],
-                "noisy_norm": group["_noisy_norm"].astype(str).iloc[0],
-                "count": len(group),
-            })
-        sampled = pd.DataFrame(group_rows)
-
-    noisy_records = {}
-    for position, entity_row in enumerate(sampled.to_dict("records")):
-        group = merged[
-            merged["true_entity_id_clean"] == entity_row["entity_id"]
-        ]
-        noisy_records[position] = (
-            group["_noisy_norm"].dropna().astype(str).tolist()
-        )
-
-    counts = sampled["count"].to_numpy(dtype=float)
-    return Dataset(
-        raw=sampled["raw"].tolist(),
-        norm=sampled["norm"].tolist(),
-        weights=counts / counts.sum(),
-        source=f"controlled:{clean_path}:{noise_pct}%:seed={seed}",
-        counts=counts,
-        entity_ids=sampled["entity_id"].tolist(),
-        noisy_norm=sampled["noisy_norm"].tolist(),
-        noisy_records_by_entity=noisy_records,
-        noise_level=noise_level,
-        seed=seed,
-    )
 
 
 def apply_real_frequency_counts(
