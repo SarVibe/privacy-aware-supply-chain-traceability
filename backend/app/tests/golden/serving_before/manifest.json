@@ -1,0 +1,15 @@
+{
+  "source_commit": "108c8b4",
+  "fixture": "rq1/prepared/base_dataset.csv",
+  "record_order": "CSV order",
+  "records": 200,
+  "key_source": "Fixed public RQ1 fixture key loaded into legacy environment for capture",
+  "l": 1024,
+  "k": 4,
+  "q": 3,
+  "tau": 0.8,
+  "dp": false,
+  "ledger": false,
+  "vector_hash": "SHA-256 of 128 packed bytes in legacy bit order",
+  "purpose": "Historical serving baseline"
+}
