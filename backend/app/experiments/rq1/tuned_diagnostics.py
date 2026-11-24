@@ -43,11 +43,11 @@ def tuned_evaluations(cfg, variants):
     for (dataset, seed), run in groupby(diagnostic_cases(cfg), key=lambda case: (case.dataset, case.seed)):
         cases = list(run)
         val = {case.noise: case.validation for case in cases}
-        for variant, field_set in variants:
-            metrics = tune_tau(val, grid, {"cfg": cfg, "field_set": field_set})
+        for variant, field_set, optional_linker in variants:
+            metrics = tune_tau(val, grid, {"cfg": cfg, "field_set": field_set}, linker=optional_linker)
             validation_rows.append(metrics.assign(dataset=dataset, seed=seed, variant=variant))
             single, per_level = select_single_tau(metrics), select_per_noise_tau(metrics)
-            linker = BloomLinker("bloom", field_set, min(grid), cfg)
+            linker = optional_linker if optional_linker is not None else BloomLinker("bloom", field_set, min(grid), cfg)
             for case in cases:
                 frame = case.test
                 truth = frame.set_index(rid)[eid]
@@ -72,7 +72,7 @@ def write_tuned_tables(test_rows, validation_rows, prefix):
 
 def main():
     cfg = load_config("rq1_diagnostics")
-    test_rows, validation_rows = tuned_evaluations(cfg, [("V0", "composite")])
+    test_rows, validation_rows = tuned_evaluations(cfg, [("V0", "composite", None)])
     write_tuned_tables(test_rows, validation_rows, "tuned_composite")
     print(f"Saved {len(test_rows)} held-out evaluations to {DEFAULT_OUTPUT}")
 

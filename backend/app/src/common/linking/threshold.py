@@ -33,6 +33,8 @@ def tune_tau(
     val_frames_by_noise: Mapping[float, pd.DataFrame],
     tau_grid: Sequence[float],
     linker_factory_args: BloomLinkerArgs,
+    *,
+    linker: BloomLinker | None = None,
 ) -> pd.DataFrame:
     """Evaluate each cutoff on validation data, preparing similarities once per level."""
     grid = tuple(tau_grid)
@@ -43,10 +45,11 @@ def tune_tau(
     cfg = linker_factory_args["cfg"]
     rid, eid = cfg.columns.record_id, cfg.columns.entity_id
     tau_min = min(grid)
-    linker = BloomLinker(
-        linker_factory_args.get("name", "bloom_fuzzy"), linker_factory_args["field_set"], tau_min, cfg,
-        post_transform=linker_factory_args.get("post_transform"),
-    )
+    if linker is None:
+        linker = BloomLinker(
+            linker_factory_args.get("name", "bloom_fuzzy"), linker_factory_args["field_set"], tau_min, cfg,
+            post_transform=linker_factory_args.get("post_transform"),
+        )
     rows = []
     for level, frame in val_frames_by_noise.items():
         truth = frame.set_index(rid)[eid]
