@@ -101,3 +101,11 @@ desktop.ini
 # Local AI coding assistant files
 .agents/
 .claude/
+
+# Encrypted commitment database
+backend/data/
+
+# Encrypted commitment database
+backend/data/
+
+backup/
