@@ -9,6 +9,11 @@ def _count_pairs(sizes: Iterable[int]) -> int:
     return sum(n * (n - 1) // 2 for n in map(int, sizes))
 
 
+def count_same_label_pairs(labels: pd.Series) -> int:
+    """Count unordered record pairs with equal labels."""
+    return _count_pairs(labels.value_counts(sort=False))
+
+
 def pairwise_prf(
     true_positives: int, predicted_pairs: int, true_pairs: int, *, empty_score: float = 1.0
 ) -> tuple[float, float, float]:

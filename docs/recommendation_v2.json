@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "field_set": "composite",
+  "l": 256,
+  "k": 2,
+  "seeds": [
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "noise": 0.15,
+  "validation_e2_precision": 0.5043105419834908,
+  "validation_f1": 0.9406054612954555,
+  "minimum_validation_f1": 0.8919681015567034,
+  "test_f1": 0.8379439284566121,
+  "test_e2_precision": 0.48634864135516354,
+  "near_ties": [],
+  "extreme": {
+    "l": 256,
+    "k": 30
+  }
+}
