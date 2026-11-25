@@ -1,0 +1,27 @@
+field_set: composite
+seeds: [5, 6, 7, 8, 9]
+split_fractions: [0.25, 0.45, 0.30]
+primary_noise: 0.15
+robustness_noise: [0.0, 0.05, 0.30]
+all_fields_noise: 0.15
+baseline: [1024, 4]
+grid:
+  lengths: [1024, 512, 256]
+  hashes: [2, 4, 10, 30]
+tau_grid: {start: 0.80, stop: 0.98, step: 0.01}
+sensitivity_taus: [0.99, 0.995, 0.999]
+key_env: RQ2_RESEARCH_KEY
+controls:
+  positive: [4096, 1]
+  min_matched_lift: 2.0
+  random_trials: 500
+  max_random_gap: 0.005
+pilot:
+  seed: 100
+  max_entities: 60
+analysis:
+  bootstrap_draws: 5000
+  seed: 2026
+  histogram_bins: 40
+  f1_budget: 0.05
+  h3_relative_reduction: 0.25
