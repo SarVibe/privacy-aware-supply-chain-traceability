@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@metamask/eth-sig-util": "^10.0.1",
     "@tailwindcss/vite": "^4.3.5",
     "axios": "^1.21.1",
     "ethers": "^6.17.0",
