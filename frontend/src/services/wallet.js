@@ -73,3 +73,55 @@ export const connectWallet = async () => {
     roleName: ROLE_NAMES[role],
   };
 };
+
+
+// Authenticate the connected wallet using a backend challenge and MetaMask signature.
+export const signInWithWallet = async (wallet) => {
+  // Request a unique authentication challenge from the backend.
+  const nonceResponse = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/auth/nonce`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        wallet_address: wallet.address,
+      }),
+    }
+  );
+
+  // Reject unsuccessful challenge requests.
+  if (!nonceResponse.ok) {
+    throw new Error("Failed to request wallet authentication challenge.");
+  }
+
+  const nonceData = await nonceResponse.json();
+
+  // Ask MetaMask to sign the exact message returned by the backend.
+  const signature = await wallet.signer.signMessage(nonceData.message);
+
+  // Send the wallet signature to the backend for verification.
+  const verifyResponse = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/auth/verify`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        wallet_address: wallet.address,
+        signature,
+      }),
+    }
+  );
+
+  // Reject unsuccessful signature verification.
+  if (!verifyResponse.ok) {
+    const errorData = await verifyResponse.json();
+    throw new Error(errorData.detail || "Wallet authentication failed.");
+  }
+
+  // Return the backend-issued JWT and authenticated stakeholder details.
+  return await verifyResponse.json();
+};

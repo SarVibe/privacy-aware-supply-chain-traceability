@@ -8,6 +8,7 @@ import AppLayout from "./components/layout/AppLayout";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
+import GenerateProof from "./pages/manufacturer/GenerateProof";
 
 function App() {
   return (
@@ -29,7 +30,10 @@ function App() {
 
           {/* Manufacturer Routes */}
           <Route element={<RoleRoute allowedRoles={["Manufacturer"]} />}>
-            {/* Manufacturer pages will be added here */}
+            <Route
+              path="/manufacturer/generate-proof"
+              element={<GenerateProof />}
+            />
           </Route>
 
           {/* Other Stakeholder Routes */}

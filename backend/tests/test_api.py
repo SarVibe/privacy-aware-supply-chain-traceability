@@ -4,12 +4,26 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from backend.app.main import app
-
+# Import the authentication dependency used by protected API endpoints.
+from backend.app.auth import get_current_user
 
 class TestSupplyChainAPI(unittest.TestCase):
 
     def setUp(self):
         self.client = TestClient(app)
+
+    # Simulate an authenticated stakeholder for API tests.
+    def authenticate_as(self, role):
+        self.client.app.dependency_overrides[get_current_user] = (
+            lambda: {
+                "wallet_address": "0xTestStakeholder",
+                "role": role
+            }
+        )
+
+    # Clear authentication overrides after each test.
+    def tearDown(self):
+        self.client.app.dependency_overrides.clear()
 
     # Root endpoint
     def test_root_endpoint(self):
@@ -43,6 +57,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "proof_verification_time_seconds": 0.8
         }
 
+        # Authenticate as Manufacturer before generating a proof.
+        self.authenticate_as(2)
+
         response = self.client.post(
             "/zkp/generate-proof",
             json={
@@ -63,6 +80,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "ZKP command failed"
         )
 
+        # Authenticate as Manufacturer before generating a proof.
+        self.authenticate_as(2)
+
         response = self.client.post(
             "/zkp/generate-proof",
             json={
@@ -81,6 +101,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "status": "success",
             "gas_used": 300000
         }
+
+        # Authenticate as Manufacturer before blockchain verification.
+        self.authenticate_as(2)
 
         response = self.client.post(
             "/zkp/verify-on-chain",
@@ -106,6 +129,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "Stakeholder is not authorized"
         )
 
+        # Authenticate as Manufacturer before blockchain verification.
+        self.authenticate_as(2)
+
         response = self.client.post(
             "/zkp/verify-on-chain",
             json={
@@ -127,6 +153,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "gas_used": 48760
         }
 
+        # Authenticate as Admin before managing stakeholders.
+        self.authenticate_as(1)
+
         response = self.client.post(
             "/admin/register-stakeholder",
             json={
@@ -144,6 +173,9 @@ class TestSupplyChainAPI(unittest.TestCase):
 
     # Invalid stakeholder role
     def test_register_invalid_role(self):
+
+        # Authenticate as Admin before managing stakeholders.
+        self.authenticate_as(1)
 
         response = self.client.post(
             "/admin/register-stakeholder",
@@ -164,6 +196,9 @@ class TestSupplyChainAPI(unittest.TestCase):
             "status": "success",
             "gas_used": 25925
         }
+
+        # Authenticate as Admin before managing stakeholders.
+        self.authenticate_as(1)
 
         response = self.client.post(
             "/admin/revoke-stakeholder",

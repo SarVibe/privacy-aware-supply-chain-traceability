@@ -6,7 +6,11 @@ import {
   useEffect,
 } from "react";
 
-import { connectWallet } from "../services/wallet";
+// Import wallet connection and MetaMask signature authentication.
+import {
+  connectWallet,
+  signInWithWallet,
+} from "../services/wallet";
 
 const AuthContext = createContext(null);
 
@@ -18,36 +22,58 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
 
+      // Connect MetaMask and identify the stakeholder.
       const walletData = await connectWallet();
 
-      setUser({
-        address: walletData.address,
+      // Authenticate wallet ownership through the backend.
+      const authData = await signInWithWallet(walletData);
+
+      // Store the JWT for authenticated API requests.
+      sessionStorage.setItem("access_token", authData.access_token);
+
+      // Update React authentication state after backend verification.
+      const authenticatedUser = {
+        address: authData.wallet_address,
         chainId: walletData.chainId,
-        role: walletData.role,
-        roleName: walletData.roleName,
+        role: authData.role,
+        roleName: authData.role_name,
         provider: walletData.provider,
         signer: walletData.signer,
-      });
+        token: authData.access_token,
+      };
 
-      return walletData;
+      setUser(authenticatedUser);
+
+      return authenticatedUser;
+    } catch (error) {
+      // Remove any previous token when authentication fails.
+      sessionStorage.removeItem("access_token");
+      setUser(null);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
+    // Remove the JWT and clear the authenticated user.
+    sessionStorage.removeItem("access_token");
     setUser(null);
   };
 
-  // Detect MetaMask account changes
+  // Detect MetaMask account and network changes.
   useEffect(() => {
     if (!window.ethereum) return;
 
     const handleAccountsChanged = () => {
+      // Require authentication again after an account change.
+      sessionStorage.removeItem("access_token");
       setUser(null);
     };
 
     const handleChainChanged = () => {
+      // Require authentication again after a network change.
+      sessionStorage.removeItem("access_token");
       setUser(null);
     };
 
