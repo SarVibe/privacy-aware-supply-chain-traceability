@@ -17,7 +17,8 @@ from backend.app.blockchain import (
     verify_supply_chain,
     register_stakeholder,
     revoke_stakeholder,
-    get_stakeholder_role
+    get_stakeholder_role,
+    can_access_attribute
 )
 
 # Import wallet authentication and JWT functions.
@@ -61,12 +62,11 @@ class ZKPRequest(BaseModel):
     actual: dict[str, str]
     expected: dict[str, str]
 
-# Define blockchain verification request
+# Define the ZKP verification request without collecting private keys.
 class BlockchainVerificationRequest(BaseModel):
     proof: dict
     public_signals: list[str]
     requested_attributes: list[int]
-    stakeholder_private_key: str
 
 # Define stakeholder registration request
 class StakeholderRegistrationRequest(BaseModel):
@@ -311,23 +311,50 @@ def verify_zkp_on_chain(
     request: BlockchainVerificationRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    # Admin and unregistered users cannot perform verification.
-    if current_user["role"] not in [2, 3, 4, 5, 6]:
+    # Only operational stakeholders can verify supply-chain records.
+    role = current_user["role"]
+
+    if role not in [2, 3, 4, 5, 6]:
         raise HTTPException(
             status_code=403,
             detail="Your stakeholder role is not authorized for verification."
         )
-    try:
-        result = verify_supply_chain(
-            proof=request.proof,
-            public_signals=request.public_signals,
-            requested_attributes=request.requested_attributes,
-            stakeholder_private_key=request.stakeholder_private_key
-        )
 
+    try:
+        # Validate that exactly 11 public signals are provided.
+        if len(request.public_signals) != 11:
+            raise ValueError("Exactly 11 public signals are required.")
+
+        # Reject mismatched supply-chain data before blockchain submission.
+        if int(request.public_signals[0]) != 1:
+            raise ValueError("Supply-chain data mismatch. Verification rejected.")
+
+        # At least one attribute must be requested.
+        if not request.requested_attributes:
+            raise ValueError("No attributes requested.")
+
+        # Reject duplicate attribute requests.
+        if len(request.requested_attributes) != len(set(request.requested_attributes)):
+            raise ValueError("Duplicate attributes requested.")
+
+        # Check stakeholder permissions for every requested attribute.
+        for index in request.requested_attributes:
+            if index < 0 or index >= 10:
+                raise ValueError(f"Invalid attribute index: {index}")
+
+            if not can_access_attribute(role, index):
+                raise PermissionError(
+                    f"Access denied for attribute index {index}."
+                )
+
+        # Return validated data for the frontend to submit through MetaMask.
         return {
-            "message": "Blockchain verification successful",
-            "transaction": result
+            "message": "ZKP verification request validated successfully.",
+            "proof": request.proof,
+            "public_signals": request.public_signals,
+            "requested_attributes": request.requested_attributes,
+            "wallet_address": current_user["wallet_address"],
+            "status": "ready_for_metamask_submission"
         }
 
     except (ValueError, PermissionError) as error:
@@ -339,5 +366,5 @@ def verify_zkp_on_chain(
     except Exception:
         raise HTTPException(
             status_code=500,
-            detail="Blockchain verification failed"
+            detail="ZKP verification validation failed."
         )

@@ -93,16 +93,14 @@ class TestSupplyChainAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    # Successful blockchain verification
-    @patch("backend.app.main.verify_supply_chain")
-    def test_blockchain_verification_success(self, mock_verify):
+    # Successful ZKP verification request validation.
+    @patch("backend.app.main.can_access_attribute")
+    def test_blockchain_verification_success(self, mock_access):
 
-        mock_verify.return_value = {
-            "status": "success",
-            "gas_used": 300000
-        }
+        # Allow the requested attributes for this test.
+        mock_access.return_value = True
 
-        # Authenticate as Manufacturer before blockchain verification.
+        # Authenticate as Manufacturer.
         self.authenticate_as(2)
 
         response = self.client.post(
@@ -110,26 +108,24 @@ class TestSupplyChainAPI(unittest.TestCase):
             json={
                 "proof": {"pi_a": ["1", "2"]},
                 "public_signals": ["1"] + ["0"] * 10,
-                "requested_attributes": [0, 2, 4],
-                "stakeholder_private_key": "test-private-key"
+                "requested_attributes": [0, 2, 4]
             }
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json()["transaction"]["status"],
-            "success"
+            response.json()["status"],
+            "ready_for_metamask_submission"
         )
 
-    # Unauthorized verification
-    @patch("backend.app.main.verify_supply_chain")
-    def test_blockchain_verification_denied(self, mock_verify):
+    # Reject verification when an attribute is not permitted.
+    @patch("backend.app.main.can_access_attribute")
+    def test_blockchain_verification_denied(self, mock_access):
 
-        mock_verify.side_effect = PermissionError(
-            "Stakeholder is not authorized"
-        )
+        # Deny the requested attribute.
+        mock_access.return_value = False
 
-        # Authenticate as Manufacturer before blockchain verification.
+        # Authenticate as Manufacturer.
         self.authenticate_as(2)
 
         response = self.client.post(
@@ -137,8 +133,7 @@ class TestSupplyChainAPI(unittest.TestCase):
             json={
                 "proof": {"pi_a": ["1", "2"]},
                 "public_signals": ["1"] + ["0"] * 10,
-                "requested_attributes": [0],
-                "stakeholder_private_key": "test-private-key"
+                "requested_attributes": [0]
             }
         )
 

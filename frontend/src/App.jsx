@@ -9,6 +9,7 @@ import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 import GenerateProof from "./pages/manufacturer/GenerateProof";
+import VerifyZKP from "./pages/stakeholder/VerifyZKP";
 
 function App() {
   return (
@@ -49,7 +50,7 @@ function App() {
               />
             }
           >
-            {/* Stakeholder pages will be added here */}
+            <Route path="/verify" element={<VerifyZKP />} />
           </Route>
 
         </Route>
