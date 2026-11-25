@@ -13,9 +13,10 @@ const ROLE_NAMES = {
   6: "Pharmacy",
 };
 
-// Public smart contract ABI - role retrieval only
+// Public smart contract ABI for role retrieval and ZKP verification.
 const CONTRACT_ABI = [
   "function stakeholderRoles(address) view returns (uint8)",
+  "function verifySupplyChain(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[11] _pubSignals, uint256[] requestedAttributes) returns (bool)",
 ];
 
 // Connect MetaMask and identify stakeholder
@@ -125,3 +126,61 @@ export const signInWithWallet = async (wallet) => {
   // Return the backend-issued JWT and authenticated stakeholder details.
   return await verifyResponse.json();
 };
+
+// Submit ZKP verification directly through the connected MetaMask wallet.
+export const submitZKPVerification = async (
+  wallet,
+  proof,
+  publicSignals,
+  requestedAttributes
+) => {
+  if (!wallet?.signer) {
+    throw new Error("MetaMask wallet is not connected.");
+  }
+
+  // Connect the smart contract using the stakeholder's MetaMask signer.
+  const contract = new Contract(
+    CONTRACT_ADDRESS,
+    CONTRACT_ABI,
+    wallet.signer
+  );
+
+  // Convert Groth16 proof coordinates into Solidity-compatible format.
+  const pA = [
+    proof.pi_a[0],
+    proof.pi_a[1],
+  ];
+
+  const pB = [
+    [proof.pi_b[0][1], proof.pi_b[0][0]],
+    [proof.pi_b[1][1], proof.pi_b[1][0]],
+  ];
+
+  const pC = [
+    proof.pi_c[0],
+    proof.pi_c[1],
+  ];
+
+  // Submit the verification transaction; MetaMask asks the user to approve it.
+  const transaction = await contract.verifySupplyChain(
+    pA,
+    pB,
+    pC,
+    publicSignals,
+    requestedAttributes
+  );
+
+  // Wait until the transaction is confirmed on the blockchain.
+  const receipt = await transaction.wait();
+
+  if (receipt.status !== 1) {
+    throw new Error("Blockchain verification transaction failed.");
+  }
+
+  return {
+    transactionHash: receipt.hash,
+    blockNumber: receipt.blockNumber,
+    status: "success",
+  };
+};
+
