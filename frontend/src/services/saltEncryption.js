@@ -1,6 +1,6 @@
 
 import { encryptSafely } from "@metamask/eth-sig-util";
-import { getAddress } from "ethers";
+import { getAddress, hexlify, toUtf8Bytes } from "ethers";
 
 const ENCRYPTION_VERSION = "x25519-xsalsa20-poly1305";
 const PACKAGE_FORMAT = "C3-ZKP-ENCRYPTED-SALTS-V1";
@@ -116,20 +116,21 @@ export const decryptSalts = async (
   const decryptedData = await window.ethereum.request({
     method: "eth_decrypt",
     params: [
-      JSON.stringify(encryptedPackage.encryptedData),
+      hexlify(toUtf8Bytes(JSON.stringify(encryptedPackage.encryptedData))),
       recipient,
     ],
   });
 
-  const payload = JSON.parse(decryptedData);
+  const decryptedPayload = JSON.parse(decryptedData);
+const payload = decryptedPayload.data ?? decryptedPayload;
 
-  if (
-    payload?.format !== PACKAGE_FORMAT ||
-    payload.transactionId !== expectedTransactionId ||
-    getAddress(payload.recipientAddress) !== recipient
-  ) {
-    throw new Error("Salt package does not match this transaction or wallet.");
-  }
+if (
+  payload?.format !== PACKAGE_FORMAT ||
+  payload.transactionId !== expectedTransactionId ||
+  getAddress(payload.recipientAddress) !== recipient
+) {
+  throw new Error("Salt package does not match this transaction or wallet.");
+}
 
   if (
     !Array.isArray(payload.attributes) ||

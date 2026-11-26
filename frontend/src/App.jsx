@@ -10,6 +10,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 import GenerateProof from "./pages/manufacturer/GenerateProof";
 import VerifyZKP from "./pages/stakeholder/VerifyZKP";
+import RegisterStakeholder from "./pages/admin/RegisterStakeholder";
 
 function App() {
   return (
@@ -26,7 +27,10 @@ function App() {
 
           {/* Admin Routes */}
           <Route element={<RoleRoute allowedRoles={["Admin"]} />}>
-            {/* Admin pages will be added here */}
+            <Route
+              path="/admin/register"
+              element={<RegisterStakeholder />}
+            />
           </Route>
 
           {/* Manufacturer Routes */}

@@ -13,13 +13,13 @@ const ROLE_NAMES = {
   6: "Pharmacy",
 };
 
-// Public smart contract ABI for role retrieval and ZKP verification.
 const CONTRACT_ABI = [
   "function stakeholderRoles(address) view returns (uint8)",
-  "function verifySupplyChain(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[11] _pubSignals, uint256[] requestedAttributes) returns (bool)",
+  "function storeRecord(uint256[10] commitments) returns (uint256)",
+  "function verifySupplyChain(uint256 recordId, uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC)",
+  "event RecordStored(uint256 indexed recordId, address indexed manufacturer, uint256 timestamp)",
 ];
 
-// Connect MetaMask and identify stakeholder
 export const connectWallet = async () => {
   if (!window.ethereum) {
     throw new Error("MetaMask is not installed. Please install MetaMask.");
@@ -30,7 +30,6 @@ export const connectWallet = async () => {
   }
 
   const provider = new BrowserProvider(window.ethereum);
-
   const accounts = await provider.send("eth_requestAccounts", []);
 
   if (!accounts || accounts.length === 0) {
@@ -38,7 +37,6 @@ export const connectWallet = async () => {
   }
 
   const address = getAddress(accounts[0]);
-
   const network = await provider.getNetwork();
   const chainId = Number(network.chainId);
 
@@ -56,8 +54,7 @@ export const connectWallet = async () => {
     provider
   );
 
-  const roleValue = await contract.stakeholderRoles(address);
-  const role = Number(roleValue);
+  const role = Number(await contract.stakeholderRoles(address));
 
   if (role === 0 || !ROLE_NAMES[role]) {
     throw new Error(
@@ -75,10 +72,7 @@ export const connectWallet = async () => {
   };
 };
 
-
-// Authenticate the connected wallet using a backend challenge and MetaMask signature.
 export const signInWithWallet = async (wallet) => {
-  // Request a unique authentication challenge from the backend.
   const nonceResponse = await fetch(
     `${import.meta.env.VITE_API_BASE_URL}/auth/nonce`,
     {
@@ -92,17 +86,13 @@ export const signInWithWallet = async (wallet) => {
     }
   );
 
-  // Reject unsuccessful challenge requests.
   if (!nonceResponse.ok) {
     throw new Error("Failed to request wallet authentication challenge.");
   }
 
   const nonceData = await nonceResponse.json();
-
-  // Ask MetaMask to sign the exact message returned by the backend.
   const signature = await wallet.signer.signMessage(nonceData.message);
 
-  // Send the wallet signature to the backend for verification.
   const verifyResponse = await fetch(
     `${import.meta.env.VITE_API_BASE_URL}/auth/verify`,
     {
@@ -117,35 +107,85 @@ export const signInWithWallet = async (wallet) => {
     }
   );
 
-  // Reject unsuccessful signature verification.
   if (!verifyResponse.ok) {
     const errorData = await verifyResponse.json();
     throw new Error(errorData.detail || "Wallet authentication failed.");
   }
 
-  // Return the backend-issued JWT and authenticated stakeholder details.
   return await verifyResponse.json();
 };
 
-// Submit ZKP verification directly through the connected MetaMask wallet.
-export const submitZKPVerification = async (
-  wallet,
-  proof,
-  publicSignals,
-  requestedAttributes
-) => {
+// Store the manufacturer's ten commitments on-chain.
+export const storeRecordOnChain = async (wallet, commitments) => {
   if (!wallet?.signer) {
     throw new Error("MetaMask wallet is not connected.");
   }
 
-  // Connect the smart contract using the stakeholder's MetaMask signer.
+  if (wallet.role !== 2) {
+    throw new Error("Only Manufacturers can store records.");
+  }
+
+  if (!Array.isArray(commitments) || commitments.length !== 10) {
+    throw new Error("Exactly 10 attribute commitments are required.");
+  }
+
   const contract = new Contract(
     CONTRACT_ADDRESS,
     CONTRACT_ABI,
     wallet.signer
   );
 
-  // Convert Groth16 proof coordinates into Solidity-compatible format.
+  const transaction = await contract.storeRecord(commitments);
+  const receipt = await transaction.wait();
+
+  if (!receipt || receipt.status !== 1) {
+    throw new Error("Record storage transaction failed.");
+  }
+
+  let recordId = null;
+
+  for (const log of receipt.logs) {
+    try {
+      const parsed = contract.interface.parseLog(log);
+
+      if (parsed?.name === "RecordStored") {
+        recordId = parsed.args.recordId.toString();
+        break;
+      }
+    } catch {
+      // Ignore unrelated contract events.
+    }
+  }
+
+  if (recordId === null) {
+    throw new Error("RecordStored event was not found.");
+  }
+
+  return {
+    transactionHash: receipt.hash,
+    recordId,
+    blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toString(),
+    status: "success",
+  };
+};
+
+// Submit selective ZKP verification through the stakeholder's MetaMask wallet.
+export const submitZKPVerification = async (wallet, recordId, proof) => {
+  if (!wallet?.signer) {
+    throw new Error("MetaMask wallet is not connected.");
+  }
+
+  if (!recordId || !proof?.pi_a || !proof?.pi_b || !proof?.pi_c) {
+    throw new Error("Record ID or Groth16 proof is missing.");
+  }
+
+  const contract = new Contract(
+    CONTRACT_ADDRESS,
+    CONTRACT_ABI,
+    wallet.signer
+  );
+
   const pA = [
     proof.pi_a[0],
     proof.pi_a[1],
@@ -161,26 +201,23 @@ export const submitZKPVerification = async (
     proof.pi_c[1],
   ];
 
-  // Submit the verification transaction; MetaMask asks the user to approve it.
   const transaction = await contract.verifySupplyChain(
+    recordId,
     pA,
     pB,
-    pC,
-    publicSignals,
-    requestedAttributes
+    pC
   );
 
-  // Wait until the transaction is confirmed on the blockchain.
   const receipt = await transaction.wait();
 
-  if (receipt.status !== 1) {
+  if (!receipt || receipt.status !== 1) {
     throw new Error("Blockchain verification transaction failed.");
   }
 
   return {
     transactionHash: receipt.hash,
     blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toString(),
     status: "success",
   };
 };
-
