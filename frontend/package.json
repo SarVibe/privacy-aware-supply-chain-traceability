@@ -13,6 +13,8 @@
     "@metamask/eth-sig-util": "^10.0.1",
     "@tailwindcss/vite": "^4.3.5",
     "axios": "^1.21.1",
+    "buffer": "^6.0.3",
+    "circomlibjs": "^0.1.7",
     "ethers": "^6.17.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

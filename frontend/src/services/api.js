@@ -6,14 +6,14 @@ export const checkBackendHealth = () => {
   return axiosInstance.get("/health");
 };
 
-// Generate ZKP proof
-export const generateZKPProof = (data) => {
-  return axiosInstance.post("/zkp/generate-proof", data);
+// Retrieve a record using its original storage transaction hash
+export const getRecordByTransactionHash = (transactionHash) => {
+  return axiosInstance.get(`/records/${encodeURIComponent(transactionHash)}`);
 };
 
-// Verify ZKP on blockchain
-export const verifyZKPOnChain = (data) => {
-  return axiosInstance.post("/zkp/verify-on-chain", data);
+// Generate a selective ZKP proof
+export const generateZKPProof = (data) => {
+  return axiosInstance.post("/zkp/generate-proof", data);
 };
 
 // Register stakeholder (Admin)
