@@ -25,6 +25,12 @@ export default defineConfig({
       chainType: "l1",
       url: "http://127.0.0.1:8545",
     },
+    anvil: {
+      type: "http",
+      chainType: "l1",
+      url: "http://127.0.0.1:8548",
+      accounts: [configVariable("ANVIL_PRIVATE_KEY")],
+    },
     hardhatMainnet: {
       type: "edr-simulated",
       chainType: "l1",
