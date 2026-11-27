@@ -146,6 +146,7 @@ function GenerateProof() {
       });
 
       setSuccess("Supply-chain commitments stored successfully on-chain.");
+      setAttributes({});
     } catch (err) {
       setError(
         err.reason ||
