@@ -13,6 +13,9 @@ from backend.app.blockchain import (
     revoke_stakeholder,
     get_stakeholder_role,
     get_record_by_transaction_hash,
+    get_verification_history,
+    get_manufacturer_storage_history,
+    get_manufacturer_verification_history,
 )
 from backend.app.access_policy import get_allowed_attributes
 from backend.app.auth import (
@@ -342,3 +345,100 @@ def generate_zkp(
             detail="Internal ZKP generation error."
         )
 
+@app.get("/history/verifications")
+def verification_history(
+    current_user: dict = Depends(get_current_user)
+):
+    require_operational_stakeholder(current_user)
+
+    try:
+        history = get_verification_history(
+            current_user["wallet_address"]
+        )
+
+        return {
+            "wallet_address": current_user["wallet_address"],
+            "role": current_user["role"],
+            "role_name": ROLE_NAMES[current_user["role"]],
+            "history": history
+        }
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+
+    except Exception as error:
+        print(
+            f"Verification history error: {error}",
+            flush=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve verification history."
+        )
+
+@app.get("/history/storage")
+def manufacturer_storage_history(
+    current_user: dict = Depends(get_current_user)
+):
+    # Only manufacturers can view their stored records.
+    if current_user["role"] != 2:
+        raise HTTPException(
+            status_code=403,
+            detail="Only manufacturers can access storage history."
+        )
+
+    try:
+        history = get_manufacturer_storage_history(
+            current_user["wallet_address"]
+        )
+
+        return {
+            "wallet_address": current_user["wallet_address"],
+            "role_name": ROLE_NAMES[current_user["role"]],
+            "history": history
+        }
+
+    except Exception as error:
+        print(f"Storage history error: {error}", flush=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve storage history."
+        )
+
+
+@app.get("/history/manufacturer-verifications")
+def manufacturer_verification_history(
+    current_user: dict = Depends(get_current_user)
+):
+    # Only manufacturers can view verification activity for their records.
+    if current_user["role"] != 2:
+        raise HTTPException(
+            status_code=403,
+            detail="Only manufacturers can access this verification history."
+        )
+
+    try:
+        history = get_manufacturer_verification_history(
+            current_user["wallet_address"]
+        )
+
+        return {
+            "wallet_address": current_user["wallet_address"],
+            "role_name": ROLE_NAMES[current_user["role"]],
+            "history": history
+        }
+
+    except Exception as error:
+        print(
+            f"Manufacturer verification history error: {error}",
+            flush=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve manufacturer verification history."
+        )
+
+    

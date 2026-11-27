@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   getRecordByTransactionHash,
@@ -29,6 +29,7 @@ function VerifyZKP() {
   const [loadingProof, setLoadingProof] = useState(false);
   const [loadingVerification, setLoadingVerification] = useState(false);
   const [error, setError] = useState("");
+  const saltFileInputRef = useRef(null);
 
   const getErrorMessage = (err) => {
     return (
@@ -167,7 +168,25 @@ function VerifyZKP() {
 
       setProofResult(response.data);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorDetails = [
+        err?.message,
+        err?.response?.data?.detail,
+        err?.response?.data?.message,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      if (
+        /Assert Failed|SaltedCommitment|SelectiveSupplyChain/.test(
+          errorDetails
+        )
+      ) {
+        setError(
+          "Verification Failed: One or more reference values do not match the manufacturer's original supply-chain commitments. Please check your entered values."
+        );
+      } else {
+        setError(getErrorMessage(err));
+      }
     } finally {
       setLoadingProof(false);
     }
@@ -190,6 +209,17 @@ function VerifyZKP() {
       );
 
       setVerificationResult(result);
+
+      setTransactionHash("");
+      setRecord(null);
+      setValues({});
+      setSaltFile(null);
+      setSalts(null);
+
+      if (saltFileInputRef.current) {
+        saltFileInputRef.current.value = "";
+      }
+
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -342,6 +372,7 @@ function VerifyZKP() {
           </p>
 
           <input
+            ref={saltFileInputRef}
             type="file"
             accept=".json,application/json"
             onChange={(event) => {

@@ -179,3 +179,146 @@ def get_record_by_transaction_hash(transaction_hash: str) -> dict:
         "created_at": int(created_at),
         "commitments": [str(value) for value in commitments]
     }
+
+def get_verification_history(stakeholder_address: str) -> list:
+    stakeholder_address = Web3.to_checksum_address(
+        stakeholder_address
+    )
+
+    events = contract.events.VerificationCompleted().get_logs(
+        from_block=0,
+        to_block="latest",
+        argument_filters={
+            "stakeholder": stakeholder_address
+        }
+    )
+
+    history = []
+
+    for event in events:
+        args = event["args"]
+
+        receipt = w3.eth.get_transaction_receipt(
+            event["transactionHash"]
+        )
+
+        history.append({
+            "record_id": int(args["recordId"]),
+            "stakeholder": args["stakeholder"],
+            "role": int(args["role"]),
+            "attribute_mask": int(args["attributeMask"]),
+            "timestamp": int(args["timestamp"]),
+            "transaction_hash": Web3.to_hex(
+                event["transactionHash"]
+            ),
+            "block_number": int(event["blockNumber"]),
+            "gas_used": int(receipt["gasUsed"]),
+            "status": (
+                "success"
+                if receipt["status"] == 1
+                else "failed"
+            )
+        })
+
+    return list(reversed(history))
+
+def get_manufacturer_storage_history(manufacturer_address: str) -> list:
+    manufacturer_address = Web3.to_checksum_address(
+        manufacturer_address
+    )
+
+    # Retrieve records stored by this manufacturer.
+    events = contract.events.RecordStored().get_logs(
+        from_block=0,
+        to_block="latest",
+        argument_filters={
+            "manufacturer": manufacturer_address
+        }
+    )
+
+    history = []
+
+    for event in events:
+        args = event["args"]
+        record_id = int(args["recordId"])
+
+        receipt = w3.eth.get_transaction_receipt(
+            event["transactionHash"]
+        )
+
+        history.append({
+            "record_id": record_id,
+            "manufacturer": Web3.to_checksum_address(
+                args["manufacturer"]
+            ),
+            "timestamp": int(args["timestamp"]),
+            "transaction_hash": Web3.to_hex(
+                event["transactionHash"]
+            ),
+            "block_number": int(event["blockNumber"]),
+            "gas_used": int(receipt["gasUsed"]),
+            "status": "success" if receipt["status"] == 1 else "failed"
+        })
+
+    return list(reversed(history))
+
+
+def get_manufacturer_verification_history(manufacturer_address: str) -> list:
+    manufacturer_address = Web3.to_checksum_address(
+        manufacturer_address
+    )
+
+    # Find records created by this manufacturer.
+    stored_events = contract.events.RecordStored().get_logs(
+        from_block=0,
+        to_block="latest",
+        argument_filters={
+            "manufacturer": manufacturer_address
+        }
+    )
+
+    history = []
+
+    for stored_event in stored_events:
+        record_id = int(stored_event["args"]["recordId"])
+
+        # Retrieve every verification for this manufacturer's record.
+        verification_events = contract.events.VerificationCompleted().get_logs(
+            from_block=0,
+            to_block="latest",
+            argument_filters={
+                "recordId": record_id
+            }
+        )
+
+        for event in verification_events:
+            args = event["args"]
+
+            receipt = w3.eth.get_transaction_receipt(
+                event["transactionHash"]
+            )
+
+            history.append({
+                "record_id": record_id,
+                "stakeholder": Web3.to_checksum_address(
+                    args["stakeholder"]
+                ),
+                "role": int(args["role"]),
+                "attribute_mask": int(args["attributeMask"]),
+                "timestamp": int(args["timestamp"]),
+                "transaction_hash": Web3.to_hex(
+                    event["transactionHash"]
+                ),
+                "block_number": int(event["blockNumber"]),
+                "gas_used": int(receipt["gasUsed"]),
+                "status": (
+                    "success" if receipt["status"] == 1 else "failed"
+                )
+            })
+
+    return sorted(
+        history,
+        key=lambda item: item["timestamp"],
+        reverse=True
+    )
+

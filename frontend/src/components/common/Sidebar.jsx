@@ -12,7 +12,11 @@ const sidebarItems = {
   Manufacturer: [
     { label: "Dashboard", path: "/dashboard" },
     { label: "Generate ZKP", path: "/manufacturer/generate-proof" },
-    { label: "Verification History", path: "/history" },
+    { label: "Storage History", path: "/manufacturer/storage-history" },
+    {
+      label: "Verification History",
+      path: "/manufacturer/verification-history",
+    },
   ],
 
   "Logistics Provider": [

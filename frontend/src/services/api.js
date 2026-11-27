@@ -25,3 +25,19 @@ export const registerStakeholder = (data) => {
 export const revokeStakeholder = (data) => {
   return axiosInstance.post("/admin/revoke-stakeholder", data);
 };
+
+// Retrieve logged-in stakeholder verification history
+export const getVerificationHistory = () => {
+  return axiosInstance.get("/history/verifications");
+};
+
+// Retrieve records stored by the logged-in manufacturer
+export const getManufacturerStorageHistory = () => {
+  return axiosInstance.get("/history/storage");
+};
+
+// Retrieve stakeholder verifications for the manufacturer's records
+export const getManufacturerVerificationHistory = () => {
+  return axiosInstance.get("/history/manufacturer-verifications");
+};
+

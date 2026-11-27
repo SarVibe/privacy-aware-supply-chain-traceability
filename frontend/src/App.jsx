@@ -11,6 +11,10 @@ import RoleRoute from "./routes/RoleRoute";
 import GenerateProof from "./pages/manufacturer/GenerateProof";
 import VerifyZKP from "./pages/stakeholder/VerifyZKP";
 import RegisterStakeholder from "./pages/admin/RegisterStakeholder";
+import RevokeStakeholder from "./pages/admin/RevokeStakeholder";
+import VerificationHistory from "./pages/stakeholder/VerificationHistory";
+import StorageHistory from "./pages/manufacturer/StorageHistory";
+import ManufacturerVerificationHistory from "./pages/manufacturer/ManufacturerVerificationHistory";
 
 function App() {
   return (
@@ -31,6 +35,10 @@ function App() {
               path="/admin/register"
               element={<RegisterStakeholder />}
             />
+            <Route
+              path="/admin/revoke"
+              element={<RevokeStakeholder />}
+            />
           </Route>
 
           {/* Manufacturer Routes */}
@@ -38,6 +46,16 @@ function App() {
             <Route
               path="/manufacturer/generate-proof"
               element={<GenerateProof />}
+            />
+
+            <Route
+              path="/manufacturer/storage-history"
+              element={<StorageHistory />}
+            />
+
+            <Route
+              path="/manufacturer/verification-history"
+              element={<ManufacturerVerificationHistory />}
             />
           </Route>
 
@@ -55,6 +73,22 @@ function App() {
             }
           >
             <Route path="/verify" element={<VerifyZKP />} />
+          </Route>
+
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={[
+                  "Manufacturer",
+                  "Logistics Provider",
+                  "Warehouse",
+                  "Distributor",
+                  "Pharmacy",
+                ]}
+              />
+            }
+          >
+            <Route path="/history" element={<VerificationHistory />} />
           </Route>
 
         </Route>
